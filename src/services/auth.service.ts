@@ -4,6 +4,10 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   updateProfile,
+  sendPasswordResetEmail,
+  confirmPasswordReset,
+  GoogleAuthProvider,
+  signInWithPopup,
   type User,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
@@ -92,5 +96,58 @@ export class AuthService {
     }
 
     return dmDoc.data() as DMUser;
+  }
+
+  /**
+   * Sign in with Google
+   */
+  static async signInWithGoogle(): Promise<DMUser> {
+    try {
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+      const user = userCredential.user;
+
+      // Check if user profile exists
+      let dmDoc = await getDoc(doc(db, 'users', user.uid));
+
+      if (!dmDoc.exists()) {
+        // Create new DM profile for Google user
+        const dmUser: DMUser = {
+          id: user.uid,
+          email: user.email!,
+          displayName: user.displayName || user.email!.split('@')[0],
+          createdAt: Timestamp.now(),
+        };
+
+        await setDoc(doc(db, 'users', user.uid), dmUser);
+        return dmUser;
+      }
+
+      return dmDoc.data() as DMUser;
+    } catch (error: any) {
+      throw new Error(`Google sign-in failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Send password reset email
+   */
+  static async sendPasswordReset(email: string): Promise<void> {
+    try {
+      await sendPasswordResetEmail(auth, email);
+    } catch (error: any) {
+      throw new Error(`Failed to send password reset email: ${error.message}`);
+    }
+  }
+
+  /**
+   * Confirm password reset with code from email
+   */
+  static async confirmPasswordReset(code: string, newPassword: string): Promise<void> {
+    try {
+      await confirmPasswordReset(auth, code, newPassword);
+    } catch (error: any) {
+      throw new Error(`Failed to reset password: ${error.message}`);
+    }
   }
 }

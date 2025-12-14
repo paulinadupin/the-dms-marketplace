@@ -1,13 +1,16 @@
-import { FirebaseTest } from './components/FirebaseTest';
-import { AuthTest } from './components/AuthTest';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthPage } from './pages/AuthPage';
+import { Dashboard } from './pages/Dashboard';
 
 function App() {
   return (
-    <div>
-      <FirebaseTest />
-      <hr style={{ margin: '40px 0', border: '2px solid #ccc' }} />
-      <AuthTest />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/" element={<Navigate to="/auth" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
