@@ -1,0 +1,116 @@
+
+
+## 2️⃣ Base Item Properties (ALL items)
+
+Every item should have these:
+
+```ts
+Item {
+  id: string
+  name: string
+  type: "weapon" | "armor" | "tool" | "consumable" | "gear" | "magic" | "treasure"
+  description: string
+
+  weight: number | null
+  cost: {
+    amount: number
+    currency: "cp" | "sp" | "ep" | "gp" | "pp"
+  } | null
+
+  source: string        // PHB, DMG, Homebrew
+  tags: string[]        // "light", "martial", "stealth", etc.
+}
+```
+
+💡 `tags` are powerful — they let users filter without new fields.
+
+---
+
+## 3️⃣ Category-Specific Properties
+
+### 🗡️ Weapons
+
+```ts
+Weapon {
+  weaponType: "simple" | "martial"
+  damage: {
+    dice: "1d8"
+    type: "slashing" | "piercing" | "bludgeoning"
+  }
+  properties: string[]   // finesse, light, heavy, ranged
+  range?: {
+    normal: number
+    long: number
+  }
+}
+```
+
+---
+
+### 🛡️ Armor
+
+```ts
+Armor {
+  armorType: "light" | "medium" | "heavy" | "shield"
+  baseAC: number
+  dexModifier?: number | "none"
+  strengthRequirement?: number
+  stealthDisadvantage: boolean
+}
+```
+
+---
+
+### 🧪 Consumables
+
+```ts
+Consumable {
+  uses: number
+  effect: string
+  duration?: string
+}
+```
+
+---
+
+### 🧰 Tools
+
+```ts
+Tool {
+  toolType: "artisan" | "musical" | "gaming" | "kit"
+  proficiencyBonus: boolean
+}
+```
+
+---
+
+### ✨ Magic Items
+
+```ts
+MagicItem {
+  rarity: "common" | "uncommon" | "rare" | "very rare" | "legendary" | "artifact"
+  requiresAttunement: boolean
+  magicalEffects: string[]
+}
+```
+
+---
+
+## 4️⃣ Example: Longsword (JSON)
+
+```json
+{
+  "id": "weapon_longsword",
+  "name": "Longsword",
+  "type": "weapon",
+  "description": "A versatile martial melee weapon.",
+  "weight": 3,
+  "cost": { "amount": 15, "currency": "gp" },
+  "source": "PHB",
+  "tags": ["martial", "melee", "versatile"],
+
+  "weaponType": "martial",
+  "damage": { "dice": "1d8", "type": "slashing" },
+  "properties": ["versatile"]
+}
+```

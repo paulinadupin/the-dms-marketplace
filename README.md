@@ -1,55 +1,73 @@
-﻿# the-dms-marketplace
-# The DM's Marketplace
+# React + TypeScript + Vite
 
-**A web-based D&D marketplace and inventory manager.**  
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-The DM's Marketplace allows tabletop RPG players to **shop for items added by their Dungeon Master**, track their gold, record sales, and view detailed information about all purchased items. The website is designed to be simple, fast, and interactive, making in-person tabletop sessions smoother and more organized.  
+Currently, two official plugins are available:
 
----
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Features
+## React Compiler
 
-- **Dynamic Marketplace:** Players see items the DM added them via Google Sheets.  
-- **Gold Tracker:** Automatically calculate remaining gold after purchases.  
-- **Sales Log:** Keep track of what players sold or bought.  
-- **Store & Item Management:** DMs can enable/disable shops and edit item names, descriptions, and categories.  
-- **User-Friendly Interface:** Works on desktop and mobile, designed for quick in-session use.  
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
----
+## Expanding the ESLint configuration
 
-## How It Works
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-1. The **DM adds items** to a Google Sheet.  
-2. Each item has an **Enabled** property to determine if it appears in the market.  
-3. Players access the website and can:  
-   - Browse **active stores and their items**.  
-   - See **item details** including price and description.  
-   - Track **gold and inventory** automatically.  
-4. DMs can manage stores via the **Store Editor**:  
-   - Toggle shops on/off with **Enabled**.  
-   - Edit shop names and descriptions.  
-   
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
----
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-## Notes & Caution
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
 
-🔴⚠️ **Do not rename sheets or change the order of columns** in the spreadsheets.  
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-- Use `<br>` to create line breaks in descriptions.  
-- Or type `;` and use the **Text Tools** to convert all semicolons to line breaks.  
-- Be careful when adding new categories—each item can belong to only one.  
----
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-## Technologies Used
-
-- **React** — Frontend framework  
-- **JavaScript / HTML / CSS** — Core web technologies  
-- **Google Sheets API** — Real-time item and shop management  
-
----
-
-## Getting Started
-
-- Just go to the URL and follow the instructions on screen
-
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```

@@ -1,0 +1,1500 @@
+================================================================================
+  COMPLETE GUIDE: Building The DM's Marketplace 2.0 from Scratch
+================================================================================
+
+This guide will walk you through building a better version of your D&D
+marketplace app with modern best practices. Follow each step in order.
+
+================================================================================
+PREREQUISITES
+================================================================================
+
+Before starting, install:
+- Node.js (v18+): https://nodejs.org
+- VS Code: https://code.visualstudio.com
+- Git: https://git-scm.com
+
+================================================================================
+PHASE 1: PROJECT SETUP
+================================================================================
+
+--------------------------------------------------------------------------------
+Step 1: Initialize Project
+--------------------------------------------------------------------------------
+
+Open your terminal and run:
+
+# Create project folder
+mkdir dms-marketplace-v2
+cd dms-marketplace-v2
+
+# Initialize with Vite + React + TypeScript
+npm create vite@latest . -- --template react-ts
+
+# Install dependencies
+npm install
+
+# Install additional packages
+npm install zustand
+npm install clsx
+
+# Install dev dependencies
+npm install -D @types/node
+
+What this does:
+- Creates a React app with TypeScript
+- Vite = fast build tool (replaces Create React App)
+- Zustand = lightweight state management
+- clsx = utility for conditional CSS classes
+
+--------------------------------------------------------------------------------
+Step 2: Clean Up Template Files
+--------------------------------------------------------------------------------
+
+Delete these files:
+- src/App.css
+- src/index.css (we'll create our own)
+- public/vite.svg
+
+Update src/App.tsx:
+
+function App() {
+  return (
+    <div>
+      <h1>DM's Marketplace</h1>
+    </div>
+  );
+}
+
+export default App;
+
+Test it works:
+npm run dev
+
+Visit http://localhost:5173 - you should see "DM's Marketplace"
+
+================================================================================
+PHASE 2: TYPE DEFINITIONS
+================================================================================
+
+--------------------------------------------------------------------------------
+Step 3: Create Type System
+--------------------------------------------------------------------------------
+
+Create src/types/ folder and add these files:
+
+FILE: src/types/currency.ts
+-----------------------------------
+export interface Currency {
+  gold: number;
+  silver: number;
+  copper: number;
+}
+
+// Branded type prevents mixing copper with regular numbers
+export type CopperAmount = number & { readonly __brand: 'Copper' };
+
+export const SILVER_TO_COPPER = 10;
+export const GOLD_TO_COPPER = 100;
+
+
+FILE: src/types/item.ts
+-----------------------------------
+import { Currency } from './currency';
+
+export type Rarity = 'common' | 'uncommon' | 'rare' | 'very rare' | 'legendary';
+
+export interface Item {
+  name: string;
+  price: Currency;
+  rarity: Rarity;
+  preview: string;
+  description: string;
+  stats: string;
+}
+
+export interface PurchasedItem {
+  name: string;
+  price: Currency;
+  timestamp: number;
+}
+
+export interface SoldItem {
+  name: string;
+  price: Currency;
+  timestamp: number;
+}
+
+
+FILE: src/types/shop.ts
+-----------------------------------
+export interface Shop {
+  id: string;
+  title: string;
+  description: string;
+  enabled: boolean;
+}
+
+export interface SiteConfig {
+  site_title: string;
+  site_subtitle: string;
+}
+
+
+Why types matter: TypeScript catches bugs before runtime. You'll get
+autocomplete and error checking.
+
+================================================================================
+PHASE 3: UTILITY FUNCTIONS
+================================================================================
+
+--------------------------------------------------------------------------------
+Step 4: Build Currency Utils
+--------------------------------------------------------------------------------
+
+FILE: src/utils/currency.ts
+-----------------------------------
+import { Currency, CopperAmount, GOLD_TO_COPPER, SILVER_TO_COPPER } from '../types/currency';
+
+export class CurrencyConverter {
+  /**
+   * Convert D&D currency to total copper pieces
+   * 1 Gold = 100 Copper, 1 Silver = 10 Copper
+   */
+  static toCopper(currency: Currency): CopperAmount {
+    const total =
+      currency.gold * GOLD_TO_COPPER +
+      currency.silver * SILVER_TO_COPPER +
+      currency.copper;
+    return total as CopperAmount;
+  }
+
+  /**
+   * Convert copper back to D&D currency format
+   */
+  static fromCopper(totalCopper: CopperAmount): Currency {
+    const gold = Math.floor(totalCopper / GOLD_TO_COPPER);
+    const remaining = totalCopper % GOLD_TO_COPPER;
+    const silver = Math.floor(remaining / SILVER_TO_COPPER);
+    const copper = remaining % SILVER_TO_COPPER;
+
+    return { gold, silver, copper };
+  }
+
+  /**
+   * Check if player can afford an item
+   */
+  static canAfford(wallet: Currency, price: Currency): boolean {
+    return this.toCopper(wallet) >= this.toCopper(price);
+  }
+
+  /**
+   * Subtract price from wallet, returns null if can't afford
+   */
+  static subtract(wallet: Currency, price: Currency): Currency | null {
+    const walletCopper = this.toCopper(wallet);
+    const priceCopper = this.toCopper(price);
+
+    if (walletCopper < priceCopper) return null;
+
+    const change = (walletCopper - priceCopper) as CopperAmount;
+    return this.fromCopper(change);
+  }
+
+  /**
+   * Add currency together
+   */
+  static add(wallet: Currency, amount: Currency): Currency {
+    const total = (this.toCopper(wallet) + this.toCopper(amount)) as CopperAmount;
+    return this.fromCopper(total);
+  }
+
+  /**
+   * Format currency for display
+   */
+  static format(currency: Currency): string {
+    const parts: string[] = [];
+    if (currency.gold > 0) parts.push(`${currency.gold} GP`);
+    if (currency.silver > 0) parts.push(`${currency.silver} SP`);
+    if (currency.copper > 0) parts.push(`${currency.copper} CP`);
+    return parts.join(', ') || '0 CP';
+  }
+}
+
+
+Test it in browser console later:
+const wallet = { gold: 5, silver: 3, copper: 7 };
+CurrencyConverter.toCopper(wallet); // 537
+
+--------------------------------------------------------------------------------
+Step 5: Create Validation Utils
+--------------------------------------------------------------------------------
+
+FILE: src/utils/validation.ts
+-----------------------------------
+import { Currency } from '../types/currency';
+
+export const extractSheetId = (url: string): string | null => {
+  const regex = /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+};
+
+export const validateGoogleSheetsUrl = (url: string): string | null => {
+  if (!url.trim()) {
+    return 'Please enter a Google Sheets URL';
+  }
+
+  const sheetId = extractSheetId(url);
+  if (!sheetId) {
+    return 'Invalid Google Sheets URL format. Please check the URL.';
+  }
+
+  return null; // Valid
+};
+
+export const validateCurrency = (currency: Currency): string | null => {
+  if (currency.gold < 0 || currency.silver < 0 || currency.copper < 0) {
+    return 'Currency values cannot be negative';
+  }
+
+  if (!Number.isInteger(currency.gold) ||
+      !Number.isInteger(currency.silver) ||
+      !Number.isInteger(currency.copper)) {
+    return 'Currency values must be whole numbers';
+  }
+
+  return null; // Valid
+};
+
+export const normalizeCurrency = (currency: Currency): Currency => {
+  let copper = currency.copper;
+  let silver = currency.silver;
+  let gold = currency.gold;
+
+  // Convert excess copper to silver
+  if (copper >= 10) {
+    silver += Math.floor(copper / 10);
+    copper = copper % 10;
+  }
+
+  // Convert excess silver to gold
+  if (silver >= 10) {
+    gold += Math.floor(silver / 10);
+    silver = silver % 10;
+  }
+
+  return { gold, silver, copper };
+};
+
+
+================================================================================
+PHASE 4: STATE MANAGEMENT
+================================================================================
+
+--------------------------------------------------------------------------------
+Step 6: Create Player Store
+--------------------------------------------------------------------------------
+
+FILE: src/store/usePlayerStore.ts
+-----------------------------------
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { Currency } from '../types/currency';
+import { PurchasedItem, SoldItem, Item } from '../types/item';
+import { CurrencyConverter } from '../utils/currency';
+
+interface PlayerState {
+  // State
+  currency: Currency;
+  startingCurrency: Currency;
+  purchasedItems: PurchasedItem[];
+  soldItems: SoldItem[];
+
+  // Actions
+  setCurrency: (currency: Currency) => void;
+  purchaseItem: (item: Item) => boolean;
+  sellItem: (name: string, price: Currency) => void;
+  resetSession: () => void;
+  clearAll: () => void;
+}
+
+const initialState = {
+  currency: { gold: 0, silver: 0, copper: 0 },
+  startingCurrency: { gold: 0, silver: 0, copper: 0 },
+  purchasedItems: [],
+  soldItems: [],
+};
+
+export const usePlayerStore = create<PlayerState>()(
+  persist(
+    (set, get) => ({
+      ...initialState,
+
+      setCurrency: (currency) =>
+        set({
+          currency,
+          startingCurrency: currency,
+        }),
+
+      purchaseItem: (item) => {
+        const { currency } = get();
+        const newCurrency = CurrencyConverter.subtract(currency, item.price);
+
+        if (!newCurrency) {
+          return false; // Can't afford
+        }
+
+        set((state) => ({
+          currency: newCurrency,
+          purchasedItems: [
+            ...state.purchasedItems,
+            {
+              name: item.name,
+              price: item.price,
+              timestamp: Date.now(),
+            },
+          ],
+        }));
+
+        return true; // Success
+      },
+
+      sellItem: (name, price) =>
+        set((state) => ({
+          currency: CurrencyConverter.add(state.currency, price),
+          soldItems: [
+            ...state.soldItems,
+            {
+              name,
+              price,
+              timestamp: Date.now(),
+            },
+          ],
+        })),
+
+      resetSession: () =>
+        set((state) => ({
+          purchasedItems: [],
+          soldItems: [],
+          startingCurrency: state.currency,
+        })),
+
+      clearAll: () => set(initialState),
+    }),
+    {
+      name: 'player-storage', // LocalStorage key
+    }
+  )
+);
+
+
+What this does:
+- Centralized state (no prop drilling)
+- Automatically saves to localStorage
+- Immutable updates (prevents bugs)
+- Type-safe
+
+--------------------------------------------------------------------------------
+Step 7: Create Shop Store
+--------------------------------------------------------------------------------
+
+FILE: src/store/useShopStore.ts
+-----------------------------------
+import { create } from 'zustand';
+import { Item } from '../types/item';
+import { Shop, SiteConfig } from '../types/shop';
+
+interface ShopState {
+  // State
+  shops: Record<string, Shop>;
+  items: Record<string, Item[]>;
+  currentShop: string | null;
+  siteConfig: SiteConfig;
+  loading: boolean;
+  error: string | null;
+
+  // Actions
+  setShops: (shops: Record<string, Shop>) => void;
+  setItems: (items: Record<string, Item[]>) => void;
+  setSiteConfig: (config: SiteConfig) => void;
+  setCurrentShop: (shopId: string) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+}
+
+const defaultConfig: SiteConfig = {
+  site_title: "The DM's Marketplace",
+  site_subtitle: 'Shop for magical items and gear',
+};
+
+export const useShopStore = create<ShopState>((set) => ({
+  shops: {},
+  items: {},
+  currentShop: null,
+  siteConfig: defaultConfig,
+  loading: false,
+  error: null,
+
+  setShops: (shops) => set({ shops }),
+  setItems: (items) => set({ items }),
+  setSiteConfig: (config) => set({ siteConfig: config }),
+  setCurrentShop: (shopId) => set({ currentShop: shopId }),
+  setLoading: (loading) => set({ loading }),
+  setError: (error) => set({ error }),
+}));
+
+
+================================================================================
+PHASE 5: GOOGLE SHEETS SERVICE
+================================================================================
+
+--------------------------------------------------------------------------------
+Step 8: Build API Service
+--------------------------------------------------------------------------------
+
+FILE: src/services/googleSheets.ts
+-----------------------------------
+export class GoogleSheetsError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'GoogleSheetsError';
+  }
+}
+
+interface CacheEntry {
+  data: any;
+  timestamp: number;
+}
+
+export class GoogleSheetsService {
+  private readonly baseUrl = 'https://docs.google.com/spreadsheets/d';
+  private cache = new Map<string, CacheEntry>();
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  /**
+   * Fetch and parse a Google Sheets sheet
+   */
+  async fetchSheet<T>(
+    sheetId: string,
+    sheetName: string,
+    parser: (data: any) => T
+  ): Promise<T> {
+    const cacheKey = `${sheetId}:${sheetName}`;
+    const cached = this.cache.get(cacheKey);
+
+    // Return cached data if fresh
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      return cached.data;
+    }
+
+    try {
+      const url = `${this.baseUrl}/${sheetId}/gviz/tq?sheet=${sheetName}&tqx=out:json`;
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new GoogleSheetsError(
+          `Failed to fetch sheet: ${response.status}. Make sure the sheet is shared as "Anyone with the link can view".`
+        );
+      }
+
+      const text = await response.text();
+      const jsonData = this.parseGVizResponse(text);
+      const parsed = parser(jsonData);
+
+      // Cache the result
+      this.cache.set(cacheKey, { data: parsed, timestamp: Date.now() });
+
+      return parsed;
+    } catch (error) {
+      if (error instanceof GoogleSheetsError) {
+        throw error;
+      }
+      throw new GoogleSheetsError(
+        'Network error or invalid sheet. Please check your connection and sheet URL.'
+      );
+    }
+  }
+
+  /**
+   * Parse Google Visualization API response
+   * Removes wrapper: google.visualization.Query.setResponse(...)
+   */
+  private parseGVizResponse(text: string): any {
+    const jsonString = text.substring(47).slice(0, -2);
+    return JSON.parse(jsonString);
+  }
+
+  /**
+   * Clear all cached data
+   */
+  invalidateCache(): void {
+    this.cache.clear();
+  }
+}
+
+
+--------------------------------------------------------------------------------
+Step 9: Create Parsers
+--------------------------------------------------------------------------------
+
+FILE: src/services/parsers.ts
+-----------------------------------
+import { Item } from '../types/item';
+import { Shop, SiteConfig } from '../types/shop';
+
+/**
+ * Parse Items sheet from Google Sheets
+ */
+export const parseItems = (jsonData: any): Record<string, Item[]> => {
+  const items: Record<string, Item[]> = {};
+
+  if (!jsonData?.table?.rows) return items;
+
+  jsonData.table.rows.forEach((row: any) => {
+    const cells = row.c;
+    if (!cells?.[0]?.v || !cells?.[2]?.v) return;
+
+    // Check if item is enabled
+    const enabled = String(cells[1]?.v || 'false').toLowerCase() === 'true';
+    if (!enabled) return;
+
+    const shopId = String(cells[0].v);
+    const item: Item = {
+      name: String(cells[2].v),
+      price: {
+        gold: Number(cells[3]?.v) || 0,
+        silver: Number(cells[4]?.v) || 0,
+        copper: Number(cells[5]?.v) || 0,
+      },
+      rarity: (cells[6]?.v || 'common') as any,
+      preview: String(cells[7]?.v || ''),
+      description: String(cells[8]?.v || ''),
+      stats: String(cells[9]?.v || ''),
+    };
+
+    if (!items[shopId]) {
+      items[shopId] = [];
+    }
+    items[shopId].push(item);
+  });
+
+  return items;
+};
+
+/**
+ * Parse Stores sheet from Google Sheets
+ */
+export const parseStores = (jsonData: any): Record<string, Shop> => {
+  const stores: Record<string, Shop> = {};
+
+  if (!jsonData?.table?.rows) return stores;
+
+  jsonData.table.rows.forEach((row: any) => {
+    const cells = row.c;
+    if (!cells?.[0]?.v || !cells?.[2]?.v) return;
+
+    // Check if store is enabled
+    const enabled = String(cells[1]?.v || 'false').toLowerCase() === 'true';
+    if (!enabled) return;
+
+    const shopId = String(cells[0].v);
+    stores[shopId] = {
+      id: shopId,
+      title: String(cells[2].v),
+      description: String(cells[3]?.v || ''),
+      enabled: true,
+    };
+  });
+
+  return stores;
+};
+
+/**
+ * Parse SiteConfig sheet from Google Sheets
+ */
+export const parseSiteConfig = (jsonData: any): SiteConfig => {
+  const config: any = {};
+
+  if (!jsonData?.table?.rows) {
+    return {
+      site_title: "The DM's Marketplace",
+      site_subtitle: 'Shop for magical items and gear',
+    };
+  }
+
+  jsonData.table.rows.forEach((row: any) => {
+    const cells = row.c;
+    if (!cells?.[0]?.v || !cells?.[1]?.v) return;
+
+    const key = String(cells[0].v);
+    const value = String(cells[1].v);
+    config[key] = value;
+  });
+
+  return {
+    site_title: config.site_title || "The DM's Marketplace",
+    site_subtitle: config.site_subtitle || 'Shop for magical items and gear',
+  };
+};
+
+
+================================================================================
+PHASE 6: REACT HOOKS
+================================================================================
+
+--------------------------------------------------------------------------------
+Step 10: Create Data Loading Hook
+--------------------------------------------------------------------------------
+
+FILE: src/hooks/useGoogleSheets.ts
+-----------------------------------
+import { useEffect } from 'react';
+import { GoogleSheetsService } from '../services/googleSheets';
+import { parseItems, parseSiteConfig, parseStores } from '../services/parsers';
+import { useShopStore } from '../store/useShopStore';
+
+export function useGoogleSheets(sheetId: string | null) {
+  const { setShops, setItems, setSiteConfig, setLoading, setError, setCurrentShop } =
+    useShopStore();
+
+  useEffect(() => {
+    if (!sheetId) {
+      setLoading(false);
+      return;
+    }
+
+    const service = new GoogleSheetsService();
+
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Load all sheets in parallel for speed
+        const [config, shops, items] = await Promise.all([
+          service.fetchSheet(sheetId, 'SiteConfig', parseSiteConfig),
+          service.fetchSheet(sheetId, 'Stores', parseStores),
+          service.fetchSheet(sheetId, 'Items', parseItems),
+        ]);
+
+        setSiteConfig(config);
+        setShops(shops);
+        setItems(items);
+
+        // Set first shop as current
+        const firstShopId = Object.keys(shops)[0];
+        if (firstShopId) {
+          setCurrentShop(firstShopId);
+        }
+
+        setLoading(false);
+      } catch (error: any) {
+        setError(error.message || 'Failed to load data');
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [sheetId]);
+}
+
+
+================================================================================
+PHASE 7: UI COMPONENTS
+================================================================================
+
+--------------------------------------------------------------------------------
+Step 11: Create Basic Components
+--------------------------------------------------------------------------------
+
+FILE: src/components/shared/Button.tsx
+-----------------------------------
+import { ButtonHTMLAttributes } from 'react';
+import clsx from 'clsx';
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'danger';
+}
+
+export function Button({
+  children,
+  variant = 'primary',
+  className,
+  ...props
+}: ButtonProps) {
+  return (
+    <button
+      className={clsx(
+        'px-6 py-3 rounded font-semibold transition-all',
+        {
+          'bg-amber-600 hover:bg-amber-700 text-white': variant === 'primary',
+          'bg-gray-600 hover:bg-gray-700 text-white': variant === 'secondary',
+          'bg-red-600 hover:bg-red-700 text-white': variant === 'danger',
+        },
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+
+FILE: src/components/shared/CurrencyDisplay.tsx
+-----------------------------------
+import { Currency } from '../../types/currency';
+
+interface CurrencyDisplayProps {
+  amount: Currency;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+export function CurrencyDisplay({ amount, size = 'md' }: CurrencyDisplayProps) {
+  const sizeClasses = {
+    sm: 'text-sm',
+    md: 'text-base',
+    lg: 'text-lg',
+  };
+
+  return (
+    <div className={`flex gap-3 ${sizeClasses[size]}`}>
+      {amount.gold > 0 && (
+        <span className="text-yellow-500 font-semibold">
+          {amount.gold} GP
+        </span>
+      )}
+      {amount.silver > 0 && (
+        <span className="text-gray-400 font-semibold">
+          {amount.silver} SP
+        </span>
+      )}
+      {amount.copper > 0 && (
+        <span className="text-orange-600 font-semibold">
+          {amount.copper} CP
+        </span>
+      )}
+      {amount.gold === 0 && amount.silver === 0 && amount.copper === 0 && (
+        <span className="text-gray-500">0 CP</span>
+      )}
+    </div>
+  );
+}
+
+
+--------------------------------------------------------------------------------
+Step 12: Create Item Card
+--------------------------------------------------------------------------------
+
+FILE: src/components/shop/ItemCard.tsx
+-----------------------------------
+import { Item } from '../../types/item';
+import { CurrencyDisplay } from '../shared/CurrencyDisplay';
+import { usePlayerStore } from '../../store/usePlayerStore';
+import { CurrencyConverter } from '../../utils/currency';
+import clsx from 'clsx';
+
+interface ItemCardProps {
+  item: Item;
+  onClick: (item: Item) => void;
+}
+
+const rarityColors = {
+  common: 'bg-gray-500',
+  uncommon: 'bg-green-500',
+  rare: 'bg-blue-500',
+  'very rare': 'bg-purple-500',
+  legendary: 'bg-orange-500',
+};
+
+export function ItemCard({ item, onClick }: ItemCardProps) {
+  const currency = usePlayerStore((state) => state.currency);
+  const canAfford = CurrencyConverter.canAfford(currency, item.price);
+
+  return (
+    <div
+      onClick={() => onClick(item)}
+      className={clsx(
+        'p-4 rounded-lg border-2 cursor-pointer transition-all hover:scale-105',
+        'bg-gray-800 border-gray-700',
+        {
+          'opacity-50': !canAfford,
+        }
+      )}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && onClick(item)}
+    >
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="font-bold text-lg text-white">{item.name}</h3>
+        <span
+          className={clsx(
+            'px-2 py-1 rounded text-xs font-bold text-white',
+            rarityColors[item.rarity]
+          )}
+        >
+          {item.rarity.toUpperCase()}
+        </span>
+      </div>
+
+      <CurrencyDisplay amount={item.price} size="sm" />
+
+      <p className="mt-3 text-sm text-gray-300 line-clamp-2">
+        {item.preview}
+      </p>
+
+      {!canAfford && (
+        <p className="mt-2 text-xs text-red-400">Cannot afford</p>
+      )}
+    </div>
+  );
+}
+
+
+--------------------------------------------------------------------------------
+Step 13: Create Modals
+--------------------------------------------------------------------------------
+
+FILE: src/components/modals/Modal.tsx
+-----------------------------------
+import { ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  children: ReactNode;
+  title?: string;
+}
+
+export function Modal({ isOpen, onClose, children, title }: ModalProps) {
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+      onClick={onClose}
+    >
+      <div
+        className="bg-gray-900 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center mb-4">
+          {title && <h2 className="text-2xl font-bold text-white">{title}</h2>}
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white text-2xl"
+          >
+            &times;
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+
+FILE: src/components/modals/ItemDetailModal.tsx
+-----------------------------------
+import { Item } from '../../types/item';
+import { Modal } from './Modal';
+import { CurrencyDisplay } from '../shared/CurrencyDisplay';
+import { Button } from '../shared/Button';
+import { usePlayerStore } from '../../store/usePlayerStore';
+import { CurrencyConverter } from '../../utils/currency';
+
+interface ItemDetailModalProps {
+  item: Item | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function ItemDetailModal({ item, isOpen, onClose }: ItemDetailModalProps) {
+  const { currency, purchaseItem } = usePlayerStore();
+
+  if (!item) return null;
+
+  const canAfford = CurrencyConverter.canAfford(currency, item.price);
+
+  const handlePurchase = () => {
+    const success = purchaseItem(item);
+    if (success) {
+      alert(`Successfully purchased ${item.name}!`);
+      onClose();
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={item.name}>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <CurrencyDisplay amount={item.price} size="lg" />
+          <span className="px-3 py-1 bg-purple-600 text-white rounded text-sm">
+            {item.rarity.toUpperCase()}
+          </span>
+        </div>
+
+        <p className="text-gray-300">{item.description}</p>
+
+        <div className="bg-gray-800 p-4 rounded">
+          <h3 className="font-bold text-white mb-2">Statistics</h3>
+          <div
+            className="text-sm text-gray-300"
+            dangerouslySetInnerHTML={{ __html: item.stats }}
+          />
+        </div>
+
+        <div className="bg-gray-800 p-4 rounded">
+          <h3 className="font-bold text-white mb-2">Your Wallet</h3>
+          <CurrencyDisplay amount={currency} size="md" />
+        </div>
+
+        {canAfford && (
+          <div className="bg-green-900 p-4 rounded">
+            <h3 className="font-bold text-white mb-2">Change</h3>
+            <CurrencyDisplay
+              amount={CurrencyConverter.subtract(currency, item.price)!}
+              size="sm"
+            />
+          </div>
+        )}
+
+        <Button
+          onClick={handlePurchase}
+          disabled={!canAfford}
+          className="w-full"
+        >
+          {canAfford ? 'Purchase Item' : 'Cannot Afford'}
+        </Button>
+      </div>
+    </Modal>
+  );
+}
+
+
+--------------------------------------------------------------------------------
+Step 14: Create Main App Layout
+--------------------------------------------------------------------------------
+
+FILE: src/App.tsx
+-----------------------------------
+import { useState } from 'react';
+import { useShopStore } from './store/useShopStore';
+import { usePlayerStore } from './store/usePlayerStore';
+import { ItemCard } from './components/shop/ItemCard';
+import { ItemDetailModal } from './components/modals/ItemDetailModal';
+import { CurrencyDisplay } from './components/shared/CurrencyDisplay';
+import { Item } from './types/item';
+
+function App() {
+  const { shops, items, currentShop, setCurrentShop, siteConfig } = useShopStore();
+  const { currency } = usePlayerStore();
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+
+  const currentItems = currentShop ? items[currentShop] || [] : [];
+  const currentShopData = currentShop ? shops[currentShop] : null;
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white">
+      {/* Header */}
+      <header className="bg-gray-800 p-6 shadow-lg">
+        <h1 className="text-4xl font-bold text-center">{siteConfig.site_title}</h1>
+        <p className="text-center text-gray-400 mt-2">{siteConfig.site_subtitle}</p>
+      </header>
+
+      {/* Currency Display */}
+      <div className="bg-gray-800 p-4 flex justify-center">
+        <CurrencyDisplay amount={currency} size="lg" />
+      </div>
+
+      {/* Shop Navigation */}
+      <nav className="bg-gray-800 p-4 flex gap-4 justify-center overflow-x-auto">
+        {Object.values(shops).map((shop) => (
+          <button
+            key={shop.id}
+            onClick={() => setCurrentShop(shop.id)}
+            className={`px-4 py-2 rounded ${
+              currentShop === shop.id
+                ? 'bg-amber-600 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            {shop.title}
+          </button>
+        ))}
+      </nav>
+
+      {/* Shop Header */}
+      {currentShopData && (
+        <div className="text-center p-6">
+          <h2 className="text-3xl font-bold">{currentShopData.title}</h2>
+          <p className="text-gray-400 mt-2">{currentShopData.description}</p>
+        </div>
+      )}
+
+      {/* Items Grid */}
+      <div className="container mx-auto p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {currentItems.map((item) => (
+            <ItemCard
+              key={item.name}
+              item={item}
+              onClick={setSelectedItem}
+            />
+          ))}
+        </div>
+
+        {currentItems.length === 0 && (
+          <p className="text-center text-gray-500 mt-10">
+            No items available in this shop
+          </p>
+        )}
+      </div>
+
+      {/* Item Detail Modal */}
+      <ItemDetailModal
+        item={selectedItem}
+        isOpen={!!selectedItem}
+        onClose={() => setSelectedItem(null)}
+      />
+    </div>
+  );
+}
+
+export default App;
+
+
+================================================================================
+PHASE 8: STYLING
+================================================================================
+
+--------------------------------------------------------------------------------
+Step 15: Set Up Tailwind CSS
+--------------------------------------------------------------------------------
+
+Install Tailwind:
+
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+
+
+FILE: tailwind.config.js
+-----------------------------------
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        emerald: '#07342b',
+        obsidian: '#18181b',
+        electrum: '#e6c86e',
+      },
+    },
+  },
+  plugins: [],
+}
+
+
+FILE: src/index.css
+-----------------------------------
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-900 text-white;
+    font-family: 'Garamond', serif;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Cinzel Decorative', serif;
+  }
+}
+
+
+FILE: src/main.tsx
+-----------------------------------
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.tsx'
+import './index.css'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)
+
+
+================================================================================
+PHASE 9: TESTING YOUR APP
+================================================================================
+
+--------------------------------------------------------------------------------
+Step 16: Run Development Server
+--------------------------------------------------------------------------------
+
+npm run dev
+
+Visit http://localhost:5173
+
+--------------------------------------------------------------------------------
+Step 17: Test with Mock Data
+--------------------------------------------------------------------------------
+
+FILE: src/data/mockData.ts
+-----------------------------------
+export const MOCK_SHOPS = {
+  weapons: {
+    id: 'weapons',
+    title: 'Weapon Shop',
+    description: 'Fine blades and ranged weapons',
+    enabled: true,
+  },
+  magic: {
+    id: 'magic',
+    title: 'Magic Shop',
+    description: 'Mystical artifacts and enchanted items',
+    enabled: true,
+  },
+};
+
+export const MOCK_ITEMS = {
+  weapons: [
+    {
+      name: 'Longsword +1',
+      price: { gold: 15, silver: 0, copper: 0 },
+      rarity: 'uncommon' as const,
+      preview: 'A finely crafted blade with magical enhancement.',
+      description: 'This longsword grants +1 bonus to attack and damage rolls.',
+      stats: 'Damage: 1d8+1 slashing<br>Properties: Versatile (1d10), Magical',
+    },
+  ],
+  magic: [
+    {
+      name: 'Ring of Protection',
+      price: { gold: 200, silver: 0, copper: 0 },
+      rarity: 'rare' as const,
+      preview: 'A silver band inscribed with protective wards.',
+      description: 'Grants +1 bonus to AC and saving throws while worn.',
+      stats: 'AC Bonus: +1<br>Saving Throw Bonus: +1<br>Requires Attunement',
+    },
+  ],
+};
+
+
+Initialize stores with mock data in App.tsx:
+
+import { useEffect } from 'react';
+import { MOCK_SHOPS, MOCK_ITEMS } from './data/mockData';
+
+function App() {
+  const { setShops, setItems, setCurrentShop } = useShopStore();
+
+  useEffect(() => {
+    // Load mock data on start
+    setShops(MOCK_SHOPS);
+    setItems(MOCK_ITEMS);
+    setCurrentShop('weapons');
+  }, []);
+
+  // ... rest of component
+}
+
+
+Also set initial currency:
+
+const { currency, setCurrency } = usePlayerStore();
+
+useEffect(() => {
+  // Set starting gold if not already set
+  if (currency.gold === 0) {
+    setCurrency({ gold: 100, silver: 0, copper: 0 });
+  }
+}, []);
+
+
+================================================================================
+PHASE 10: ADD REMAINING FEATURES
+================================================================================
+
+--------------------------------------------------------------------------------
+Step 18: Create Currency Setup Modal
+--------------------------------------------------------------------------------
+
+FILE: src/components/modals/CurrencySetupModal.tsx
+-----------------------------------
+import { useState } from 'react';
+import { Modal } from './Modal';
+import { Button } from '../shared/Button';
+import { usePlayerStore } from '../../store/usePlayerStore';
+import { validateCurrency, normalizeCurrency, extractSheetId, validateGoogleSheetsUrl } from '../../utils/validation';
+
+interface CurrencySetupModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function CurrencySetupModal({ isOpen, onClose }: CurrencySetupModalProps) {
+  const { setCurrency } = usePlayerStore();
+  const [sheetUrl, setSheetUrl] = useState('');
+  const [gold, setGold] = useState(0);
+  const [silver, setSilver] = useState(0);
+  const [copper, setCopper] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [urlError, setUrlError] = useState<string | null>(null);
+
+  const handleSubmit = () => {
+    // Validate sheet URL
+    const urlValidation = validateGoogleSheetsUrl(sheetUrl);
+    if (urlValidation) {
+      setUrlError(urlValidation);
+      return;
+    }
+
+    // Validate currency
+    const currency = { gold, silver, copper };
+    const currencyValidation = validateCurrency(currency);
+    if (currencyValidation) {
+      setError(currencyValidation);
+      return;
+    }
+
+    // Extract sheet ID and save
+    const sheetId = extractSheetId(sheetUrl);
+    if (sheetId) {
+      localStorage.setItem('sheetId', sheetId);
+      window.location.reload(); // Reload to load Google Sheets data
+    }
+
+    const normalized = normalizeCurrency(currency);
+    setCurrency(normalized);
+    onClose();
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Set Starting Currency">
+      <div className="space-y-4">
+        <p className="text-gray-300">
+          Enter the Google Sheets URL provided by your DM:
+        </p>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Google Sheets URL (provided by DM)
+          </label>
+          <input
+            type="text"
+            value={sheetUrl}
+            onChange={(e) => setSheetUrl(e.target.value)}
+            placeholder="https://docs.google.com/spreadsheets/d/..."
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
+          />
+          {urlError && <p className="text-red-400 text-sm mt-1">{urlError}</p>}
+          <p className="text-xs text-gray-500 mt-1">
+            Make sure the sheet is set to "Anyone with the link can view"
+          </p>
+        </div>
+
+        <p className="text-gray-300">
+          Enter the amount of currency your character is carrying:
+        </p>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Gold Pieces</label>
+          <input
+            type="number"
+            min="0"
+            value={gold}
+            onChange={(e) => setGold(Number(e.target.value))}
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Silver Pieces</label>
+          <input
+            type="number"
+            min="0"
+            value={silver}
+            onChange={(e) => setSilver(Number(e.target.value))}
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Copper Pieces</label>
+          <input
+            type="number"
+            min="0"
+            value={copper}
+            onChange={(e) => setCopper(Number(e.target.value))}
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
+          />
+        </div>
+
+        {error && <p className="text-red-400 text-sm">{error}</p>}
+
+        <p className="text-xs text-gray-500">
+          Remember: 1 Gold = 10 Silver = 100 Copper
+        </p>
+
+        <Button onClick={handleSubmit} className="w-full">
+          Start Shopping
+        </Button>
+      </div>
+    </Modal>
+  );
+}
+
+
+================================================================================
+PHASE 11: CONNECT TO GOOGLE SHEETS
+================================================================================
+
+--------------------------------------------------------------------------------
+Step 19: Wire Up Data Loading in App
+--------------------------------------------------------------------------------
+
+Update src/App.tsx to include Google Sheets loading:
+
+import { useState, useEffect } from 'react';
+import { useGoogleSheets } from './hooks/useGoogleSheets';
+import { CurrencySetupModal } from './components/modals/CurrencySetupModal';
+import { Button } from './components/shared/Button';
+
+function App() {
+  const [sheetId, setSheetId] = useState<string | null>(null);
+  const [showSetup, setShowSetup] = useState(true);
+
+  // Load sheet ID from localStorage on mount
+  useEffect(() => {
+    const savedSheetId = localStorage.getItem('sheetId');
+    if (savedSheetId) {
+      setSheetId(savedSheetId);
+      setShowSetup(false);
+    }
+  }, []);
+
+  // Load data from Google Sheets
+  useGoogleSheets(sheetId);
+
+  const { loading, error } = useShopStore();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <p className="text-xl text-white">Loading marketplace...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center">
+          <p className="text-xl text-red-400 mb-4">Error: {error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-900">
+      <CurrencySetupModal
+        isOpen={showSetup}
+        onClose={() => setShowSetup(false)}
+      />
+
+      {/* ... rest of app JSX */}
+    </div>
+  );
+}
+
+
+================================================================================
+PHASE 12: BUILD & DEPLOY
+================================================================================
+
+--------------------------------------------------------------------------------
+Step 20: Build for Production
+--------------------------------------------------------------------------------
+
+npm run build
+
+This creates a dist/ folder with optimized files.
+
+--------------------------------------------------------------------------------
+Step 21: Deploy to GitHub Pages
+--------------------------------------------------------------------------------
+
+# Install gh-pages package
+npm install -D gh-pages
+
+# Add to package.json scripts:
+{
+  "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
+  }
+}
+
+# Deploy
+npm run deploy
+
+
+================================================================================
+NEXT STEPS & ENHANCEMENTS
+================================================================================
+
+Once the basic app is working, you can add:
+
+1. Shopping Summary Modal - show purchase history
+2. Sell Items Feature - let players sell items
+3. Session Reset - clear purchases but keep currency
+4. Role Selection - DM vs Player modes
+5. Dark/Light Theme Toggle
+6. Accessibility - ARIA labels, keyboard shortcuts
+7. Animations - framer-motion for smooth transitions
+8. PWA - make it work offline
+9. Testing - add Vitest unit tests
+
+================================================================================
+KEY DIFFERENCES FROM ORIGINAL
+================================================================================
+
+Original                      | This Version
+------------------------------|----------------------------------------
+1000+ line single file        | Modular components
+Global mutable state          | Zustand immutable state
+String concat HTML            | React JSX
+No types                      | Full TypeScript
+Manual DOM updates            | React re-renders
+Sequential loading            | Parallel loading
+No caching                    | 5-minute cache
+Weak validation               | Strong validation
+
+This architecture is:
+✅ More maintainable
+✅ Easier to test
+✅ Better performance
+✅ Type-safe
+✅ Scalable
+
+Start with Phase 1-2, get comfortable with the structure, then build out the
+features incrementally. Good luck building your marketplace! 🎲
+
+================================================================================
+END OF GUIDE
+================================================================================

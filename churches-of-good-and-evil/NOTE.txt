@@ -1,2 +1,0 @@
-This folder contains a special campaign-specific version of the website. 
-It is not part of the official main version.
