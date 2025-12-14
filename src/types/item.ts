@@ -1,4 +1,4 @@
-import { CurrencyType } from "./currency";
+import type { CurrencyType } from "./currency";
 
 export type ItemType = "weapon" | "armor" | "tool" | "consumable" | "gear" | "magic" | "treasure" | "other";
 

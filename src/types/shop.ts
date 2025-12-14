@@ -1,5 +1,5 @@
-import { Item } from "./item";
-import { Currency } from "./currency";
+import type { Item } from "./item";
+import type { Currency } from "./currency";
 
 export type ShopCategory =
   | "general"
