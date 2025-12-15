@@ -81,20 +81,36 @@ export function Dashboard() {
             Welcome, {user.displayName || user.email}!
           </p>
         </div>
-        <button
-          onClick={handleSignOut}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#dc3545',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}
-        >
-          Sign Out
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={() => navigate('/settings')}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            Settings
+          </button>
+          <button
+            onClick={handleSignOut}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            Sign Out
+          </button>
+        </div>
       </div>
 
       {/* Market List */}

@@ -8,9 +8,14 @@ import {
   confirmPasswordReset,
   GoogleAuthProvider,
   signInWithPopup,
+  updateEmail,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  deleteUser,
   type User,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, Timestamp, updateDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import type { DMUser } from '../types/firebase';
 
@@ -148,6 +153,114 @@ export class AuthService {
       await confirmPasswordReset(auth, code, newPassword);
     } catch (error: any) {
       throw new Error(`Failed to reset password: ${error.message}`);
+    }
+  }
+
+  /**
+   * Update display name
+   */
+  static async updateDisplayName(newDisplayName: string): Promise<void> {
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error('No user logged in');
+
+      // Update Firebase Auth profile
+      await updateProfile(user, { displayName: newDisplayName });
+
+      // Update Firestore document
+      await updateDoc(doc(db, 'users', user.uid), {
+        displayName: newDisplayName,
+      });
+    } catch (error: any) {
+      throw new Error(`Failed to update display name: ${error.message}`);
+    }
+  }
+
+  /**
+   * Update email (requires recent authentication)
+   */
+  static async updateUserEmail(newEmail: string, currentPassword: string): Promise<void> {
+    try {
+      const user = auth.currentUser;
+      if (!user || !user.email) throw new Error('No user logged in');
+
+      // Re-authenticate user before changing email
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+
+      // Update Firebase Auth email
+      await updateEmail(user, newEmail);
+
+      // Update Firestore document
+      await updateDoc(doc(db, 'users', user.uid), {
+        email: newEmail,
+      });
+    } catch (error: any) {
+      throw new Error(`Failed to update email: ${error.message}`);
+    }
+  }
+
+  /**
+   * Update password (requires recent authentication)
+   */
+  static async updateUserPassword(currentPassword: string, newPassword: string): Promise<void> {
+    try {
+      const user = auth.currentUser;
+      if (!user || !user.email) throw new Error('No user logged in');
+
+      // Re-authenticate user before changing password
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+
+      // Update password
+      await updatePassword(user, newPassword);
+    } catch (error: any) {
+      throw new Error(`Failed to update password: ${error.message}`);
+    }
+  }
+
+  /**
+   * Delete user account and all associated data
+   */
+  static async deleteAccount(password?: string): Promise<void> {
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error('No user logged in');
+
+      // Re-authenticate before deletion (required by Firebase)
+      if (password && user.email) {
+        const credential = EmailAuthProvider.credential(user.email, password);
+        await reauthenticateWithCredential(user, credential);
+      }
+
+      const userId = user.uid;
+
+      // Delete all user data from Firestore
+      // 1. Delete all items
+      const itemsQuery = query(collection(db, 'items'), where('dmId', '==', userId));
+      const itemsSnapshot = await getDocs(itemsQuery);
+      const itemDeletePromises = itemsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(itemDeletePromises);
+
+      // 2. Delete all shops
+      const shopsQuery = query(collection(db, 'shops'), where('dmId', '==', userId));
+      const shopsSnapshot = await getDocs(shopsQuery);
+      const shopDeletePromises = shopsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(shopDeletePromises);
+
+      // 3. Delete all markets
+      const marketsQuery = query(collection(db, 'markets'), where('dmId', '==', userId));
+      const marketsSnapshot = await getDocs(marketsQuery);
+      const marketDeletePromises = marketsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(marketDeletePromises);
+
+      // 4. Delete user document
+      await deleteDoc(doc(db, 'users', userId));
+
+      // 5. Delete Firebase Auth user
+      await deleteUser(user);
+    } catch (error: any) {
+      throw new Error(`Failed to delete account: ${error.message}`);
     }
   }
 }
