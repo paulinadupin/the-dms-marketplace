@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MarketService } from '../services/market.service';
 import type { Market } from '../types/firebase';
 import { Toast } from './Toast';
@@ -14,6 +15,7 @@ interface MarketListProps {
 const MARKET_LIMIT = 10;
 
 export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketListProps) {
+  const navigate = useNavigate();
   const [markets, setMarkets] = useState<Market[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -81,7 +83,10 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
   const deleteMarket = async (marketId: string, marketName: string) => {
     const confirmed = window.confirm(
       `Are you sure you want to delete "${marketName}"?\n\n` +
-      `⚠️ This will DELETE the market but NOT its shops and items.\n\n` +
+      `⚠️ This will permanently DELETE:\n` +
+      `- The market\n` +
+      `- All shops in this market\n\n` +
+      `✓ Items will be kept in your library for reuse\n\n` +
       `This action cannot be undone.`
     );
 
@@ -246,6 +251,21 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
               gap: '10px',
               flexWrap: 'wrap'
             }}>
+              <button
+                onClick={() => navigate(`/market/${market.id}/shops`)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#17a2b8',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold'
+                }}
+              >
+                🏪 Manage Shops
+              </button>
               <button
                 onClick={() => copyShareUrl(market.accessCode)}
                 style={{

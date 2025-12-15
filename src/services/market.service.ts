@@ -238,14 +238,24 @@ export class MarketService {
   }
 
   /**
-   * Delete a market (and all its shops and items)
-   * WARNING: This is destructive!
+   * Delete a market and all its shops
+   * NOTE: Does NOT delete items - items are kept in user's library for reuse
    */
   static async deleteMarket(marketId: string): Promise<void> {
     try {
-      // TODO: Also delete all shops and items in this market
-      // For now, just delete the market document
+      // Delete all shops in this market
+      const shopsQuery = query(
+        collection(db, 'shops'),
+        where('marketId', '==', marketId)
+      );
+      const shopsSnapshot = await getDocs(shopsQuery);
+      const shopDeletePromises = shopsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(shopDeletePromises);
+
+      // Delete the market document
       await deleteDoc(doc(db, this.COLLECTION, marketId));
+
+      // NOTE: Items are NOT deleted - they remain in user's item library for reuse
     } catch (error: any) {
       throw new Error(`Failed to delete market: ${error.message}`);
     }

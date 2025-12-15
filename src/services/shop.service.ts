@@ -140,13 +140,13 @@ export class ShopService {
   }
 
   /**
-   * Delete a shop (and all its items)
-   * WARNING: This is destructive!
+   * Delete a shop
+   * NOTE: Does NOT delete items - items are kept in user's library for reuse
    */
   static async deleteShop(shopId: string): Promise<void> {
     try {
-      // TODO: Also delete all items in this shop
-      // For now, just delete the shop document
+      // Only delete the shop document
+      // Items are kept for reuse in item library/favorites
       await deleteDoc(doc(db, this.COLLECTION, shopId));
     } catch (error: any) {
       throw new Error(`Failed to delete shop: ${error.message}`);
