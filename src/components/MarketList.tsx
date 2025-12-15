@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { MarketService } from '../services/market.service';
 import type { Market } from '../types/firebase';
 import { Toast } from './Toast';
+import { EditMarketModal } from './EditMarketModal';
+import { ActivateMarketModal } from './ActivateMarketModal';
 
 interface MarketListProps {
   dmId: string;
@@ -16,6 +18,9 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [editingMarket, setEditingMarket] = useState<Market | null>(null);
+  const [activatingMarket, setActivatingMarket] = useState<Market | null>(null);
+  const [activeMarket, setActiveMarket] = useState<Market | null>(null);
 
   useEffect(() => {
     loadMarkets();
@@ -28,6 +33,10 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
     try {
       const fetchedMarkets = await MarketService.getMarketsByDM(dmId);
       setMarkets(fetchedMarkets);
+
+      // Get currently active market
+      const active = await MarketService.getActiveMarket(dmId);
+      setActiveMarket(active);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -41,13 +50,32 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
     setToast({ message: 'Market URL copied to clipboard!', type: 'success' });
   };
 
-  const toggleActive = async (marketId: string, currentStatus: boolean) => {
+  const handleDeactivate = async (marketId: string) => {
     try {
-      await MarketService.toggleMarketActive(marketId, !currentStatus);
+      await MarketService.deactivateMarket(marketId);
+      setToast({ message: 'Market deactivated successfully!', type: 'success' });
       loadMarkets(); // Refresh list
     } catch (err: any) {
-      alert('Failed to toggle market: ' + err.message);
+      setToast({ message: 'Failed to deactivate market: ' + err.message, type: 'error' });
     }
+  };
+
+  const getTimeRemaining = (activeUntil: any): string => {
+    if (!activeUntil) return '';
+
+    const now = Date.now();
+    const expiresAt = activeUntil.toMillis();
+    const remaining = expiresAt - now;
+
+    if (remaining <= 0) return 'Expired';
+
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m remaining`;
+    }
+    return `${minutes}m remaining`;
   };
 
   const deleteMarket = async (marketId: string, marketName: string) => {
@@ -188,13 +216,25 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                     color: market.isActive ? '#155724' : '#721c24',
                     fontWeight: 'bold'
                   }}>
-                    {market.isActive ? 'Active' : 'Inactive'}
+                    {market.isActive ? `Active (${getTimeRemaining(market.activeUntil)})` : 'Inactive'}
                   </span>
                 </div>
                 <p style={{ margin: '5px 0', color: '#666' }}>{market.description}</p>
                 <p style={{ margin: '10px 0 0 0', fontSize: '14px', color: '#999' }}>
                   Access Code: <code style={{ backgroundColor: '#f5f5f5', padding: '2px 6px', borderRadius: '3px' }}>{market.accessCode}</code>
                 </p>
+                {!market.isActive && activeMarket && activeMarket.id !== market.id && (
+                  <p style={{
+                    margin: '10px 0 0 0',
+                    fontSize: '13px',
+                    color: '#856404',
+                    backgroundColor: '#fff3cd',
+                    padding: '8px',
+                    borderRadius: '4px'
+                  }}>
+                    ⚠️ Cannot activate: <strong>"{activeMarket.name}"</strong> is currently active
+                  </p>
+                )}
               </div>
             </div>
 
@@ -220,21 +260,59 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
               >
                 📋 Copy Share URL
               </button>
+              {market.isActive ? (
+                // This market is active - show deactivate button
+                <button
+                  onClick={() => handleDeactivate(market.id)}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#ffc107',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  Deactivate
+                </button>
+              ) : activeMarket && activeMarket.id !== market.id ? (
+                // Another market is active - show disabled button with tooltip
+                <button
+                  disabled
+                  title="There is already an active market in your account"
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'not-allowed',
+                    fontSize: '14px',
+                    opacity: 0.6
+                  }}
+                >
+                  Activate (Blocked)
+                </button>
+              ) : (
+                // No market is active - show activate button
+                <button
+                  onClick={() => setActivatingMarket(market)}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  Activate
+                </button>
+              )}
               <button
-                onClick={() => toggleActive(market.id, market.isActive)}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: market.isActive ? '#ffc107' : '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                {market.isActive ? 'Deactivate' : 'Activate'}
-              </button>
-              <button
+                onClick={() => setEditingMarket(market)}
                 style={{
                   padding: '8px 16px',
                   backgroundColor: '#6c757d',
@@ -266,6 +344,32 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
         ))}
       </div>
     </div>
+
+    {/* Edit Market Modal */}
+    {editingMarket && (
+      <EditMarketModal
+        market={editingMarket}
+        onClose={() => setEditingMarket(null)}
+        onSuccess={() => {
+          loadMarkets(); // Refresh list
+          setEditingMarket(null);
+        }}
+      />
+    )}
+
+    {/* Activate Market Modal */}
+    {activatingMarket && (
+      <ActivateMarketModal
+        marketId={activatingMarket.id}
+        marketName={activatingMarket.name}
+        dmId={dmId}
+        onClose={() => setActivatingMarket(null)}
+        onSuccess={() => {
+          loadMarkets(); // Refresh list
+          setActivatingMarket(null);
+        }}
+      />
+    )}
     </>
   );
 }

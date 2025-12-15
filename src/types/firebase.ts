@@ -22,7 +22,8 @@ export interface Market {
   description: string;
   dmId: string; // Owner of this market
   accessCode: string; // URL-friendly code (e.g., "waterdeep-abc123")
-  isActive: boolean; // Can toggle markets on/off
+  isActive: boolean; // Is this market currently active?
+  activeUntil: Timestamp | null; // When the 3-hour activation expires (null if not active)
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

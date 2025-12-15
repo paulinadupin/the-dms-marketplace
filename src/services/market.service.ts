@@ -38,7 +38,8 @@ export class MarketService {
         description: input.description,
         dmId,
         accessCode,
-        isActive: true,
+        isActive: false,
+        activeUntil: null,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
@@ -141,7 +142,89 @@ export class MarketService {
   }
 
   /**
+   * Get the currently active market for a DM (if any)
+   */
+  static async getActiveMarket(dmId: string): Promise<Market | null> {
+    try {
+      const q = query(
+        collection(db, this.COLLECTION),
+        where('dmId', '==', dmId),
+        where('isActive', '==', true)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        return null;
+      }
+
+      const marketDoc = querySnapshot.docs[0];
+      const market = {
+        id: marketDoc.id,
+        ...marketDoc.data(),
+      } as Market;
+
+      // Check if expired
+      if (market.activeUntil) {
+        const now = Timestamp.now();
+        if (market.activeUntil.toMillis() < now.toMillis()) {
+          // Auto-deactivate expired market
+          await this.deactivateMarket(market.id);
+          return null;
+        }
+      }
+
+      return market;
+    } catch (error: any) {
+      throw new Error(`Failed to get active market: ${error.message}`);
+    }
+  }
+
+  /**
+   * Activate a market (only one can be active at a time per DM)
+   * Sets 3-hour time limit
+   */
+  static async activateMarket(marketId: string, dmId: string): Promise<void> {
+    try {
+      // Check if another market is already active
+      const activeMarket = await this.getActiveMarket(dmId);
+      if (activeMarket && activeMarket.id !== marketId) {
+        throw new Error('You already have an active market. Please deactivate it first.');
+      }
+
+      // Set active until 3 hours from now
+      const now = Timestamp.now();
+      const threeHoursInMs = 3 * 60 * 60 * 1000;
+      const activeUntil = Timestamp.fromMillis(now.toMillis() + threeHoursInMs);
+
+      await updateDoc(doc(db, this.COLLECTION, marketId), {
+        isActive: true,
+        activeUntil: activeUntil,
+        updatedAt: now,
+      });
+    } catch (error: any) {
+      throw new Error(`Failed to activate market: ${error.message}`);
+    }
+  }
+
+  /**
+   * Deactivate a market
+   */
+  static async deactivateMarket(marketId: string): Promise<void> {
+    try {
+      await updateDoc(doc(db, this.COLLECTION, marketId), {
+        isActive: false,
+        activeUntil: null,
+        updatedAt: Timestamp.now(),
+      });
+    } catch (error: any) {
+      throw new Error(`Failed to deactivate market: ${error.message}`);
+    }
+  }
+
+  /**
    * Toggle market active status
+   * @deprecated Use activateMarket() or deactivateMarket() instead
    */
   static async toggleMarketActive(marketId: string, isActive: boolean): Promise<void> {
     try {
