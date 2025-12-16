@@ -4,6 +4,7 @@ import { AuthPage } from './pages/AuthPage';
 import { Dashboard } from './pages/Dashboard';
 import { SettingsPage } from './pages/SettingsPage';
 import { ShopManagement } from './pages/ShopManagement';
+import { ItemLibraryPage } from './pages/ItemLibrary';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/item-library" element={<ItemLibraryPage />} />
         <Route path="/market/:marketId/shops" element={<ShopManagement />} />
       </Routes>
     </BrowserRouter>

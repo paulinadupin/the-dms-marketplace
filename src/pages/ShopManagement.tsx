@@ -170,7 +170,7 @@ export function ShopManagement() {
           borderRadius: '8px'
         }}>
           <div>
-            <h1 style={{ margin: 0 }}>Shops in {market.name}</h1>
+            <h1 style={{ margin: 0 }}>{market.name}</h1>
             <p style={{ margin: '5px 0 0 0', color: '#666' }}>
               {market.description || 'Manage your shops and inventory'}
             </p>
@@ -187,7 +187,7 @@ export function ShopManagement() {
               fontSize: '14px'
             }}
           >
-            Back to Markets
+            Back
           </button>
         </div>
 
@@ -216,7 +216,7 @@ export function ShopManagement() {
                   fontSize: '14px'
                 }}
               >
-                Deactivate
+                Deactivate Market
               </button>
             ) : activeMarket && activeMarket.id !== market.id ? (
               <button
@@ -233,7 +233,7 @@ export function ShopManagement() {
                   opacity: 0.6
                 }}
               >
-                Activate (Blocked)
+                Activate Market (Blocked)
               </button>
             ) : (
               <button
@@ -248,7 +248,7 @@ export function ShopManagement() {
                   fontSize: '14px'
                 }}
               >
-                Activate
+                Activate Market
               </button>
             )}
             <button
@@ -279,7 +279,7 @@ export function ShopManagement() {
                 fontSize: '14px'
               }}
             >
-              Edit
+              Edit Market
             </button>
             <button
               onClick={handleDeleteMarket}
@@ -293,7 +293,7 @@ export function ShopManagement() {
                 fontSize: '14px'
               }}
             >
-              Delete
+              Delete Market
             </button>
           </div>
         </div>

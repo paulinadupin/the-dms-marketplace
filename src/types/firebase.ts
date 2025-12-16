@@ -40,7 +40,39 @@ export interface FirestoreShop extends Omit<Shop, 'id' | 'inventory'> {
 }
 
 /**
- * Firestore representation of Item
+ * Item Library - DM's personal catalog of reusable item templates
+ * Items here can be added to multiple shops with shop-specific pricing/stock
+ */
+export interface ItemLibrary {
+  id: string;
+  dmId: string; // Owner of this item template
+  item: Item; // Full item data (all stats, properties, etc.)
+  source: 'official' | 'custom' | 'modified'; // Where it came from
+  officialId?: string; // D&D API reference if imported from API
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/**
+ * Shop Item - Reference to a library item with shop-specific data
+ * Links an item from the library to a specific shop with custom price/stock
+ */
+export interface ShopItem {
+  id: string;
+  shopId: string; // Which shop this item is in
+  marketId: string; // Which market (for easier querying)
+  itemLibraryId: string; // Reference to ItemLibrary
+  price: Item['cost']; // Shop-specific price (can differ from library template)
+  stock: number | null; // Shop-specific stock (null = unlimited)
+  isIndependent: boolean; // If true, this item is "kept separate" from library updates
+  customData?: Item; // Snapshot of item data if isIndependent=true (for items that diverged)
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/**
+ * @deprecated Use ItemLibrary and ShopItem instead
+ * Firestore representation of Item (OLD STRUCTURE - kept for migration)
  */
 export interface FirestoreItem extends Omit<Item, 'id'> {
   shopId: string; // Which shop this item belongs to
@@ -75,7 +107,28 @@ export interface CreateShopInput {
 }
 
 /**
- * Item creation input (from DM)
+ * Item Library creation input (add to personal catalog)
+ */
+export interface CreateItemLibraryInput {
+  item: Item; // Full item data
+  source: 'official' | 'custom' | 'modified';
+  officialId?: string; // D&D API ID if imported
+}
+
+/**
+ * Add item from library to a shop
+ */
+export interface AddItemToShopInput {
+  shopId: string;
+  marketId: string;
+  itemLibraryId: string; // Which library item to add
+  price?: Item['cost']; // Custom price (defaults to library item's cost)
+  stock?: number | null; // Starting stock (null = unlimited)
+}
+
+/**
+ * @deprecated Use CreateItemLibraryInput and AddItemToShopInput instead
+ * Item creation input (OLD STRUCTURE - kept for migration)
  */
 export interface CreateItemInput {
   shopId: string;
