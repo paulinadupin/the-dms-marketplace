@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import type { Market, CreateMarketInput } from '../types/firebase';
+import { ShopItemService } from './shop-item.service';
 
 export class MarketService {
   private static readonly COLLECTION = 'markets';
@@ -239,10 +240,13 @@ export class MarketService {
 
   /**
    * Delete a market and all its shops
-   * NOTE: Does NOT delete items - items are kept in user's library for reuse
+   * NOTE: Deletes shop items (references) but NOT library items (catalog preserved)
    */
   static async deleteMarket(marketId: string): Promise<void> {
     try {
+      // Delete all shop items (references) in this market
+      await ShopItemService.deleteAllItemsInMarket(marketId);
+
       // Delete all shops in this market
       const shopsQuery = query(
         collection(db, 'shops'),
@@ -255,7 +259,7 @@ export class MarketService {
       // Delete the market document
       await deleteDoc(doc(db, this.COLLECTION, marketId));
 
-      // NOTE: Items are NOT deleted - they remain in user's item library for reuse
+      // NOTE: Library items are preserved - they remain in user's item library for reuse
     } catch (error: any) {
       throw new Error(`Failed to delete market: ${error.message}`);
     }

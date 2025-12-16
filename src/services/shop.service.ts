@@ -14,6 +14,7 @@ import {
 import { db } from '../config/firebase';
 import type { FirestoreShop, CreateShopInput } from '../types/firebase';
 import type { Currency } from '../types/currency';
+import { ShopItemService } from './shop-item.service';
 
 export class ShopService {
   private static readonly COLLECTION = 'shops';
@@ -141,12 +142,14 @@ export class ShopService {
 
   /**
    * Delete a shop
-   * NOTE: Does NOT delete items - items are kept in user's library for reuse
+   * NOTE: Deletes shop items (references) but NOT library items (catalog preserved)
    */
   static async deleteShop(shopId: string): Promise<void> {
     try {
-      // Only delete the shop document
-      // Items are kept for reuse in item library/favorites
+      // Delete all shop items (references to library items)
+      await ShopItemService.deleteAllItemsInShop(shopId);
+
+      // Delete the shop document
       await deleteDoc(doc(db, this.COLLECTION, shopId));
     } catch (error: any) {
       throw new Error(`Failed to delete shop: ${error.message}`);

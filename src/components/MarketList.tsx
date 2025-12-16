@@ -201,12 +201,14 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
         {markets.map((market) => (
           <div
             key={market.id}
+            onClick={() => navigate(`/market/${market.id}/shops`)}
             style={{
               padding: '20px',
               backgroundColor: 'white',
               border: '1px solid #ddd',
               borderRadius: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              cursor: 'pointer'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
@@ -251,39 +253,12 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
               gap: '10px',
               flexWrap: 'wrap'
             }}>
-              <button
-                onClick={() => navigate(`/market/${market.id}/shops`)}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#17a2b8',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 'bold'
-                }}
-              >
-                🏪 Manage Shops
-              </button>
-              <button
-                onClick={() => copyShareUrl(market.accessCode)}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                📋 Copy Share URL
-              </button>
               {market.isActive ? (
-                // This market is active - show deactivate button
                 <button
-                  onClick={() => handleDeactivate(market.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeactivate(market.id);
+                  }}
                   style={{
                     padding: '8px 16px',
                     backgroundColor: '#ffc107',
@@ -297,9 +272,9 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                   Deactivate
                 </button>
               ) : activeMarket && activeMarket.id !== market.id ? (
-                // Another market is active - show disabled button with tooltip
                 <button
                   disabled
+                  onClick={(e) => e.stopPropagation()}
                   title="There is already an active market in your account"
                   style={{
                     padding: '8px 16px',
@@ -315,9 +290,11 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                   Activate (Blocked)
                 </button>
               ) : (
-                // No market is active - show activate button
                 <button
-                  onClick={() => setActivatingMarket(market)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActivatingMarket(market);
+                  }}
                   style={{
                     padding: '8px 16px',
                     backgroundColor: '#28a745',
@@ -332,10 +309,13 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                 </button>
               )}
               <button
-                onClick={() => setEditingMarket(market)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  copyShareUrl(market.accessCode);
+                }}
                 style={{
                   padding: '8px 16px',
-                  backgroundColor: '#6c757d',
+                  backgroundColor: '#007bff',
                   color: 'white',
                   border: 'none',
                   borderRadius: '5px',
@@ -343,21 +323,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                   fontSize: '14px'
                 }}
               >
-                Edit
-              </button>
-              <button
-                onClick={() => deleteMarket(market.id, market.name)}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#dc3545',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                Delete
+                Share Market Link
               </button>
             </div>
           </div>

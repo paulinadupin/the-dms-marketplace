@@ -83,6 +83,20 @@ export function Dashboard() {
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button
+            onClick={() => navigate('/item-library')}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            Item Library
+          </button>
+          <button
             onClick={() => navigate('/settings')}
             style={{
               padding: '10px 20px',
