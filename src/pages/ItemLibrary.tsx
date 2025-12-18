@@ -263,7 +263,13 @@ export function ItemLibraryPage() {
             )}
           </div>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => {
+              if (selectionMode) {
+                setSelectionMode(false);
+                setSelectedItems(new Set());
+              }
+              navigate('/dashboard');
+            }}
             style={{
               padding: '10px 20px',
               backgroundColor: '#6c757d',
@@ -351,7 +357,13 @@ export function ItemLibraryPage() {
           </div>
 
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => {
+              if (selectionMode) {
+                setSelectionMode(false);
+                setSelectedItems(new Set());
+              }
+              setShowCreateModal(true);
+            }}
             disabled={items.length >= LIMITS.ITEMS_PER_LIBRARY}
             title={items.length >= LIMITS.ITEMS_PER_LIBRARY ? `Maximum of ${LIMITS.ITEMS_PER_LIBRARY} items reached` : ''}
             style={{
@@ -404,7 +416,13 @@ export function ItemLibraryPage() {
                   Create your first item or import from the D&D API to get started!
                 </p>
                 <button
-                  onClick={() => setShowCreateModal(true)}
+                  onClick={() => {
+                    if (selectionMode) {
+                      setSelectionMode(false);
+                      setSelectedItems(new Set());
+                    }
+                    setShowCreateModal(true);
+                  }}
                   disabled={items.length >= LIMITS.ITEMS_PER_LIBRARY}
                   style={{
                     padding: '12px 24px',
