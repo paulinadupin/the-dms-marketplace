@@ -208,24 +208,40 @@ export function ShopInventory() {
               </p>
             )}
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            disabled={shopItems.length >= LIMITS.ITEMS_PER_SHOP}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? '#6c757d' : '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              opacity: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? 0.6 : 1
-            }}
-            title={shopItems.length >= LIMITS.ITEMS_PER_SHOP ? `Maximum of ${LIMITS.ITEMS_PER_SHOP} items per shop reached` : ''}
-          >
-            + Add Item
-          </button>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={() => navigate('/item-library')}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              Go to Item Library
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              disabled={shopItems.length >= LIMITS.ITEMS_PER_SHOP}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? '#6c757d' : '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? 'not-allowed' : 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                opacity: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? 0.6 : 1
+              }}
+              title={shopItems.length >= LIMITS.ITEMS_PER_SHOP ? `Maximum of ${LIMITS.ITEMS_PER_SHOP} items per shop reached` : ''}
+            >
+              + Add Item
+            </button>
+          </div>
         </div>
 
         {/* Empty State */}

@@ -31,6 +31,7 @@ export function AddItemToShopModal({
   const [error, setError] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
 
   useEffect(() => {
     loadLibraryItems();
@@ -95,15 +96,16 @@ export function AddItemToShopModal({
     }
   };
 
-  // Filter items based on search, but always include the selected item
+  // Filter items based on search and type, but always include the selected item
   const filteredItems = libraryItems.filter(item => {
     const matchesSearch =
       item.item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.item.type?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = typeFilter === 'all' || item.item.type === typeFilter;
     const isSelected = item.id === selectedItemId;
 
-    // Show if it matches search OR if it's the currently selected item
-    return matchesSearch || isSelected;
+    // Show if it matches both filters OR if it's the currently selected item
+    return (matchesSearch && matchesType) || isSelected;
   });
 
   return (
@@ -176,25 +178,48 @@ export function AddItemToShopModal({
               )}
 
               <form onSubmit={handleSubmit}>
-                {/* Search */}
+                {/* Search and Filter */}
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                    Search Items
+                    Search & Filter Items
                   </label>
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search by name or type..."
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '5px',
-                      fontSize: '14px'
-                    }}
-                  />
-                  {searchTerm && (
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search by name..."
+                      style={{
+                        flex: 2,
+                        padding: '10px',
+                        border: '1px solid #ddd',
+                        borderRadius: '5px',
+                        fontSize: '14px'
+                      }}
+                    />
+                    <select
+                      value={typeFilter}
+                      onChange={(e) => setTypeFilter(e.target.value)}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        border: '1px solid #ddd',
+                        borderRadius: '5px',
+                        fontSize: '14px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="all">All Types</option>
+                      <option value="weapon">Weapon</option>
+                      <option value="armor">Armor</option>
+                      <option value="consumable">Consumable</option>
+                      <option value="tool">Tool</option>
+                      <option value="magic">Magic</option>
+                      <option value="gear">Gear</option>
+                      <option value="treasure">Treasure</option>
+                    </select>
+                  </div>
+                  {(searchTerm || typeFilter !== 'all') && (
                     <p style={{ margin: '5px 0 0 0', fontSize: '13px', color: '#666' }}>
                       Showing {filteredItems.length} of {libraryItems.length} items
                     </p>

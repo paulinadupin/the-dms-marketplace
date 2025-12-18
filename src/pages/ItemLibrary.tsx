@@ -104,15 +104,6 @@ export function ItemLibraryPage() {
     }
   };
 
-  const formatCost = (cost: any) => {
-    if (!cost) return 'No cost';
-    const parts = [];
-    if (cost.cp) parts.push(`${cost.cp} CP`);
-    if (cost.sp) parts.push(`${cost.sp} SP`);
-    if (cost.gp) parts.push(`${cost.gp} GP`);
-    if (cost.pp) parts.push(`${cost.pp} PP`);
-    return parts.length > 0 ? parts.join(', ') : 'No cost';
-  };
 
   const getSourceBadgeColor = (source: string) => {
     switch (source) {
@@ -400,7 +391,6 @@ export function ItemLibraryPage() {
                         fontSize: '14px',
                         color: '#999'
                       }}>
-                        <span><strong>Cost:</strong> {formatCost(libraryItem.item.cost)}</span>
                         {libraryItem.item.weight !== null && (
                           <span><strong>Weight:</strong> {libraryItem.item.weight} lb</span>
                         )}
