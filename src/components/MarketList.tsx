@@ -5,14 +5,13 @@ import type { Market } from '../types/firebase';
 import { Toast } from './Toast';
 import { EditMarketModal } from './EditMarketModal';
 import { ActivateMarketModal } from './ActivateMarketModal';
+import { LIMITS } from '../config/limits';
 
 interface MarketListProps {
   dmId: string;
   onCreateMarket: () => void;
   onMarketDeleted?: () => void;
 }
-
-const MARKET_LIMIT = 10;
 
 export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketListProps) {
   const navigate = useNavigate();
@@ -157,7 +156,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
   }
 
   // Market List
-  const isAtLimit = markets.length >= MARKET_LIMIT;
+  const isAtLimit = markets.length >= LIMITS.MARKETS_PER_DM;
 
   return (
     <>
@@ -170,7 +169,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
         marginBottom: '20px'
       }}>
         <div>
-          <h2 style={{ margin: 0 }}>Your Markets ({markets.length}/{MARKET_LIMIT})</h2>
+          <h2 style={{ margin: 0 }}>Your Markets ({markets.length}/{LIMITS.MARKETS_PER_DM})</h2>
           {isAtLimit && (
             <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#dc3545' }}>
               ⚠️ You've reached the maximum number of markets
@@ -191,7 +190,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
             fontWeight: 'bold',
             opacity: isAtLimit ? 0.6 : 1
           }}
-          title={isAtLimit ? `Maximum of ${MARKET_LIMIT} markets reached` : ''}
+          title={isAtLimit ? `Maximum of ${LIMITS.MARKETS_PER_DM} markets reached` : ''}
         >
           + Create New Market
         </button>
