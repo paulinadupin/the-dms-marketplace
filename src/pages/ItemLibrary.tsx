@@ -6,6 +6,7 @@ import type { User } from 'firebase/auth';
 import type { ItemLibrary } from '../types/firebase';
 import { Toast } from '../components/Toast';
 import { CreateItemModal } from '../components/CreateItemModal';
+import { EditItemModal } from '../components/EditItemModal';
 import { LIMITS } from '../config/limits';
 
 const WARNING_THRESHOLD = ItemLibraryService.ITEM_LIBRARY_WARNING_THRESHOLD;
@@ -20,6 +21,7 @@ export function ItemLibraryPage() {
   const [filterSource, setFilterSource] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<ItemLibrary | null>(null);
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -418,7 +420,7 @@ export function ItemLibraryPage() {
                     flexWrap: 'wrap'
                   }}>
                     <button
-                      onClick={() => setToast({ message: 'Edit item feature coming soon!', type: 'success' })}
+                      onClick={() => setEditingItem(libraryItem)}
                       style={{
                         padding: '8px 16px',
                         backgroundColor: '#007bff',
@@ -462,6 +464,18 @@ export function ItemLibraryPage() {
             loadItems();
             setShowCreateModal(false);
             setToast({ message: 'Item created successfully!', type: 'success' });
+          }}
+        />
+      )}
+
+      {/* Edit Item Modal */}
+      {editingItem && (
+        <EditItemModal
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSuccess={() => {
+            loadItems();
+            setEditingItem(null);
           }}
         />
       )}
