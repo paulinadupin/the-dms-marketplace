@@ -207,13 +207,7 @@ export function ShopInventory() {
       }}>
         <h2 style={{ color: '#666' }}>Shop not found</h2>
         <button
-          onClick={() => {
-            if (selectionMode) {
-              setSelectionMode(false);
-              setSelectedItems(new Set());
-            }
-            navigate('/dashboard');
-          }}
+          onClick={() => navigate('/dashboard')}
           style={{
             padding: '10px 20px',
             backgroundColor: '#007bff',
@@ -252,13 +246,7 @@ export function ShopInventory() {
             </p>
           </div>
           <button
-            onClick={() => {
-              if (selectionMode) {
-                setSelectionMode(false);
-                setSelectedItems(new Set());
-              }
-              navigate(`/market/${shop.marketId}/shops`);
-            }}
+            onClick={() => navigate(`/market/${shop.marketId}/shops`)}
             style={{
               padding: '10px 20px',
               backgroundColor: '#6c757d',
@@ -290,13 +278,7 @@ export function ShopInventory() {
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
             <button
-              onClick={() => {
-                if (selectionMode) {
-                  setSelectionMode(false);
-                  setSelectedItems(new Set());
-                }
-                navigate('/item-library');
-              }}
+              onClick={() => navigate('/item-library')}
               style={{
                 padding: '10px 20px',
                 backgroundColor: '#007bff',
@@ -310,13 +292,7 @@ export function ShopInventory() {
               Go to Item Library
             </button>
             <button
-              onClick={() => {
-                if (selectionMode) {
-                  setSelectionMode(false);
-                  setSelectedItems(new Set());
-                }
-                setShowAddModal(true);
-              }}
+              onClick={() => setShowAddModal(true)}
               disabled={shopItems.length >= LIMITS.ITEMS_PER_SHOP}
               style={{
                 padding: '10px 20px',
@@ -367,13 +343,7 @@ export function ShopInventory() {
               Add items from your library to start stocking this shop!
             </p>
             <button
-              onClick={() => {
-                if (selectionMode) {
-                  setSelectionMode(false);
-                  setSelectedItems(new Set());
-                }
-                setShowAddModal(true);
-              }}
+              onClick={() => setShowAddModal(true)}
               style={{
                 padding: '12px 24px',
                 backgroundColor: '#28a745',
@@ -545,7 +515,7 @@ export function ShopInventory() {
                 fontWeight: 'bold'
               }}
             >
-              Remove All from Shop
+              Remove from Shop
             </button>
             <button
               onClick={toggleSelectionMode}
