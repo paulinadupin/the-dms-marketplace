@@ -6,8 +6,9 @@ import type { User } from 'firebase/auth';
 import type { ItemLibrary } from '../types/firebase';
 import { Toast } from '../components/Toast';
 import { CreateItemModal } from '../components/CreateItemModal';
+import { EditItemModal } from '../components/EditItemModal';
+import { LIMITS } from '../config/limits';
 
-const ITEM_LIBRARY_LIMIT = ItemLibraryService.ITEM_LIBRARY_LIMIT;
 const WARNING_THRESHOLD = ItemLibraryService.ITEM_LIBRARY_WARNING_THRESHOLD;
 
 export function ItemLibraryPage() {
@@ -20,6 +21,7 @@ export function ItemLibraryPage() {
   const [filterSource, setFilterSource] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<ItemLibrary | null>(null);
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -102,15 +104,6 @@ export function ItemLibraryPage() {
     }
   };
 
-  const formatCost = (cost: any) => {
-    if (!cost) return 'No cost';
-    const parts = [];
-    if (cost.cp) parts.push(`${cost.cp} CP`);
-    if (cost.sp) parts.push(`${cost.sp} SP`);
-    if (cost.gp) parts.push(`${cost.gp} GP`);
-    if (cost.pp) parts.push(`${cost.pp} PP`);
-    return parts.length > 0 ? parts.join(', ') : 'No cost';
-  };
 
   const getSourceBadgeColor = (source: string) => {
     switch (source) {
@@ -176,14 +169,14 @@ export function ItemLibraryPage() {
           <div>
             <h1 style={{ margin: 0 }}>Item Library</h1>
             <p style={{ margin: '5px 0 0 0', color: '#666' }}>
-              Your personal catalog of reusable items ({items.length}/{ITEM_LIBRARY_LIMIT})
+              Your personal catalog of reusable items ({items.length}/{LIMITS.ITEMS_PER_LIBRARY})
             </p>
-            {items.length >= WARNING_THRESHOLD && items.length < ITEM_LIBRARY_LIMIT && (
+            {items.length >= WARNING_THRESHOLD && items.length < LIMITS.ITEMS_PER_LIBRARY && (
               <p style={{ margin: '5px 0 0 0', color: '#856404', fontSize: '14px' }}>
-                ⚠️ You're approaching the limit ({ITEM_LIBRARY_LIMIT - items.length} slots remaining)
+                ⚠️ You're approaching the limit ({LIMITS.ITEMS_PER_LIBRARY - items.length} slots remaining)
               </p>
             )}
-            {items.length >= ITEM_LIBRARY_LIMIT && (
+            {items.length >= LIMITS.ITEMS_PER_LIBRARY && (
               <p style={{ margin: '5px 0 0 0', color: '#721c24', fontSize: '14px' }}>
                 ⚠️ You've reached the maximum limit. Delete items to create new ones.
               </p>
@@ -279,18 +272,18 @@ export function ItemLibraryPage() {
 
           <button
             onClick={() => setShowCreateModal(true)}
-            disabled={items.length >= ITEM_LIBRARY_LIMIT}
-            title={items.length >= ITEM_LIBRARY_LIMIT ? `Maximum of ${ITEM_LIBRARY_LIMIT} items reached` : ''}
+            disabled={items.length >= LIMITS.ITEMS_PER_LIBRARY}
+            title={items.length >= LIMITS.ITEMS_PER_LIBRARY ? `Maximum of ${LIMITS.ITEMS_PER_LIBRARY} items reached` : ''}
             style={{
               padding: '10px 20px',
-              backgroundColor: items.length >= ITEM_LIBRARY_LIMIT ? '#6c757d' : '#28a745',
+              backgroundColor: items.length >= LIMITS.ITEMS_PER_LIBRARY ? '#6c757d' : '#28a745',
               color: 'white',
               border: 'none',
               borderRadius: '5px',
-              cursor: items.length >= ITEM_LIBRARY_LIMIT ? 'not-allowed' : 'pointer',
+              cursor: items.length >= LIMITS.ITEMS_PER_LIBRARY ? 'not-allowed' : 'pointer',
               fontSize: '14px',
               fontWeight: 'bold',
-              opacity: items.length >= ITEM_LIBRARY_LIMIT ? 0.6 : 1
+              opacity: items.length >= LIMITS.ITEMS_PER_LIBRARY ? 0.6 : 1
             }}
           >
             + Create New Item
@@ -314,17 +307,17 @@ export function ItemLibraryPage() {
                 </p>
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  disabled={items.length >= ITEM_LIBRARY_LIMIT}
+                  disabled={items.length >= LIMITS.ITEMS_PER_LIBRARY}
                   style={{
                     padding: '12px 24px',
-                    backgroundColor: items.length >= ITEM_LIBRARY_LIMIT ? '#6c757d' : '#28a745',
+                    backgroundColor: items.length >= LIMITS.ITEMS_PER_LIBRARY ? '#6c757d' : '#28a745',
                     color: 'white',
                     border: 'none',
                     borderRadius: '5px',
-                    cursor: items.length >= ITEM_LIBRARY_LIMIT ? 'not-allowed' : 'pointer',
+                    cursor: items.length >= LIMITS.ITEMS_PER_LIBRARY ? 'not-allowed' : 'pointer',
                     fontSize: '16px',
                     fontWeight: 'bold',
-                    opacity: items.length >= ITEM_LIBRARY_LIMIT ? 0.6 : 1
+                    opacity: items.length >= LIMITS.ITEMS_PER_LIBRARY ? 0.6 : 1
                   }}
                 >
                   + Create Your First Item
@@ -398,7 +391,6 @@ export function ItemLibraryPage() {
                         fontSize: '14px',
                         color: '#999'
                       }}>
-                        <span><strong>Cost:</strong> {formatCost(libraryItem.item.cost)}</span>
                         {libraryItem.item.weight !== null && (
                           <span><strong>Weight:</strong> {libraryItem.item.weight} lb</span>
                         )}
@@ -418,7 +410,7 @@ export function ItemLibraryPage() {
                     flexWrap: 'wrap'
                   }}>
                     <button
-                      onClick={() => setToast({ message: 'Edit item feature coming soon!', type: 'success' })}
+                      onClick={() => setEditingItem(libraryItem)}
                       style={{
                         padding: '8px 16px',
                         backgroundColor: '#007bff',
@@ -462,6 +454,18 @@ export function ItemLibraryPage() {
             loadItems();
             setShowCreateModal(false);
             setToast({ message: 'Item created successfully!', type: 'success' });
+          }}
+        />
+      )}
+
+      {/* Edit Item Modal */}
+      {editingItem && (
+        <EditItemModal
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSuccess={() => {
+            loadItems();
+            setEditingItem(null);
           }}
         />
       )}

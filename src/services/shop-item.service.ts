@@ -15,10 +15,10 @@ import {
 import { db } from '../config/firebase';
 import type { ShopItem, AddItemToShopInput, ItemLibrary } from '../types/firebase';
 import { ItemLibraryService } from './item-library.service';
+import { LIMITS } from '../config/limits';
 
 export class ShopItemService {
   private static readonly COLLECTION = 'shopItems';
-  public static readonly ITEMS_PER_SHOP_LIMIT = 50;
 
   /**
    * Add an item from the library to a shop
@@ -27,8 +27,8 @@ export class ShopItemService {
     try {
       // Check shop item limit
       const currentItems = await this.getItemsByShop(input.shopId);
-      if (currentItems.length >= this.ITEMS_PER_SHOP_LIMIT) {
-        throw new Error(`This shop has reached the maximum limit of ${this.ITEMS_PER_SHOP_LIMIT} items. Please remove some items before adding new ones.`);
+      if (currentItems.length >= LIMITS.ITEMS_PER_SHOP) {
+        throw new Error(`This shop has reached the maximum limit of ${LIMITS.ITEMS_PER_SHOP} items. Please remove some items before adding new ones.`);
       }
 
       // Get the library item to use default price if not provided

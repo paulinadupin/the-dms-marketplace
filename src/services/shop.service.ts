@@ -15,6 +15,7 @@ import { db } from '../config/firebase';
 import type { FirestoreShop, CreateShopInput } from '../types/firebase';
 import type { Currency } from '../types/currency';
 import { ShopItemService } from './shop-item.service';
+import { LIMITS } from '../config/limits';
 
 export class ShopService {
   private static readonly COLLECTION = 'shops';
@@ -26,6 +27,11 @@ export class ShopService {
     try {
       // Get current shop count for this market to set order
       const existingShops = await this.getShopsByMarket(input.marketId);
+
+      // Check shop limit
+      if (existingShops.length >= LIMITS.SHOPS_PER_MARKET) {
+        throw new Error(`Maximum of ${LIMITS.SHOPS_PER_MARKET} shops per market reached`);
+      }
 
       const shopData = {
         marketId: input.marketId,

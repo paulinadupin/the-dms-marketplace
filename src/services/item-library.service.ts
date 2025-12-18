@@ -14,10 +14,10 @@ import {
 import { db } from '../config/firebase';
 import type { ItemLibrary, CreateItemLibraryInput } from '../types/firebase';
 import { ShopItemService } from './shop-item.service';
+import { LIMITS } from '../config/limits';
 
 export class ItemLibraryService {
   private static readonly COLLECTION = 'itemLibrary';
-  public static readonly ITEM_LIBRARY_LIMIT = 500;
   public static readonly ITEM_LIBRARY_WARNING_THRESHOLD = 450;
 
   /**
@@ -39,8 +39,8 @@ export class ItemLibraryService {
     try {
       // Check item limit
       const currentCount = await this.getItemCount(dmId);
-      if (currentCount >= this.ITEM_LIBRARY_LIMIT) {
-        throw new Error(`You have reached the maximum limit of ${this.ITEM_LIBRARY_LIMIT} items in your library. Please delete some items before creating new ones.`);
+      if (currentCount >= LIMITS.ITEMS_PER_LIBRARY) {
+        throw new Error(`You have reached the maximum limit of ${LIMITS.ITEMS_PER_LIBRARY} items in your library. Please delete some items before creating new ones.`);
       }
 
       const itemData = {

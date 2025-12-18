@@ -5,8 +5,7 @@ import type { User } from 'firebase/auth';
 import { MarketList } from '../components/MarketList';
 import { CreateMarketModal } from '../components/CreateMarketModal';
 import { MarketService } from '../services/market.service';
-
-const MARKET_LIMIT = 10;
+import { LIMITS } from '../config/limits';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -140,7 +139,7 @@ export function Dashboard() {
         <CreateMarketModal
           dmId={user.uid}
           currentCount={marketCount}
-          maxLimit={MARKET_LIMIT}
+          maxLimit={LIMITS.MARKETS_PER_DM}
           onClose={() => setShowCreateModal(false)}
           onSuccess={handleMarketCreated}
         />

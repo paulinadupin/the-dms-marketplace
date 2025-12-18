@@ -10,6 +10,7 @@ import { CreateShopModal } from '../components/CreateShopModal';
 import { EditShopModal } from '../components/EditShopModal';
 import { EditMarketModal } from '../components/EditMarketModal';
 import { ActivateMarketModal } from '../components/ActivateMarketModal';
+import { LIMITS } from '../config/limits';
 
 export function ShopManagement() {
   const { marketId } = useParams<{ marketId: string }>();
@@ -336,19 +337,29 @@ export function ShopManagement() {
               alignItems: 'center',
               marginBottom: '20px'
             }}>
-              <h2 style={{ margin: 0 }}>Shops ({shops.length})</h2>
+              <div>
+                <h2 style={{ margin: 0 }}>Shops ({shops.length}/{LIMITS.SHOPS_PER_MARKET})</h2>
+                {shops.length >= LIMITS.SHOPS_PER_MARKET && (
+                  <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#dc3545' }}>
+                    ⚠️ You've reached the maximum number of shops for this market
+                  </p>
+                )}
+              </div>
               <button
                 onClick={() => setShowCreateModal(true)}
+                disabled={shops.length >= LIMITS.SHOPS_PER_MARKET}
                 style={{
                   padding: '10px 20px',
-                  backgroundColor: '#28a745',
+                  backgroundColor: shops.length >= LIMITS.SHOPS_PER_MARKET ? '#6c757d' : '#28a745',
                   color: 'white',
                   border: 'none',
                   borderRadius: '5px',
-                  cursor: 'pointer',
+                  cursor: shops.length >= LIMITS.SHOPS_PER_MARKET ? 'not-allowed' : 'pointer',
                   fontSize: '14px',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  opacity: shops.length >= LIMITS.SHOPS_PER_MARKET ? 0.6 : 1
                 }}
+                title={shops.length >= LIMITS.SHOPS_PER_MARKET ? `Maximum of ${LIMITS.SHOPS_PER_MARKET} shops per market reached` : ''}
               >
                 + Create New Shop
               </button>
@@ -402,6 +413,24 @@ export function ShopManagement() {
                     gap: '10px',
                     flexWrap: 'wrap'
                   }}>
+                    <button
+                      onClick={() => {
+                        console.log('Navigating to inventory for shop:', shop.id, shop);
+                        navigate(`/shop/${shop.id}/inventory`);
+                      }}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#28a745',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Manage Inventory
+                    </button>
                     <button
                       onClick={() => setEditingShop(shop)}
                       style={{

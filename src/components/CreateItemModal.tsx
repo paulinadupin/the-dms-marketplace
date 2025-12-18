@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ItemLibraryService } from '../services/item-library.service';
-import type { Item, ItemType, ItemCost } from '../types/item';
+import type { Item, ItemType } from '../types/item';
 import { getFieldsForType, getEnabledItemTypes } from '../config/item-fields.config';
 import { DynamicFormField } from './DynamicFormField';
 
@@ -46,8 +46,6 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
   const [type, setType] = useState<ItemType>('gear');
   const [description, setDescription] = useState('');
   const [weight, setWeight] = useState('');
-  const [costAmount, setCostAmount] = useState('');
-  const [costCurrency, setCostCurrency] = useState<'cp' | 'sp' | 'gp' | 'pp'>('gp');
   const [tags, setTags] = useState('');
   const [dynamicFields, setDynamicFields] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
@@ -70,15 +68,6 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
   };
 
   const buildItem = (): Item => {
-    // Parse cost
-    let cost: ItemCost | null = null;
-    if (costAmount && parseFloat(costAmount) > 0) {
-      cost = {
-        amount: parseFloat(costAmount),
-        currency: costCurrency
-      };
-    }
-
     // Parse weight
     const parsedWeight = weight ? parseFloat(weight) : null;
 
@@ -95,7 +84,6 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
       type,
       description: description.trim(),
       weight: parsedWeight,
-      cost,
       source: 'Custom',
       tags: parsedTags,
     };
@@ -302,46 +290,6 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
                 resize: 'vertical'
               }}
             />
-          </div>
-
-          {/* Cost */}
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              Cost (optional)
-            </label>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <input
-                type="number"
-                value={costAmount}
-                onChange={(e) => setCostAmount(e.target.value)}
-                placeholder="Amount"
-                min="0"
-                step="0.01"
-                style={{
-                  flex: 2,
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '5px',
-                  fontSize: '14px'
-                }}
-              />
-              <select
-                value={costCurrency}
-                onChange={(e) => setCostCurrency(e.target.value as 'cp' | 'sp' | 'gp' | 'pp')}
-                style={{
-                  flex: 1,
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '5px',
-                  fontSize: '14px'
-                }}
-              >
-                <option value="cp">CP</option>
-                <option value="sp">SP</option>
-                <option value="gp">GP</option>
-                <option value="pp">PP</option>
-              </select>
-            </div>
           </div>
 
           {/* Weight */}
