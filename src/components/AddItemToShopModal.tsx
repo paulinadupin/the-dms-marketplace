@@ -23,7 +23,7 @@ export function AddItemToShopModal({
 }: AddItemToShopModalProps) {
   const [libraryItems, setLibraryItems] = useState<ItemLibrary[]>([]);
   const [selectedItemId, setSelectedItemId] = useState('');
-  const [customPrice, setCustomPrice] = useState('');
+  const [priceForm, setPriceForm] = useState({ cp: '', sp: '', gp: '' });
   const [stock, setStock] = useState('');
   const [useUnlimitedStock, setUseUnlimitedStock] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -53,16 +53,6 @@ export function AddItemToShopModal({
 
   const selectedItem = libraryItems.find(item => item.id === selectedItemId);
 
-  const formatCost = (cost: any) => {
-    if (!cost) return 'No cost';
-    const parts = [];
-    if (cost.cp) parts.push(`${cost.cp} CP`);
-    if (cost.sp) parts.push(`${cost.sp} SP`);
-    if (cost.gp) parts.push(`${cost.gp} GP`);
-    if (cost.pp) parts.push(`${cost.pp} PP`);
-    return parts.length > 0 ? parts.join(', ') : 'No cost';
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -75,11 +65,28 @@ export function AddItemToShopModal({
     setError('');
 
     try {
+      // Build price object from form
+      const newPrice: any = {};
+      const cpVal = parseInt(priceForm.cp) || 0;
+      const spVal = parseInt(priceForm.sp) || 0;
+      const gpVal = parseInt(priceForm.gp) || 0;
+
+      if (cpVal > 0) newPrice.cp = cpVal;
+      if (spVal > 0) newPrice.sp = spVal;
+      if (gpVal > 0) newPrice.gp = gpVal;
+
+      // Require at least one price value
+      if (Object.keys(newPrice).length === 0) {
+        setError('Please set at least one price value (CP, SP, or GP)');
+        setSubmitting(false);
+        return;
+      }
+
       await ShopItemService.addItemToShop({
         shopId,
         marketId,
         itemLibraryId: selectedItemId,
-        price: customPrice ? JSON.parse(customPrice) : undefined,
+        price: newPrice,
         stock: useUnlimitedStock ? null : (stock ? parseInt(stock) : 1)
       });
 
@@ -246,7 +253,7 @@ export function AddItemToShopModal({
                     <option value="">Choose an item...</option>
                     {filteredItems.map(item => (
                       <option key={item.id} value={item.id}>
-                        {item.item.name} ({item.item.type}) - {formatCost(item.item.cost)}
+                        {item.item.name} ({item.item.type})
                       </option>
                     ))}
                   </select>
@@ -265,9 +272,6 @@ export function AddItemToShopModal({
                     <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>
                       <strong>Type:</strong> {selectedItem.item.type}
                     </p>
-                    <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>
-                      <strong>Default Price:</strong> {formatCost(selectedItem.item.cost)}
-                    </p>
                     {selectedItem.item.description && (
                       <p style={{ margin: '10px 0 0 0', fontSize: '14px', color: '#666' }}>
                         {selectedItem.item.description}
@@ -276,28 +280,50 @@ export function AddItemToShopModal({
                   </div>
                 )}
 
-                {/* Custom Price (Optional) */}
+                {/* Price (Required) */}
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                    Custom Price (Optional)
+                    Set Price *
                   </label>
                   <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#666' }}>
-                    Leave empty to use the item's default price. Format: {'{'}cp, sp, gp, pp{'}'}
+                    Enter at least one currency value
                   </p>
-                  <input
-                    type="text"
-                    value={customPrice}
-                    onChange={(e) => setCustomPrice(e.target.value)}
-                    placeholder='e.g., {"gp": 5, "sp": 2}'
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '5px',
-                      fontSize: '14px',
-                      fontFamily: 'monospace'
-                    }}
-                  />
+
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: 'bold' }}>CP</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={priceForm.cp}
+                        onChange={(e) => setPriceForm({ ...priceForm, cp: e.target.value })}
+                        placeholder="0"
+                        style={{ width: '70px', padding: '8px', border: '1px solid #ddd', borderRadius: '5px', fontSize: '14px' }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: 'bold' }}>SP</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={priceForm.sp}
+                        onChange={(e) => setPriceForm({ ...priceForm, sp: e.target.value })}
+                        placeholder="0"
+                        style={{ width: '70px', padding: '8px', border: '1px solid #ddd', borderRadius: '5px', fontSize: '14px' }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: 'bold' }}>GP</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={priceForm.gp}
+                        onChange={(e) => setPriceForm({ ...priceForm, gp: e.target.value })}
+                        placeholder="0"
+                        style={{ width: '70px', padding: '8px', border: '1px solid #ddd', borderRadius: '5px', fontSize: '14px' }}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Stock */}

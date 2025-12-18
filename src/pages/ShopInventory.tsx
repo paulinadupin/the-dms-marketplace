@@ -23,6 +23,8 @@ export function ShopInventory() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
+  const [priceForm, setPriceForm] = useState({ cp: '', sp: '', gp: '' });
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -164,13 +166,48 @@ export function ShopInventory() {
     loadData();
   };
 
+  const startEditingPrice = (shopItem: ShopItem) => {
+    const price = shopItem.price || { cp: 0, sp: 0, gp: 0 };
+    setPriceForm({
+      cp: ((price as any).cp || 0).toString(),
+      sp: ((price as any).sp || 0).toString(),
+      gp: ((price as any).gp || 0).toString(),
+    });
+    setEditingPriceId(shopItem.id);
+  };
+
+  const cancelEditingPrice = () => {
+    setEditingPriceId(null);
+    setPriceForm({ cp: '', sp: '', gp: '' });
+  };
+
+  const savePrice = async (shopItemId: string) => {
+    try {
+      // Only include currencies that have a value > 0
+      const newPrice: any = {};
+      const cpVal = parseInt(priceForm.cp) || 0;
+      const spVal = parseInt(priceForm.sp) || 0;
+      const gpVal = parseInt(priceForm.gp) || 0;
+
+      if (cpVal > 0) newPrice.cp = cpVal;
+      if (spVal > 0) newPrice.sp = spVal;
+      if (gpVal > 0) newPrice.gp = gpVal;
+
+      await ShopItemService.updateShopItem(shopItemId, { price: newPrice });
+      setToast({ message: 'Price updated!', type: 'success' });
+      setEditingPriceId(null);
+      loadData();
+    } catch (err: any) {
+      setToast({ message: err.message, type: 'error' });
+    }
+  };
+
   const formatCost = (cost: any) => {
     if (!cost) return 'No cost';
     const parts = [];
     if (cost.cp) parts.push(`${cost.cp} CP`);
     if (cost.sp) parts.push(`${cost.sp} SP`);
     if (cost.gp) parts.push(`${cost.gp} GP`);
-    if (cost.pp) parts.push(`${cost.pp} PP`);
     return parts.length > 0 ? parts.join(', ') : 'No cost';
   };
 
@@ -310,9 +347,96 @@ export function ShopInventory() {
                           </span>
                         )}
                       </div>
-                      <p className="item-price">
-                        <strong>Price:</strong> {formatCost(shopItem.price)}
-                      </p>
+                      {editingPriceId === shopItem.id ? (
+                        <div className="price-edit-form" style={{ marginTop: '8px', marginBottom: '8px' }}>
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>CP</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={priceForm.cp}
+                                onChange={(e) => setPriceForm({ ...priceForm, cp: e.target.value })}
+                                style={{ width: '60px', padding: '4px' }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>SP</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={priceForm.sp}
+                                onChange={(e) => setPriceForm({ ...priceForm, sp: e.target.value })}
+                                style={{ width: '60px', padding: '4px' }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>GP</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={priceForm.gp}
+                                onChange={(e) => setPriceForm({ ...priceForm, gp: e.target.value })}
+                                style={{ width: '60px', padding: '4px' }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                savePrice(shopItem.id);
+                              }}
+                              className="btn btn-success btn-sm"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                cancelEditingPrice();
+                              }}
+                              className="btn btn-secondary btn-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p
+                          className="item-price"
+                          onClick={(e) => {
+                            if (!selectionMode) {
+                              e.stopPropagation();
+                              startEditingPrice(shopItem);
+                            }
+                          }}
+                          style={{
+                            cursor: selectionMode ? 'default' : 'pointer',
+                            padding: '4px',
+                            borderRadius: '4px',
+                            transition: 'all 0.2s',
+                            display: 'inline-block',
+                            textDecoration: selectionMode ? 'none' : 'underline',
+                            textDecorationStyle: 'dotted',
+                            textUnderlineOffset: '3px'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!selectionMode) {
+                              e.currentTarget.style.backgroundColor = '#f0f0f0';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                          title={selectionMode ? '' : 'Click to edit price'}
+                        >
+                          <strong>Price:</strong> {formatCost(shopItem.price)}
+                        </p>
+                      )}
                       <p className="item-stock">
                         <strong>Stock:</strong> {shopItem.stock === null ? 'Unlimited' : shopItem.stock}
                       </p>
