@@ -22,6 +22,8 @@ export function ItemLibraryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingItem, setEditingItem] = useState<ItemLibrary | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -102,6 +104,84 @@ export function ItemLibraryPage() {
     } catch (err: any) {
       setToast({ message: err.message, type: 'error' });
     }
+  };
+
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedItems(new Set()); // Clear selections when toggling mode
+  };
+
+  const toggleItemSelection = (itemId: string) => {
+    const newSelected = new Set(selectedItems);
+    if (newSelected.has(itemId)) {
+      newSelected.delete(itemId);
+    } else {
+      newSelected.add(itemId);
+    }
+    setSelectedItems(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItems.size === filteredItems.length) {
+      // Deselect all
+      setSelectedItems(new Set());
+    } else {
+      // Select all
+      setSelectedItems(new Set(filteredItems.map(item => item.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedItems.size === 0) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selectedItems.size} item${selectedItems.size > 1 ? 's' : ''}?\n\n` +
+      `⚠️ Items in active markets cannot be deleted and will be skipped.\n` +
+      `⚠️ Items used in shops will be removed from those shops.\n\n` +
+      `This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    let successCount = 0;
+    let failCount = 0;
+    const errors: string[] = [];
+
+    for (const itemId of selectedItems) {
+      try {
+        // Check if item is in active market
+        const inActiveMarket = await ItemLibraryService.isItemInActiveMarket(itemId);
+        if (inActiveMarket) {
+          failCount++;
+          errors.push('Some items are in active markets');
+          continue;
+        }
+
+        await ItemLibraryService.deleteItem(itemId);
+        successCount++;
+      } catch (err: any) {
+        failCount++;
+        errors.push(err.message);
+      }
+    }
+
+    // Show results
+    if (successCount > 0) {
+      setToast({
+        message: `Successfully deleted ${successCount} item${successCount > 1 ? 's' : ''}!${failCount > 0 ? ` (${failCount} failed)` : ''}`,
+        type: failCount > 0 ? 'error' : 'success'
+      });
+    } else {
+      setToast({
+        message: `Failed to delete items: ${errors[0] || 'Unknown error'}`,
+        type: 'error'
+      });
+    }
+
+    // Reset selection mode and reload
+    setSelectionMode(false);
+    setSelectedItems(new Set());
+    loadItems();
   };
 
 
@@ -288,6 +368,24 @@ export function ItemLibraryPage() {
           >
             + Create New Item
           </button>
+
+          <button
+            onClick={toggleSelectionMode}
+            disabled={filteredItems.length === 0}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: selectionMode ? '#ffc107' : '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: filteredItems.length === 0 ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              opacity: filteredItems.length === 0 ? 0.6 : 1
+            }}
+          >
+            {selectionMode ? 'Cancel Selection' : 'Select'}
+          </button>
         </div>
 
         {/* Empty State */}
@@ -343,21 +441,41 @@ export function ItemLibraryPage() {
 
             {/* Item Grid */}
             <div style={{ display: 'grid', gap: '20px' }}>
-              {filteredItems.map((libraryItem) => (
-                <div
-                  key={libraryItem.id}
-                  style={{
-                    padding: '20px',
-                    backgroundColor: 'white',
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                        <h3 style={{ margin: 0 }}>{libraryItem.item.name}</h3>
+              {filteredItems.map((libraryItem) => {
+                const isSelected = selectedItems.has(libraryItem.id);
+                return (
+                  <div
+                    key={libraryItem.id}
+                    onClick={() => selectionMode && toggleItemSelection(libraryItem.id)}
+                    style={{
+                      padding: '20px',
+                      backgroundColor: 'white',
+                      border: isSelected ? '3px solid #007bff' : '1px solid #ddd',
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      cursor: selectionMode ? 'pointer' : 'default',
+                      position: 'relative'
+                    }}
+                  >
+                    {selectionMode && (
+                      <div style={{ position: 'absolute', top: '15px', left: '15px' }}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleItemSelection(libraryItem.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            width: '20px',
+                            height: '20px',
+                            cursor: 'pointer'
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                      <div style={{ flex: 1, marginLeft: selectionMode ? '35px' : '0' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                          <h3 style={{ margin: 0 }}>{libraryItem.item.name}</h3>
 
                         <span style={{
                           padding: '3px 8px',
@@ -401,49 +519,121 @@ export function ItemLibraryPage() {
                     </div>
                   </div>
 
-                  <div style={{
-                    marginTop: '15px',
-                    paddingTop: '15px',
-                    borderTop: '1px solid #eee',
-                    display: 'flex',
-                    gap: '10px',
-                    flexWrap: 'wrap'
-                  }}>
-                    <button
-                      onClick={() => setEditingItem(libraryItem)}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#007bff',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteItem(libraryItem.id, libraryItem.item.name)}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#dc3545',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  {!selectionMode && (
+                    <div style={{
+                      marginTop: '15px',
+                      paddingTop: '15px',
+                      borderTop: '1px solid #eee',
+                      display: 'flex',
+                      gap: '10px',
+                      flexWrap: 'wrap'
+                    }}>
+                      <button
+                        onClick={() => setEditingItem(libraryItem)}
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: '#007bff',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '5px',
+                          cursor: 'pointer',
+                          fontSize: '14px'
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteItem(libraryItem.id, libraryItem.item.name)}
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: '#dc3545',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '5px',
+                          cursor: 'pointer',
+                          fontSize: '14px'
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
-              ))}
+              );
+              })}
             </div>
           </>
         )}
       </div>
+
+      {/* Sticky Bottom Toolbar */}
+      {selectionMode && selectedItems.size > 0 && (
+        <div style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: '#2c3e50',
+          color: 'white',
+          padding: '15px 20px',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.2)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
+              {selectedItems.size} item{selectedItems.size !== 1 ? 's' : ''} selected
+            </span>
+            <button
+              onClick={handleSelectAll}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#3498db',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              {selectedItems.size === filteredItems.length ? 'Deselect All' : 'Select All'}
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={handleBulkDelete}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#dc3545',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}
+            >
+              Delete All
+            </button>
+            <button
+              onClick={toggleSelectionMode}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#6c757d',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Create Item Modal */}
       {showCreateModal && user && (
