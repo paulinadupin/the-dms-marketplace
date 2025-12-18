@@ -25,6 +25,8 @@ export function ShopInventory() {
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
   const [priceForm, setPriceForm] = useState({ cp: '', sp: '', gp: '' });
+  const [editingStockId, setEditingStockId] = useState<string | null>(null);
+  const [stockForm, setStockForm] = useState({ stock: '', unlimited: false });
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -196,6 +198,32 @@ export function ShopInventory() {
       await ShopItemService.updateShopItem(shopItemId, { price: newPrice });
       setToast({ message: 'Price updated!', type: 'success' });
       setEditingPriceId(null);
+      loadData();
+    } catch (err: any) {
+      setToast({ message: err.message, type: 'error' });
+    }
+  };
+
+  const startEditingStock = (shopItem: ShopItem) => {
+    setStockForm({
+      stock: shopItem.stock !== null ? shopItem.stock.toString() : '',
+      unlimited: shopItem.stock === null
+    });
+    setEditingStockId(shopItem.id);
+  };
+
+  const cancelEditingStock = () => {
+    setEditingStockId(null);
+    setStockForm({ stock: '', unlimited: false });
+  };
+
+  const saveStock = async (shopItemId: string) => {
+    try {
+      const newStock = stockForm.unlimited ? null : (parseInt(stockForm.stock) || 0);
+
+      await ShopItemService.updateShopItem(shopItemId, { stock: newStock });
+      setToast({ message: 'Stock updated!', type: 'success' });
+      setEditingStockId(null);
       loadData();
     } catch (err: any) {
       setToast({ message: err.message, type: 'error' });
@@ -419,7 +447,6 @@ export function ShopInventory() {
                             padding: '4px',
                             borderRadius: '4px',
                             transition: 'all 0.2s',
-                            display: 'inline-block',
                             textDecoration: selectionMode ? 'none' : 'underline',
                             textDecorationStyle: 'dotted',
                             textUnderlineOffset: '3px'
@@ -437,9 +464,87 @@ export function ShopInventory() {
                           <strong>Price:</strong> {formatCost(shopItem.price)}
                         </p>
                       )}
-                      <p className="item-stock">
-                        <strong>Stock:</strong> {shopItem.stock === null ? 'Unlimited' : shopItem.stock}
-                      </p>
+                      {editingStockId === shopItem.id ? (
+                        <div className="stock-edit-form" style={{ marginTop: '8px', marginBottom: '8px' }}>
+                          <div style={{ marginBottom: '8px' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+                              <input
+                                type="checkbox"
+                                checked={stockForm.unlimited}
+                                onChange={(e) => setStockForm({ ...stockForm, unlimited: e.target.checked })}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <span>Unlimited Stock</span>
+                            </label>
+                          </div>
+                          {!stockForm.unlimited && (
+                            <div style={{ marginBottom: '8px' }}>
+                              <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                                Stock Quantity
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={stockForm.stock}
+                                onChange={(e) => setStockForm({ ...stockForm, stock: e.target.value })}
+                                placeholder="0"
+                                style={{ width: '100px', padding: '4px' }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                saveStock(shopItem.id);
+                              }}
+                              className="btn btn-success btn-sm"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                cancelEditingStock();
+                              }}
+                              className="btn btn-secondary btn-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p
+                          className="item-stock"
+                          onClick={(e) => {
+                            if (!selectionMode) {
+                              e.stopPropagation();
+                              startEditingStock(shopItem);
+                            }
+                          }}
+                          style={{
+                            cursor: selectionMode ? 'default' : 'pointer',
+                            padding: '4px',
+                            borderRadius: '4px',
+                            transition: 'all 0.2s',
+                            textDecoration: selectionMode ? 'none' : 'underline',
+                            textDecorationStyle: 'dotted',
+                            textUnderlineOffset: '3px'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!selectionMode) {
+                              e.currentTarget.style.backgroundColor = '#f0f0f0';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                          title={selectionMode ? '' : 'Click to edit stock'}
+                        >
+                          <strong>Stock:</strong> {shopItem.stock === null ? 'Unlimited' : shopItem.stock}
+                        </p>
+                      )}
                       {item.description && (
                         <p className="card-description">
                           {item.description}
