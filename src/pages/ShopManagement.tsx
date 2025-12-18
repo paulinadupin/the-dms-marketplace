@@ -414,6 +414,24 @@ export function ShopManagement() {
                     flexWrap: 'wrap'
                   }}>
                     <button
+                      onClick={() => {
+                        console.log('Navigating to inventory for shop:', shop.id, shop);
+                        navigate(`/shop/${shop.id}/inventory`);
+                      }}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#28a745',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Manage Inventory
+                    </button>
+                    <button
                       onClick={() => setEditingShop(shop)}
                       style={{
                         padding: '8px 16px',
