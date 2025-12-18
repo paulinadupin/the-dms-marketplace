@@ -184,12 +184,7 @@ export function ShopInventory() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <div className="loading-container">
         Loading...
       </div>
     );
@@ -197,26 +192,11 @@ export function ShopInventory() {
 
   if (!shop) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '20px'
-      }}>
-        <h2 style={{ color: '#666' }}>Shop not found</h2>
+      <div className="error-container">
+        <h2>Shop not found</h2>
         <button
           onClick={() => navigate('/dashboard')}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}
+          className="btn btn-primary"
         >
           Go to Dashboard
         </button>
@@ -228,101 +208,52 @@ export function ShopInventory() {
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div className="page-container">
         {/* Header */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '20px',
-          padding: '20px',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '8px'
-        }}>
-          <div>
-            <h1 style={{ margin: 0 }}>{shop.name} - Inventory</h1>
-            <p style={{ margin: '5px 0 0 0', color: '#666' }}>
+        <div className="header-container">
+          <div className="header-info">
+            <h1>{shop.name} - Inventory</h1>
+            <p>
               {shop.description || 'Manage items in this shop'}
             </p>
           </div>
           <button
             onClick={() => navigate(`/market/${shop.marketId}/shops`)}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
+            className="btn btn-secondary"
           >
             Back to Shops
           </button>
         </div>
 
         {/* Inventory Header */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '20px'
-        }}>
+        <div className="controls-container">
           <div>
             <h2 style={{ margin: 0 }}>Inventory ({shopItems.length}/{LIMITS.ITEMS_PER_SHOP})</h2>
             {shopItems.length >= LIMITS.ITEMS_PER_SHOP && (
-              <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#dc3545' }}>
+              <p className="text-danger">
                 ⚠️ You've reached the maximum number of items for this shop
               </p>
             )}
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="button-group">
             <button
               onClick={() => navigate('/item-library')}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
+              className="btn btn-primary"
             >
               Go to Item Library
             </button>
             <button
               onClick={() => setShowAddModal(true)}
               disabled={shopItems.length >= LIMITS.ITEMS_PER_SHOP}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? '#6c757d' : '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? 'not-allowed' : 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                opacity: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? 0.6 : 1
-              }}
               title={shopItems.length >= LIMITS.ITEMS_PER_SHOP ? `Maximum of ${LIMITS.ITEMS_PER_SHOP} items per shop reached` : ''}
+              className="btn btn-success"
             >
               + Add Item
             </button>
             <button
               onClick={toggleSelectionMode}
               disabled={shopItems.length === 0}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: selectionMode ? '#ffc107' : '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: shopItems.length === 0 ? 'not-allowed' : 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                opacity: shopItems.length === 0 ? 0.6 : 1
-              }}
+              className={`btn ${selectionMode ? 'btn-warning' : 'btn-primary'}`}
             >
               {selectionMode ? 'Cancel Selection' : 'Select'}
             </button>
@@ -331,35 +262,20 @@ export function ShopInventory() {
 
         {/* Empty State */}
         {shopItems.length === 0 ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '60px 20px',
-            backgroundColor: '#f9f9f9',
-            borderRadius: '8px',
-            border: '2px dashed #ddd'
-          }}>
-            <h2 style={{ marginTop: 0, color: '#666' }}>No Items Yet</h2>
-            <p style={{ color: '#999', marginBottom: '30px' }}>
+          <div className="empty-state">
+            <h2>No Items Yet</h2>
+            <p>
               Add items from your library to start stocking this shop!
             </p>
             <button
               onClick={() => setShowAddModal(true)}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '16px',
-                fontWeight: 'bold'
-              }}
+              className="btn btn-success btn-lg"
             >
               + Add Your First Item
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gap: '15px' }}>
+          <div className="grid-container-sm">
             {shopItems.map((shopItem) => {
               const item = getItemData(shopItem);
               if (!item) return null;
@@ -369,66 +285,39 @@ export function ShopInventory() {
                 <div
                   key={shopItem.id}
                   onClick={() => selectionMode && toggleItemSelection(shopItem.id)}
-                  style={{
-                    padding: '20px',
-                    backgroundColor: 'white',
-                    border: isSelected ? '3px solid #007bff' : '1px solid #ddd',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    cursor: selectionMode ? 'pointer' : 'default',
-                    position: 'relative'
-                  }}
+                  className={`card ${selectionMode ? 'card-clickable' : ''} ${isSelected ? 'card-selected' : ''} ${selectionMode ? 'card-with-checkbox' : ''}`}
                 >
                   {selectionMode && (
-                    <div style={{ position: 'absolute', top: '15px', left: '15px' }}>
+                    <div className="card-checkbox">
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleItemSelection(shopItem.id)}
                         onClick={(e) => e.stopPropagation()}
-                        style={{
-                          width: '20px',
-                          height: '20px',
-                          cursor: 'pointer'
-                        }}
                       />
                     </div>
                   )}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                    <div style={{ flex: 1, marginLeft: selectionMode ? '35px' : '0' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
-                        <h3 style={{ margin: 0 }}>{item.name}</h3>
-                        <span style={{
-                          padding: '3px 8px',
-                          fontSize: '12px',
-                          borderRadius: '3px',
-                          backgroundColor: '#e7f3ff',
-                          color: '#004085',
-                          fontWeight: 'bold'
-                        }}>
+                  <div className="card-header">
+                    <div className={`card-body ${selectionMode ? 'card-content-shifted' : ''}`}>
+                      <div className="badge-container">
+                        <h3 className="card-title">{item.name}</h3>
+                        <span className="badge badge-type">
                           {item.type}
                         </span>
                         {shopItem.isIndependent && (
-                          <span style={{
-                            padding: '3px 8px',
-                            fontSize: '12px',
-                            borderRadius: '3px',
-                            backgroundColor: '#fff3cd',
-                            color: '#856404',
-                            fontWeight: 'bold'
-                          }}>
+                          <span className="badge badge-independent">
                             Independent
                           </span>
                         )}
                       </div>
-                      <p style={{ margin: '10px 0', color: '#666' }}>
+                      <p className="item-price">
                         <strong>Price:</strong> {formatCost(shopItem.price)}
                       </p>
-                      <p style={{ margin: '10px 0', color: '#666' }}>
+                      <p className="item-stock">
                         <strong>Stock:</strong> {shopItem.stock === null ? 'Unlimited' : shopItem.stock}
                       </p>
                       {item.description && (
-                        <p style={{ margin: '10px 0', fontSize: '14px', color: '#666' }}>
+                        <p className="card-description">
                           {item.description}
                         </p>
                       )}
@@ -436,24 +325,10 @@ export function ShopInventory() {
                   </div>
 
                   {!selectionMode && (
-                    <div style={{
-                      marginTop: '15px',
-                      paddingTop: '15px',
-                      borderTop: '1px solid #eee',
-                      display: 'flex',
-                      gap: '10px'
-                    }}>
+                    <div className="card-footer">
                       <button
                         onClick={() => handleRemoveItem(shopItem.id, item.name)}
-                        style={{
-                          padding: '8px 16px',
-                          backgroundColor: '#dc3545',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '5px',
-                          cursor: 'pointer',
-                          fontSize: '14px'
-                        }}
+                        className="btn btn-danger btn-sm"
                       >
                         Remove from Shop
                       </button>
@@ -468,66 +343,28 @@ export function ShopInventory() {
 
       {/* Sticky Bottom Toolbar */}
       {selectionMode && selectedItems.size > 0 && (
-        <div style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: '#2c3e50',
-          color: 'white',
-          padding: '15px 20px',
-          boxShadow: '0 -2px 10px rgba(0,0,0,0.2)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
+        <div className="toolbar-bottom">
+          <div className="toolbar-info">
+            <span className="toolbar-count">
               {selectedItems.size} item{selectedItems.size !== 1 ? 's' : ''} selected
             </span>
             <button
               onClick={handleSelectAll}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#3498db',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
+              className="btn btn-info btn-sm"
             >
               {selectedItems.size === shopItems.length ? 'Deselect All' : 'Select All'}
             </button>
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="toolbar-actions">
             <button
               onClick={handleBulkRemove}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#dc3545',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold'
-              }}
+              className="btn btn-danger"
             >
               Remove from Shop
             </button>
             <button
               onClick={toggleSelectionMode}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
+              className="btn btn-secondary"
             >
               Cancel
             </button>

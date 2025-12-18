@@ -220,12 +220,7 @@ export function ItemLibraryPage() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <div className="loading-container">
         Loading...
       </div>
     );
@@ -235,29 +230,21 @@ export function ItemLibraryPage() {
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div className="page-container">
         {/* Header */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '20px',
-          padding: '20px',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '8px'
-        }}>
-          <div>
-            <h1 style={{ margin: 0 }}>Item Library</h1>
-            <p style={{ margin: '5px 0 0 0', color: '#666' }}>
+        <div className="header-container">
+          <div className="header-info">
+            <h1>Item Library</h1>
+            <p>
               Your personal catalog of reusable items ({items.length}/{LIMITS.ITEMS_PER_LIBRARY})
             </p>
             {items.length >= WARNING_THRESHOLD && items.length < LIMITS.ITEMS_PER_LIBRARY && (
-              <p style={{ margin: '5px 0 0 0', color: '#856404', fontSize: '14px' }}>
+              <p className="text-warning">
                 ⚠️ You're approaching the limit ({LIMITS.ITEMS_PER_LIBRARY - items.length} slots remaining)
               </p>
             )}
             {items.length >= LIMITS.ITEMS_PER_LIBRARY && (
-              <p style={{ margin: '5px 0 0 0', color: '#721c24', fontSize: '14px' }}>
+              <p className="text-danger">
                 ⚠️ You've reached the maximum limit. Delete items to create new ones.
               </p>
             )}
@@ -270,60 +257,28 @@ export function ItemLibraryPage() {
               }
               navigate('/dashboard');
             }}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
+            className="btn btn-secondary"
           >
             Back to Dashboard
           </button>
         </div>
 
         {/* Filters and Search */}
-        <div style={{
-          display: 'flex',
-          gap: '15px',
-          marginBottom: '20px',
-          padding: '15px',
-          backgroundColor: 'white',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-          flexWrap: 'wrap',
-          alignItems: 'center'
-        }}>
-          <div style={{ flex: '1 1 300px' }}>
-            <input
-              type="text"
-              placeholder="Search items by name or description..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px'
-              }}
-            />
-          </div>
+        <div className="filter-container">
+          <input
+            type="text"
+            placeholder="Search items by name or description..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
 
-          <div>
-            <label style={{ marginRight: '8px', fontSize: '14px', color: '#666' }}>Type:</label>
+          <div className="filter-group">
+            <label className="filter-label">Type:</label>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              style={{
-                padding: '8px 12px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px',
-                cursor: 'pointer'
-              }}
+              className="filter-select"
             >
               <option value="all">All Types</option>
               <option value="weapon">Weapon</option>
@@ -336,18 +291,12 @@ export function ItemLibraryPage() {
             </select>
           </div>
 
-          <div>
-            <label style={{ marginRight: '8px', fontSize: '14px', color: '#666' }}>Source:</label>
+          <div className="filter-group">
+            <label className="filter-label">Source:</label>
             <select
               value={filterSource}
               onChange={(e) => setFilterSource(e.target.value)}
-              style={{
-                padding: '8px 12px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px',
-                cursor: 'pointer'
-              }}
+              className="filter-select"
             >
               <option value="all">All Sources</option>
               <option value="official">Official (D&D)</option>
@@ -366,17 +315,7 @@ export function ItemLibraryPage() {
             }}
             disabled={items.length >= LIMITS.ITEMS_PER_LIBRARY}
             title={items.length >= LIMITS.ITEMS_PER_LIBRARY ? `Maximum of ${LIMITS.ITEMS_PER_LIBRARY} items reached` : ''}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: items.length >= LIMITS.ITEMS_PER_LIBRARY ? '#6c757d' : '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: items.length >= LIMITS.ITEMS_PER_LIBRARY ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              opacity: items.length >= LIMITS.ITEMS_PER_LIBRARY ? 0.6 : 1
-            }}
+            className="btn btn-success"
           >
             + Create New Item
           </button>
@@ -384,17 +323,7 @@ export function ItemLibraryPage() {
           <button
             onClick={toggleSelectionMode}
             disabled={filteredItems.length === 0}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: selectionMode ? '#ffc107' : '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: filteredItems.length === 0 ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              opacity: filteredItems.length === 0 ? 0.6 : 1
-            }}
+            className={`btn ${selectionMode ? 'btn-warning' : 'btn-primary'}`}
           >
             {selectionMode ? 'Cancel Selection' : 'Select'}
           </button>
@@ -402,17 +331,11 @@ export function ItemLibraryPage() {
 
         {/* Empty State */}
         {filteredItems.length === 0 ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '60px 20px',
-            backgroundColor: '#f9f9f9',
-            borderRadius: '8px',
-            border: '2px dashed #ddd'
-          }}>
+          <div className="empty-state">
             {items.length === 0 ? (
               <>
-                <h2 style={{ marginTop: 0, color: '#666' }}>No Items Yet</h2>
-                <p style={{ color: '#999', marginBottom: '30px' }}>
+                <h2>No Items Yet</h2>
+                <p>
                   Create your first item or import from the D&D API to get started!
                 </p>
                 <button
@@ -424,25 +347,15 @@ export function ItemLibraryPage() {
                     setShowCreateModal(true);
                   }}
                   disabled={items.length >= LIMITS.ITEMS_PER_LIBRARY}
-                  style={{
-                    padding: '12px 24px',
-                    backgroundColor: items.length >= LIMITS.ITEMS_PER_LIBRARY ? '#6c757d' : '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: items.length >= LIMITS.ITEMS_PER_LIBRARY ? 'not-allowed' : 'pointer',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    opacity: items.length >= LIMITS.ITEMS_PER_LIBRARY ? 0.6 : 1
-                  }}
+                  className="btn btn-success btn-lg"
                 >
                   + Create Your First Item
                 </button>
               </>
             ) : (
               <>
-                <h2 style={{ marginTop: 0, color: '#666' }}>No Results Found</h2>
-                <p style={{ color: '#999', marginBottom: '0' }}>
+                <h2>No Results Found</h2>
+                <p style={{ marginBottom: '0' }}>
                   No items match your search or filters. Try adjusting your criteria.
                 </p>
               </>
@@ -451,82 +364,49 @@ export function ItemLibraryPage() {
         ) : (
           <>
             {/* Item Count */}
-            <div style={{ marginBottom: '15px' }}>
-              <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
-                Showing {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''}
-              </p>
-            </div>
+            <p className="count-display">
+              Showing {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''}
+            </p>
 
             {/* Item Grid */}
-            <div style={{ display: 'grid', gap: '20px' }}>
+            <div className="grid-container">
               {filteredItems.map((libraryItem) => {
                 const isSelected = selectedItems.has(libraryItem.id);
                 return (
                   <div
                     key={libraryItem.id}
                     onClick={() => selectionMode && toggleItemSelection(libraryItem.id)}
-                    style={{
-                      padding: '20px',
-                      backgroundColor: 'white',
-                      border: isSelected ? '3px solid #007bff' : '1px solid #ddd',
-                      borderRadius: '8px',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                      cursor: selectionMode ? 'pointer' : 'default',
-                      position: 'relative'
-                    }}
+                    className={`card ${selectionMode ? 'card-clickable' : ''} ${isSelected ? 'card-selected' : ''} ${selectionMode ? 'card-with-checkbox' : ''}`}
                   >
                     {selectionMode && (
-                      <div style={{ position: 'absolute', top: '15px', left: '15px' }}>
+                      <div className="card-checkbox">
                         <input
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleItemSelection(libraryItem.id)}
                           onClick={(e) => e.stopPropagation()}
-                          style={{
-                            width: '20px',
-                            height: '20px',
-                            cursor: 'pointer'
-                          }}
                         />
                       </div>
                     )}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                      <div style={{ flex: 1, marginLeft: selectionMode ? '35px' : '0' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                          <h3 style={{ margin: 0 }}>{libraryItem.item.name}</h3>
+                    <div className="card-header">
+                      <div className={`card-body ${selectionMode ? 'card-content-shifted' : ''}`}>
+                        <div className="badge-container">
+                          <h3 className="card-title">{libraryItem.item.name}</h3>
 
-                        <span style={{
-                          padding: '3px 8px',
-                          fontSize: '12px',
-                          borderRadius: '3px',
-                          ...getTypeBadgeColor(libraryItem.item.type),
-                          fontWeight: 'bold'
-                        }}>
-                          {libraryItem.item.type}
-                        </span>
+                          <span className={`badge badge-${libraryItem.item.type}`}>
+                            {libraryItem.item.type}
+                          </span>
 
-                        <span style={{
-                          padding: '3px 8px',
-                          fontSize: '12px',
-                          borderRadius: '3px',
-                          ...getSourceBadgeColor(libraryItem.source),
-                          fontWeight: 'bold'
-                        }}>
-                          {libraryItem.source}
-                        </span>
-                      </div>
+                          <span className={`badge badge-${libraryItem.source}`}>
+                            {libraryItem.source}
+                          </span>
+                        </div>
 
-                      <p style={{ margin: '8px 0', color: '#666' }}>
-                        {libraryItem.item.description}
-                      </p>
+                        <p className="card-description">
+                          {libraryItem.item.description}
+                        </p>
 
-                      <div style={{
-                        display: 'flex',
-                        gap: '20px',
-                        marginTop: '10px',
-                        fontSize: '14px',
-                        color: '#999'
-                      }}>
+                        <div className="item-details">
                         {libraryItem.item.weight !== null && (
                           <span><strong>Weight:</strong> {libraryItem.item.weight} lb</span>
                         )}
@@ -538,39 +418,16 @@ export function ItemLibraryPage() {
                   </div>
 
                   {!selectionMode && (
-                    <div style={{
-                      marginTop: '15px',
-                      paddingTop: '15px',
-                      borderTop: '1px solid #eee',
-                      display: 'flex',
-                      gap: '10px',
-                      flexWrap: 'wrap'
-                    }}>
+                    <div className="card-footer">
                       <button
                         onClick={() => setEditingItem(libraryItem)}
-                        style={{
-                          padding: '8px 16px',
-                          backgroundColor: '#007bff',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '5px',
-                          cursor: 'pointer',
-                          fontSize: '14px'
-                        }}
+                        className="btn btn-primary btn-sm"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDeleteItem(libraryItem.id, libraryItem.item.name)}
-                        style={{
-                          padding: '8px 16px',
-                          backgroundColor: '#dc3545',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '5px',
-                          cursor: 'pointer',
-                          fontSize: '14px'
-                        }}
+                        className="btn btn-danger btn-sm"
                       >
                         Delete
                       </button>
@@ -586,66 +443,28 @@ export function ItemLibraryPage() {
 
       {/* Sticky Bottom Toolbar */}
       {selectionMode && selectedItems.size > 0 && (
-        <div style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: '#2c3e50',
-          color: 'white',
-          padding: '15px 20px',
-          boxShadow: '0 -2px 10px rgba(0,0,0,0.2)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
+        <div className="toolbar-bottom">
+          <div className="toolbar-info">
+            <span className="toolbar-count">
               {selectedItems.size} item{selectedItems.size !== 1 ? 's' : ''} selected
             </span>
             <button
               onClick={handleSelectAll}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#3498db',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
+              className="btn btn-info btn-sm"
             >
               {selectedItems.size === filteredItems.length ? 'Deselect All' : 'Select All'}
             </button>
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="toolbar-actions">
             <button
               onClick={handleBulkDelete}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#dc3545',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold'
-              }}
+              className="btn btn-danger"
             >
               Delete All
             </button>
             <button
               onClick={toggleSelectionMode}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
+              className="btn btn-secondary"
             >
               Cancel
             </button>

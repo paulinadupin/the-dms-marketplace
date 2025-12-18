@@ -140,12 +140,7 @@ export function ShopManagement() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <div className="loading-container">
         Loading...
       </div>
     );
@@ -159,34 +154,18 @@ export function ShopManagement() {
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div className="page-container">
         {/* Header */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '20px',
-          padding: '20px',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '8px'
-        }}>
-          <div>
-            <h1 style={{ margin: 0 }}>{market.name}</h1>
-            <p style={{ margin: '5px 0 0 0', color: '#666' }}>
+        <div className="header-container">
+          <div className="header-info">
+            <h1>{market.name}</h1>
+            <p>
               {market.description || 'Manage your shops and inventory'}
             </p>
           </div>
           <button
             onClick={() => navigate('/dashboard')}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
+            className="btn btn-secondary"
           >
             Back
           </button>
