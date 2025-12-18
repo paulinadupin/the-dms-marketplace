@@ -370,12 +370,14 @@ export function ShopManagement() {
               {shops.map((shop) => (
                 <div
                   key={shop.id}
+                  onClick={() => navigate(`/shop/${shop.id}/inventory`)}
                   style={{
                     padding: '20px',
                     backgroundColor: 'white',
                     border: '1px solid #ddd',
                     borderRadius: '8px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    cursor: 'pointer'
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
@@ -414,25 +416,10 @@ export function ShopManagement() {
                     flexWrap: 'wrap'
                   }}>
                     <button
-                      onClick={() => {
-                        console.log('Navigating to inventory for shop:', shop.id, shop);
-                        navigate(`/shop/${shop.id}/inventory`);
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingShop(shop);
                       }}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#28a745',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      Manage Inventory
-                    </button>
-                    <button
-                      onClick={() => setEditingShop(shop)}
                       style={{
                         padding: '8px 16px',
                         backgroundColor: '#007bff',
@@ -446,7 +433,10 @@ export function ShopManagement() {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDeleteShop(shop.id, shop.name)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteShop(shop.id, shop.name);
+                      }}
                       style={{
                         padding: '8px 16px',
                         backgroundColor: '#dc3545',
