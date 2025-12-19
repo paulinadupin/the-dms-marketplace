@@ -540,3 +540,17 @@
 .mt-lg {
   margin-top: var(--spacing-lg);
 }
+
+/* ========================================
+   Editable Headings
+   ======================================== */
+.editable-heading {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.editable-heading:hover {
+  background-color: #f0f0f0;
+}

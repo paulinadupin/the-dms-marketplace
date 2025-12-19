@@ -391,7 +391,9 @@ export function ItemLibraryPage() {
                     <div className="card-header">
                       <div className={`card-body ${selectionMode ? 'card-content-shifted' : ''}`}>
                         <div className="badge-container">
-                          <h3 className="card-title">{libraryItem.item.name}</h3>
+                          <h3 className="card-title">
+                            {libraryItem.item.name}
+                          </h3>
 
                           <span className={`badge badge-${libraryItem.item.type}`}>
                             {libraryItem.item.type}

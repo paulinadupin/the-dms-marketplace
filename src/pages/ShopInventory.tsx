@@ -4,8 +4,9 @@ import { AuthService } from '../services/auth.service';
 import { ShopService } from '../services/shop.service';
 import { ShopItemService } from '../services/shop-item.service';
 import { ItemLibraryService } from '../services/item-library.service';
+import { MarketService } from '../services/market.service';
 import type { User } from 'firebase/auth';
-import type { FirestoreShop, ShopItem, ItemLibrary } from '../types/firebase';
+import type { FirestoreShop, ShopItem, ItemLibrary, Market } from '../types/firebase';
 import { Toast } from '../components/Toast';
 import { AddItemToShopModal } from '../components/AddItemToShopModal';
 import { LIMITS } from '../config/limits';
@@ -27,6 +28,13 @@ export function ShopInventory() {
   const [priceForm, setPriceForm] = useState({ cp: '', sp: '', gp: '' });
   const [editingStockId, setEditingStockId] = useState<string | null>(null);
   const [stockForm, setStockForm] = useState({ stock: '', unlimited: false });
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [duplicateSameShop, setDuplicateSameShop] = useState(true);
+  const [markets, setMarkets] = useState<Market[]>([]);
+  const [allShops, setAllShops] = useState<FirestoreShop[]>([]);
+  const [selectedMarketId, setSelectedMarketId] = useState('');
+  const [selectedTargetShopId, setSelectedTargetShopId] = useState('');
+  const [duplicating, setDuplicating] = useState(false);
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -167,6 +175,110 @@ export function ShopInventory() {
     setSelectedItems(new Set());
     loadData();
   };
+
+  const openDuplicateModal = async () => {
+    if (!user) return;
+
+    try {
+      // Load markets and all shops
+      const [marketsData, shopsData] = await Promise.all([
+        MarketService.getMarketsByDM(user.uid),
+        // We'll load all shops for all markets
+        Promise.resolve([]) as Promise<FirestoreShop[]>
+      ]);
+
+      setMarkets(marketsData);
+
+      // Load shops for all markets
+      const allShopsPromises = marketsData.map(market => ShopService.getShopsByMarket(market.id));
+      const allShopsArrays = await Promise.all(allShopsPromises);
+      const allShopsFlat = allShopsArrays.flat();
+
+      setAllShops(allShopsFlat);
+      setShowDuplicateModal(true);
+      setDuplicateSameShop(true);
+      setSelectedMarketId('');
+      setSelectedTargetShopId('');
+    } catch (err: any) {
+      setToast({ message: err.message, type: 'error' });
+    }
+  };
+
+  const handleDuplicate = async () => {
+    if (selectedItems.size === 0) return;
+
+    const targetShopId = duplicateSameShop ? shopId : selectedTargetShopId;
+
+    if (!targetShopId) {
+      setToast({ message: 'Please select a target shop', type: 'error' });
+      return;
+    }
+
+    setDuplicating(true);
+
+    try {
+      let successCount = 0;
+      let failCount = 0;
+
+      // Get target shop to get its marketId
+      const targetShop = duplicateSameShop ? shop : allShops.find(s => s.id === targetShopId);
+
+      if (!targetShop) {
+        throw new Error('Target shop not found');
+      }
+
+      for (const itemId of selectedItems) {
+        try {
+          const shopItem = shopItems.find(item => item.id === itemId);
+          if (!shopItem) continue;
+
+          // Duplicate with same price and stock
+          await ShopItemService.addItemToShop({
+            shopId: targetShopId!,
+            marketId: targetShop.marketId,
+            itemLibraryId: shopItem.itemLibraryId,
+            price: shopItem.price,
+            stock: shopItem.stock
+          });
+
+          successCount++;
+        } catch (err: any) {
+          failCount++;
+        }
+      }
+
+      // Show results
+      if (successCount > 0) {
+        setToast({
+          message: `Successfully duplicated ${successCount} item${successCount > 1 ? 's' : ''}!${failCount > 0 ? ` (${failCount} failed)` : ''}`,
+          type: failCount > 0 ? 'error' : 'success'
+        });
+      } else {
+        setToast({
+          message: `Failed to duplicate items`,
+          type: 'error'
+        });
+      }
+
+      // Close modal and reload if duplicating to same shop
+      setShowDuplicateModal(false);
+      if (duplicateSameShop) {
+        loadData();
+      }
+
+      // Reset selection mode
+      setSelectionMode(false);
+      setSelectedItems(new Set());
+    } catch (err: any) {
+      setToast({ message: err.message, type: 'error' });
+    } finally {
+      setDuplicating(false);
+    }
+  };
+
+  const filteredShops = allShops.filter(s =>
+    duplicateSameShop ? false : (selectedMarketId ? s.marketId === selectedMarketId : true)
+  );
 
   const startEditingPrice = (shopItem: ShopItem) => {
     const price = shopItem.price || { cp: 0, sp: 0, gp: 0 };
@@ -586,6 +698,12 @@ export function ShopInventory() {
           </div>
           <div className="toolbar-actions">
             <button
+              onClick={openDuplicateModal}
+              className="btn btn-primary"
+            >
+              Duplicate
+            </button>
+            <button
               onClick={handleBulkRemove}
               className="btn btn-danger"
             >
@@ -614,6 +732,130 @@ export function ShopInventory() {
             setShowAddModal(false);
           }}
         />
+      )}
+
+      {/* Duplicate Items Modal */}
+      {showDuplicateModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '8px',
+            maxWidth: '500px',
+            width: '100%'
+          }}>
+            <h2 style={{ marginTop: 0 }}>Duplicate Items to Shop</h2>
+            <p style={{ color: '#666', marginBottom: '20px', fontSize: '14px' }}>
+              Duplicating {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} with the same price and stock.
+            </p>
+
+            {/* Same Shop Option */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: 'bold' }}>
+                <input
+                  type="checkbox"
+                  checked={duplicateSameShop}
+                  onChange={(e) => setDuplicateSameShop(e.target.checked)}
+                />
+                <span>Duplicate in the same shop</span>
+              </label>
+            </div>
+
+            {/* Market Selection */}
+            {!duplicateSameShop && (
+              <>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                    Select Market *
+                  </label>
+                  <select
+                    value={selectedMarketId}
+                    onChange={(e) => {
+                      setSelectedMarketId(e.target.value);
+                      setSelectedTargetShopId(''); // Reset shop selection
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      border: '1px solid #ddd',
+                      borderRadius: '5px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="">Choose a market...</option>
+                    {markets.map(market => (
+                      <option key={market.id} value={market.id}>
+                        {market.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Shop Selection */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                    Select Shop *
+                  </label>
+                  <select
+                    value={selectedTargetShopId}
+                    onChange={(e) => setSelectedTargetShopId(e.target.value)}
+                    disabled={!selectedMarketId}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      border: '1px solid #ddd',
+                      borderRadius: '5px',
+                      fontSize: '14px',
+                      cursor: !selectedMarketId ? 'not-allowed' : 'pointer',
+                      backgroundColor: !selectedMarketId ? '#f5f5f5' : 'white'
+                    }}
+                  >
+                    <option value="">Choose a shop...</option>
+                    {filteredShops.map(shop => (
+                      <option key={shop.id} value={shop.id}>
+                        {shop.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => setShowDuplicateModal(false)}
+                className="btn btn-secondary"
+                style={{ flex: 1 }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDuplicate}
+                disabled={duplicating || (!duplicateSameShop && !selectedTargetShopId)}
+                className="btn btn-success"
+                style={{
+                  flex: 1,
+                  cursor: (duplicating || (!duplicateSameShop && !selectedTargetShopId)) ? 'not-allowed' : 'pointer',
+                  opacity: (duplicating || (!duplicateSameShop && !selectedTargetShopId)) ? 0.6 : 1
+                }}
+              >
+                {duplicating ? 'Duplicating...' : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
