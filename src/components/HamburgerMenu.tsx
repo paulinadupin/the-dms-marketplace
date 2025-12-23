@@ -30,52 +30,15 @@ export function HamburgerMenu() {
   };
 
   return (
-    <div ref={menuRef} style={{
-      position: 'fixed',
-      top: '20px',
-      right: '20px',
-      zIndex: 1000
-    }}>
+    <div ref={menuRef} className="hamburger-menu">
       {/* Hamburger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        style={{
-          width: '50px',
-          height: '50px',
-          backgroundColor: '#007bff',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '5px',
-          padding: '10px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-        }}
+        className="hamburger-button"
       >
-        <div style={{
-          width: '25px',
-          height: '3px',
-          backgroundColor: 'white',
-          borderRadius: '2px',
-          transition: 'all 0.3s'
-        }} />
-        <div style={{
-          width: '25px',
-          height: '3px',
-          backgroundColor: 'white',
-          borderRadius: '2px',
-          transition: 'all 0.3s'
-        }} />
-        <div style={{
-          width: '25px',
-          height: '3px',
-          backgroundColor: 'white',
-          borderRadius: '2px',
-          transition: 'all 0.3s'
-        }} />
+        <div />
+        <div />
+        <div />
       </button>
 
       {/* Dropdown Menu */}

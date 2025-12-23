@@ -143,21 +143,21 @@ export function PlayerShopInventory() {
 
   return (
     <>
-      {/* Player Inventory Menu */}
-      <PlayerInventoryMenu accessCode={accessCode!} />
-
-      {/* Back Button */}
-      <button
-        onClick={handleBack}
-        className="player-back-button"
-        title="Back to Shops"
-      >
-        ←
-      </button>
+      {/* Fixed Header Bar */}
+      <div className="player-header-bar">
+        <button
+          onClick={handleBack}
+          className="player-back-button"
+          title="Back to Shops"
+        >
+          ←
+        </button>
+        <h1 className="player-header-title">{shop.name}</h1>
+        <PlayerInventoryMenu accessCode={accessCode!} />
+      </div>
 
       <div className="player-container">
         <div className="player-header">
-          <h1>{shop.name}</h1>
           {shop.description && <p>{shop.description}</p>}
           {shop.shopkeeper && <p className="player-shop-keeper">👤 Shopkeeper: {shop.shopkeeper}</p>}
         </div>

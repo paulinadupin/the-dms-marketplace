@@ -231,59 +231,35 @@ export function ItemLibraryPage() {
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* Back Button */}
-      <button
-        onClick={() => navigate('/dashboard')}
-        style={{
-          position: 'fixed',
-          top: '20px',
-          left: '20px',
-          width: '50px',
-          height: '50px',
-          backgroundColor: '#6c757d',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '24px',
-          color: 'white',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          transition: 'background-color 0.2s'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a6268'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
-        title="Back to Dashboard"
-      >
-        ←
-      </button>
-
-      {/* Hamburger Menu */}
-      <HamburgerMenu />
-
-      {/* Header */}
-      <div className="page-header-fullwidth">
-        <div className="page-header-content">
-          <h1>Item Library</h1>
-          <p>
-            Your personal catalog of reusable items ({items.length}/{LIMITS.ITEMS_PER_LIBRARY})
-          </p>
-          {items.length >= WARNING_THRESHOLD && items.length < LIMITS.ITEMS_PER_LIBRARY && (
-            <p className="text-warning">
-              ⚠️ You're approaching the limit ({LIMITS.ITEMS_PER_LIBRARY - items.length} slots remaining)
-            </p>
-          )}
-          {items.length >= LIMITS.ITEMS_PER_LIBRARY && (
-            <p className="text-danger">
-              ⚠️ You've reached the maximum limit. Delete items to create new ones.
-            </p>
-          )}
-        </div>
+      {/* Fixed Header Bar */}
+      <div className="dm-header-bar">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="dm-back-button"
+          title="Back to Dashboard"
+        >
+          ←
+        </button>
+        <h1 className="dm-header-title">Item Library</h1>
+        <HamburgerMenu />
       </div>
 
       <div className="page-container">
+        {/* Warning Messages */}
+        {items.length >= WARNING_THRESHOLD && items.length < LIMITS.ITEMS_PER_LIBRARY && (
+          <div style={{ padding: '10px 15px', backgroundColor: '#fff3cd', borderRadius: '5px', marginBottom: '20px', textAlign: 'center' }}>
+            <p className="text-warning" style={{ margin: 0 }}>
+              ⚠️ You're approaching the limit ({LIMITS.ITEMS_PER_LIBRARY - items.length} slots remaining)
+            </p>
+          </div>
+        )}
+        {items.length >= LIMITS.ITEMS_PER_LIBRARY && (
+          <div style={{ padding: '10px 15px', backgroundColor: '#f8d7da', borderRadius: '5px', marginBottom: '20px', textAlign: 'center' }}>
+            <p className="text-danger" style={{ margin: 0 }}>
+              ⚠️ You've reached the maximum limit. Delete items to create new ones.
+            </p>
+          </div>
+        )}
 
         {/* Filters and Search */}
         <div className="filter-container">
