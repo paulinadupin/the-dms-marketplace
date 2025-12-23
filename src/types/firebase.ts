@@ -72,6 +72,19 @@ export interface ShopItem {
 }
 
 /**
+ * Session Stock - Live stock tracking for active market sessions
+ * Shared across all players in the same market session
+ */
+export interface SessionStock {
+  id: string; // Format: {marketId}_{shopItemId}
+  marketId: string;
+  shopItemId: string;
+  currentStock: number | null; // Current stock in this session (null = unlimited)
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/**
  * @deprecated Use ItemLibrary and ShopItem instead
  * Firestore representation of Item (OLD STRUCTURE - kept for migration)
  */

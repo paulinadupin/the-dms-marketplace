@@ -92,6 +92,12 @@ export function ShopManagement() {
 
       setMarket(marketData);
       setShops(shopsData);
+
+      // Auto-migrate items to populate customData for player access (runs once per load)
+      console.log('Running migration for market:', marketId);
+      ShopItemService.migrateItemsWithCustomData(marketId)
+        .then(() => console.log('Migration completed'))
+        .catch((err) => console.error('Migration failed:', err));
     } catch (err: any) {
       setToast({ message: err.message, type: 'error' });
     } finally {

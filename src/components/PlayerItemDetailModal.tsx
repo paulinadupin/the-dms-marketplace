@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { ShopItemService } from '../services/shop-item.service';
+import { SessionStockService } from '../services/session-stock.service';
 import type { ShopItem } from '../types/firebase';
 
 interface PlayerItemDetailModalProps {
   shopItem: ShopItem;
   itemData: any;
+  currentStock: number | null | undefined;
   accessCode: string;
   onClose: () => void;
   onPurchase: (itemName: string) => void;
@@ -13,11 +14,15 @@ interface PlayerItemDetailModalProps {
 export function PlayerItemDetailModal({
   shopItem,
   itemData,
+  currentStock,
   accessCode,
   onClose,
   onPurchase
 }: PlayerItemDetailModalProps) {
   const [purchasing, setPurchasing] = useState(false);
+
+  // Check if item is out of stock
+  const isOutOfStock = currentStock !== null && currentStock !== undefined && currentStock <= 0;
 
   const formatPrice = (price: any) => {
     if (!price) return 'Free';
@@ -48,6 +53,12 @@ export function PlayerItemDetailModal({
   };
 
   const handlePurchase = async () => {
+    // Double check stock before purchasing
+    if (isOutOfStock) {
+      alert('This item is out of stock');
+      return;
+    }
+
     setPurchasing(true);
     try {
       // Get player data from localStorage
@@ -115,10 +126,9 @@ export function PlayerItemDetailModal({
       // Save to localStorage
       localStorage.setItem(`player_${accessCode}_data`, JSON.stringify(playerData));
 
-      // Update shop stock in Firestore (if not unlimited)
+      // Update session stock in Firestore (if not unlimited)
       if (shopItem.stock !== null) {
-        const newStock = shopItem.stock - 1;
-        await ShopItemService.updateShopItem(shopItem.id, { stock: newStock });
+        await SessionStockService.decreaseStock(shopItem.marketId, shopItem.id, 1);
       }
 
       // Show success notification and reload
@@ -227,11 +237,11 @@ export function PlayerItemDetailModal({
         <div className="player-modal-actions">
           <button
             onClick={handlePurchase}
-            disabled={purchasing || !canAfford() || (shopItem.stock !== null && shopItem.stock <= 0)}
+            disabled={purchasing || !canAfford() || isOutOfStock}
             className="player-purchase-button"
-            title={!canAfford() ? "You don't have enough money" : "Purchase this item"}
+            title={isOutOfStock ? "Out of stock" : !canAfford() ? "You don't have enough money" : "Purchase this item"}
           >
-            {purchasing ? "Purchasing..." : !canAfford() ? "Can't Afford" : "Purchase Item"}
+            {purchasing ? "Purchasing..." : isOutOfStock ? "Out of Stock" : !canAfford() ? "Can't Afford" : "Purchase Item"}
           </button>
         </div>
       </div>

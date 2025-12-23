@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ShopService } from '../services/shop.service';
 import { ShopItemService } from '../services/shop-item.service';
-import { ItemLibraryService } from '../services/item-library.service';
 import { MarketService } from '../services/market.service';
-import type { FirestoreShop, ShopItem, ItemLibrary } from '../types/firebase';
+import { SessionStockService } from '../services/session-stock.service';
+import type { FirestoreShop, ShopItem, SessionStock } from '../types/firebase';
 import { PlayerInventoryMenu } from '../components/PlayerInventoryMenu';
 import { PlayerItemDetailModal } from '../components/PlayerItemDetailModal';
 import { PurchaseNotification } from '../components/PurchaseNotification';
@@ -15,9 +15,9 @@ export function PlayerShopInventory() {
 
   const [shop, setShop] = useState<FirestoreShop | null>(null);
   const [shopItems, setShopItems] = useState<ShopItem[]>([]);
-  const [libraryItems, setLibraryItems] = useState<ItemLibrary[]>([]);
+  const [sessionStock, setSessionStock] = useState<Map<string, number | null>>(new Map());
   const [loading, setLoading] = useState(true);
-  const [selectedItem, setSelectedItem] = useState<{ shopItem: ShopItem; itemData: any } | null>(null);
+  const [selectedItem, setSelectedItem] = useState<{ shopItem: ShopItem; itemData: any; currentStock: number | null | undefined } | null>(null);
   const [purchasedItemName, setPurchasedItemName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,13 +45,17 @@ export function PlayerShopInventory() {
         return;
       }
 
-      // Load shop items
+      // Load shop items (they contain all item data via customData)
       const items = await ShopItemService.getItemsByShop(shopId);
       setShopItems(items);
 
-      // Load library items to get full item data using market's dmId
-      const library = await ItemLibraryService.getItemsByDM(marketData.dmId);
-      setLibraryItems(library);
+      // Load session stock for this market
+      const sessionStockData = await SessionStockService.getMarketSessionStock(marketData.id);
+      const stockMap = new Map<string, number | null>();
+      sessionStockData.forEach((stock: SessionStock) => {
+        stockMap.set(stock.shopItemId, stock.currentStock);
+      });
+      setSessionStock(stockMap);
     } catch (err: any) {
       console.error('Error loading shop:', err);
     } finally {
@@ -60,11 +64,37 @@ export function PlayerShopInventory() {
   };
 
   const getItemData = (shopItem: ShopItem) => {
-    if (shopItem.isIndependent && shopItem.customData) {
-      return shopItem.customData;
-    }
-    const libraryItem = libraryItems.find(item => item.id === shopItem.itemLibraryId);
-    return libraryItem?.item;
+    // Use embedded customData (always available for new items, may be null for old items)
+    return shopItem.customData || null;
+  };
+
+  const canAffordItem = (shopItem: ShopItem): boolean => {
+    // Get player's current currency from localStorage
+    const playerDataStr = localStorage.getItem(`player_${accessCode}_data`);
+    if (!playerDataStr || !shopItem.price) return false;
+
+    const playerData = JSON.parse(playerDataStr);
+
+    // Convert everything to copper for comparison
+    const playerCopper = (playerData.gold * 100) + (playerData.silver * 10) + playerData.copper;
+    const priceCopper = ((shopItem.price.gp || 0) * 100) + ((shopItem.price.sp || 0) * 10) + (shopItem.price.cp || 0);
+
+    return playerCopper >= priceCopper;
+  };
+
+  const isItemInStock = (shopItem: ShopItem): boolean => {
+    const currentStock = sessionStock.has(shopItem.id)
+      ? sessionStock.get(shopItem.id)
+      : shopItem.stock;
+
+    // Unlimited stock (null) is always in stock
+    if (currentStock === null) return true;
+
+    return currentStock > 0;
+  };
+
+  const canPurchaseItem = (shopItem: ShopItem): boolean => {
+    return canAffordItem(shopItem) && isItemInStock(shopItem);
   };
 
   const formatPrice = (price: any) => {
@@ -84,7 +114,10 @@ export function PlayerShopInventory() {
   const handleItemClick = (shopItem: ShopItem) => {
     const itemData = getItemData(shopItem);
     if (itemData) {
-      setSelectedItem({ shopItem, itemData });
+      const currentStock = sessionStock.has(shopItem.id)
+        ? sessionStock.get(shopItem.id)
+        : shopItem.stock;
+      setSelectedItem({ shopItem, itemData, currentStock });
     }
   };
 
@@ -135,9 +168,27 @@ export function PlayerShopInventory() {
               <p>No items available in this shop.</p>
             </div>
           ) : (
-            shopItems.map((shopItem) => {
+            // Sort items: purchasable items first, then unavailable ones
+            [...shopItems].sort((a, b) => {
+              const canPurchaseA = canPurchaseItem(a);
+              const canPurchaseB = canPurchaseItem(b);
+              if (canPurchaseA && !canPurchaseB) return -1;
+              if (!canPurchaseA && canPurchaseB) return 1;
+              return 0;
+            }).map((shopItem) => {
               const itemData = getItemData(shopItem);
-              if (!itemData) return null;
+              if (!itemData) {
+                // Fallback for items without customData (old items)
+                return (
+                  <div key={shopItem.id} className="player-item-card">
+                    <div className="player-item-content">
+                      <h3 className="player-item-name">Item Data Unavailable</h3>
+                      <p className="player-item-price">{formatPrice(shopItem.price)}</p>
+                      <p style={{fontSize: '12px', color: '#999'}}>Contact the DM to refresh this item</p>
+                    </div>
+                  </div>
+                );
+              }
 
               // Get key feature based on item type
               let keyFeature = '';
@@ -170,16 +221,24 @@ export function PlayerShopInventory() {
                 // gear and treasure have no key feature
               }
 
+              // Get current session stock for this item
+              const currentStock = sessionStock.has(shopItem.id)
+                ? sessionStock.get(shopItem.id)
+                : shopItem.stock;
+
+              // Check if player can purchase this item
+              const canPurchase = canPurchaseItem(shopItem);
+
               return (
                 <div
                   key={shopItem.id}
-                  className="player-item-card"
+                  className={`player-item-card ${!canPurchase ? 'player-item-unavailable' : ''}`}
                   onClick={() => handleItemClick(shopItem)}
                 >
                   <h3>{itemData.name}</h3>
                   <p className="player-item-type">{itemData.type}</p>
                   <p className="player-item-price">{formatPrice(shopItem.price)}</p>
-                  <p className="player-item-stock">{formatStock(shopItem.stock)}</p>
+                  <p className="player-item-stock">{formatStock(currentStock)}</p>
                   {keyFeature && (
                     <p className="player-item-feature">{keyFeature}</p>
                   )}
@@ -195,6 +254,7 @@ export function PlayerShopInventory() {
         <PlayerItemDetailModal
           shopItem={selectedItem.shopItem}
           itemData={selectedItem.itemData}
+          currentStock={selectedItem.currentStock}
           accessCode={accessCode!}
           onClose={() => setSelectedItem(null)}
           onPurchase={(itemName: string) => {

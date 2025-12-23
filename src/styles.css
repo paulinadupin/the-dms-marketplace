@@ -761,6 +761,18 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
+/* Unavailable items (out of stock or too expensive) */
+.player-item-unavailable {
+  opacity: 0.5;
+  filter: grayscale(50%);
+  cursor: default;
+}
+
+.player-item-unavailable:hover {
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 .player-shop-card h2,
 .player-item-card h3 {
   margin: 0 0 10px 0;

@@ -14,6 +14,7 @@ import {
 import { db } from '../config/firebase';
 import type { Market, CreateMarketInput } from '../types/firebase';
 import { ShopItemService } from './shop-item.service';
+import { SessionStockService } from './session-stock.service';
 
 export class MarketService {
   private static readonly COLLECTION = 'markets';
@@ -203,6 +204,9 @@ export class MarketService {
         activeUntil: activeUntil,
         updatedAt: now,
       });
+
+      // Initialize session stock for all items in this market
+      await SessionStockService.initializeMarketSession(marketId);
     } catch (error: any) {
       throw new Error(`Failed to activate market: ${error.message}`);
     }
@@ -213,6 +217,9 @@ export class MarketService {
    */
   static async deactivateMarket(marketId: string): Promise<void> {
     try {
+      // Clear session stock for this market
+      await SessionStockService.clearMarketSession(marketId);
+
       // Reset all stock in the market to original values
       await ShopItemService.resetStockInMarket(marketId);
 

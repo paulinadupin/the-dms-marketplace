@@ -47,7 +47,7 @@ export class ShopItemService {
         stock: stockValue,
         originalStock: stockValue, // Save original stock to reset when market is deactivated
         isIndependent: false,
-        customData: null,
+        customData: libraryItem.item, // Always embed item data for player access
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
@@ -328,6 +328,49 @@ export class ShopItemService {
       return true;
     } catch (error: any) {
       throw new Error('Failed to decrease stock: ' + error.message);
+    }
+  }
+
+  /**
+   * Migrate shop items to populate customData from library (for existing items)
+   * Call this to fix items created before customData was required
+   */
+  static async migrateItemsWithCustomData(marketId: string): Promise<void> {
+    try {
+      console.log('Migration: Fetching items for market', marketId);
+      const items = await this.getItemsByMarket(marketId);
+      console.log('Migration: Found', items.length, 'items');
+
+      const batch = writeBatch(db);
+      let updateCount = 0;
+
+      for (const item of items) {
+        if (!item.customData || item.originalStock === undefined) {
+          console.log('Migration: Item needs update:', item.id);
+          const libraryItem = await ItemLibraryService.getItem(item.itemLibraryId);
+          if (libraryItem) {
+            const docRef = doc(db, this.COLLECTION, item.id);
+            const updates: any = { updatedAt: Timestamp.now() };
+            if (!item.customData) {
+              updates.customData = libraryItem.item;
+              console.log('Migration: Adding customData for', item.id);
+            }
+            if (item.originalStock === undefined) {
+              updates.originalStock = item.stock;
+              console.log('Migration: Adding originalStock for', item.id);
+            }
+            batch.update(docRef, updates);
+            updateCount++;
+          }
+        }
+      }
+
+      console.log('Migration: Updating', updateCount, 'items');
+      if (updateCount > 0) await batch.commit();
+      console.log('Migration: Complete');
+    } catch (error: any) {
+      console.error('Migration error:', error);
+      throw new Error('Failed to migrate items: ' + error.message);
     }
   }
 
