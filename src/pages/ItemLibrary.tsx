@@ -8,6 +8,7 @@ import { Toast } from '../components/Toast';
 import { CreateItemModal } from '../components/CreateItemModal';
 import { EditItemModal } from '../components/EditItemModal';
 import { LIMITS } from '../config/limits';
+import { HamburgerMenu } from '../components/HamburgerMenu';
 
 const WARNING_THRESHOLD = ItemLibraryService.ITEM_LIBRARY_WARNING_THRESHOLD;
 
@@ -230,38 +231,59 @@ export function ItemLibraryPage() {
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <div className="page-container">
-        {/* Header */}
-        <div className="header-container">
-          <div className="header-info">
-            <h1>Item Library</h1>
-            <p>
-              Your personal catalog of reusable items ({items.length}/{LIMITS.ITEMS_PER_LIBRARY})
+      {/* Back Button */}
+      <button
+        onClick={() => navigate('/dashboard')}
+        style={{
+          position: 'fixed',
+          top: '20px',
+          left: '20px',
+          width: '50px',
+          height: '50px',
+          backgroundColor: '#6c757d',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '24px',
+          color: 'white',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          transition: 'background-color 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a6268'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
+        title="Back to Dashboard"
+      >
+        ←
+      </button>
+
+      {/* Hamburger Menu */}
+      <HamburgerMenu />
+
+      {/* Header */}
+      <div className="page-header-fullwidth">
+        <div className="page-header-content">
+          <h1>Item Library</h1>
+          <p>
+            Your personal catalog of reusable items ({items.length}/{LIMITS.ITEMS_PER_LIBRARY})
+          </p>
+          {items.length >= WARNING_THRESHOLD && items.length < LIMITS.ITEMS_PER_LIBRARY && (
+            <p className="text-warning">
+              ⚠️ You're approaching the limit ({LIMITS.ITEMS_PER_LIBRARY - items.length} slots remaining)
             </p>
-            {items.length >= WARNING_THRESHOLD && items.length < LIMITS.ITEMS_PER_LIBRARY && (
-              <p className="text-warning">
-                ⚠️ You're approaching the limit ({LIMITS.ITEMS_PER_LIBRARY - items.length} slots remaining)
-              </p>
-            )}
-            {items.length >= LIMITS.ITEMS_PER_LIBRARY && (
-              <p className="text-danger">
-                ⚠️ You've reached the maximum limit. Delete items to create new ones.
-              </p>
-            )}
-          </div>
-          <button
-            onClick={() => {
-              if (selectionMode) {
-                setSelectionMode(false);
-                setSelectedItems(new Set());
-              }
-              navigate('/dashboard');
-            }}
-            className="btn btn-secondary"
-          >
-            Back to Dashboard
-          </button>
+          )}
+          {items.length >= LIMITS.ITEMS_PER_LIBRARY && (
+            <p className="text-danger">
+              ⚠️ You've reached the maximum limit. Delete items to create new ones.
+            </p>
+          )}
         </div>
+      </div>
+
+      <div className="page-container">
 
         {/* Filters and Search */}
         <div className="filter-container">

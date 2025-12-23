@@ -12,6 +12,7 @@ import { EditShopModal } from '../components/EditShopModal';
 import { EditMarketModal } from '../components/EditMarketModal';
 import { ActivateMarketModal } from '../components/ActivateMarketModal';
 import { LIMITS } from '../config/limits';
+import { HamburgerMenu } from '../components/HamburgerMenu';
 
 export function ShopManagement() {
   const { marketId } = useParams<{ marketId: string }>();
@@ -347,22 +348,49 @@ export function ShopManagement() {
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <div className="page-container">
-        {/* Header */}
-        <div className="header-container">
-          <div className="header-info">
-            <h1>{market.name}</h1>
-            <p>
-              {market.description || 'Manage your shops and inventory'}
-            </p>
-          </div>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="btn btn-secondary"
-          >
-            Back
-          </button>
+      {/* Back Button */}
+      <button
+        onClick={() => navigate('/dashboard')}
+        style={{
+          position: 'fixed',
+          top: '20px',
+          left: '20px',
+          width: '50px',
+          height: '50px',
+          backgroundColor: '#6c757d',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '24px',
+          color: 'white',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          transition: 'background-color 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a6268'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
+        title="Back to Dashboard"
+      >
+        ←
+      </button>
+
+      {/* Hamburger Menu */}
+      <HamburgerMenu />
+
+      {/* Header */}
+      <div className="page-header-fullwidth">
+        <div className="page-header-content">
+          <h1>{market.name}</h1>
+          <p>
+            {market.description || 'Manage your shops and inventory'}
+          </p>
         </div>
+      </div>
+
+      <div className="page-container">
 
         {/* Market Controls */}
         <div style={{

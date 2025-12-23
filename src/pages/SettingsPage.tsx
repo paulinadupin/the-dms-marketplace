@@ -3,6 +3,7 @@ import { AuthService } from '../services/auth.service';
 import { useNavigate } from 'react-router-dom';
 import type { User } from 'firebase/auth';
 import { Toast } from '../components/Toast';
+import { HamburgerMenu } from '../components/HamburgerMenu';
 
 export function SettingsPage() {
   const navigate = useNavigate();
@@ -138,33 +139,48 @@ export function SettingsPage() {
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{
+
+      {/* Back Button */}
+      <button
+        onClick={() => navigate('/dashboard')}
+        style={{
+          position: 'fixed',
+          top: '20px',
+          left: '20px',
+          width: '50px',
+          height: '50px',
+          backgroundColor: '#6c757d',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '30px',
-          padding: '20px',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '8px'
-        }}>
-          <h1 style={{ margin: 0 }}>Account Settings</h1>
-          <button
-            onClick={() => navigate('/dashboard')}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Back to Dashboard
-          </button>
+          justifyContent: 'center',
+          fontSize: '24px',
+          color: 'white',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          transition: 'background-color 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a6268'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
+        title="Back to Dashboard"
+      >
+        ←
+      </button>
+
+      {/* Hamburger Menu */}
+      <HamburgerMenu />
+
+      {/* Header */}
+      <div className="page-header-fullwidth">
+        <div className="page-header-content" style={{ maxWidth: '800px' }}>
+          <h1>Account Settings</h1>
         </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ padding: '0 20px', maxWidth: '800px', margin: '0 auto' }}>
 
         {/* Current Info */}
         <div style={{

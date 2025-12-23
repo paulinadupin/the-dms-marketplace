@@ -233,7 +233,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
         {markets.map((market) => (
           <div
             key={market.id}
-            onClick={() => navigate(`/market/${market.id}/shops`)}
+            onClick={() => navigate(`/dm/market/${market.id}/shops`)}
             style={{
               padding: '20px',
               backgroundColor: 'white',

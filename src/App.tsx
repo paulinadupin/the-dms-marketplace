@@ -6,6 +6,10 @@ import { SettingsPage } from './pages/SettingsPage';
 import { ShopManagement } from './pages/ShopManagement';
 import { ShopInventory } from './pages/ShopInventory';
 import { ItemLibraryPage } from './pages/ItemLibrary';
+import { PlayerMarketEntry } from './pages/PlayerMarketEntry';
+import { PlayerShopsList } from './pages/PlayerShopsList';
+import { PlayerShopInventory } from './pages/PlayerShopInventory';
+import { PlayerMarketSummary } from './pages/PlayerMarketSummary';
 
 function App() {
   return (
@@ -16,7 +20,15 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/item-library" element={<ItemLibraryPage />} />
-        <Route path="/market/:marketId/shops" element={<ShopManagement />} />
+
+        {/* Player Routes - Must come BEFORE DM routes to avoid conflicts */}
+        <Route path="/market/:accessCode" element={<PlayerMarketEntry />} />
+        <Route path="/market/:accessCode/shops" element={<PlayerShopsList />} />
+        <Route path="/market/:accessCode/shop/:shopId" element={<PlayerShopInventory />} />
+        <Route path="/market/:accessCode/summary" element={<PlayerMarketSummary />} />
+
+        {/* DM Routes */}
+        <Route path="/dm/market/:marketId/shops" element={<ShopManagement />} />
         <Route path="/shop/:shopId/inventory" element={<ShopInventory />} />
       </Routes>
     </BrowserRouter>
