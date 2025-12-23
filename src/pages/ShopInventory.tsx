@@ -4,11 +4,13 @@ import { AuthService } from '../services/auth.service';
 import { ShopService } from '../services/shop.service';
 import { ShopItemService } from '../services/shop-item.service';
 import { ItemLibraryService } from '../services/item-library.service';
+import { MarketService } from '../services/market.service';
 import type { User } from 'firebase/auth';
-import type { FirestoreShop, ShopItem, ItemLibrary } from '../types/firebase';
+import type { FirestoreShop, ShopItem, ItemLibrary, Market } from '../types/firebase';
 import { Toast } from '../components/Toast';
 import { AddItemToShopModal } from '../components/AddItemToShopModal';
 import { LIMITS } from '../config/limits';
+import { HamburgerMenu } from '../components/HamburgerMenu';
 
 export function ShopInventory() {
   const { shopId } = useParams<{ shopId: string }>();
@@ -21,6 +23,19 @@ export function ShopInventory() {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
+  const [priceForm, setPriceForm] = useState({ cp: '', sp: '', gp: '' });
+  const [editingStockId, setEditingStockId] = useState<string | null>(null);
+  const [stockForm, setStockForm] = useState({ stock: '', unlimited: false });
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [duplicateSameShop, setDuplicateSameShop] = useState(true);
+  const [markets, setMarkets] = useState<Market[]>([]);
+  const [allShops, setAllShops] = useState<FirestoreShop[]>([]);
+  const [selectedMarketId, setSelectedMarketId] = useState('');
+  const [selectedTargetShopId, setSelectedTargetShopId] = useState('');
+  const [duplicating, setDuplicating] = useState(false);
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -96,13 +111,244 @@ export function ShopInventory() {
     }
   };
 
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedItems(new Set()); // Clear selections when toggling mode
+  };
+
+  const toggleItemSelection = (itemId: string) => {
+    const newSelected = new Set(selectedItems);
+    if (newSelected.has(itemId)) {
+      newSelected.delete(itemId);
+    } else {
+      newSelected.add(itemId);
+    }
+    setSelectedItems(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItems.size === shopItems.length) {
+      // Deselect all
+      setSelectedItems(new Set());
+    } else {
+      // Select all
+      setSelectedItems(new Set(shopItems.map(item => item.id)));
+    }
+  };
+
+  const handleBulkRemove = async () => {
+    if (selectedItems.size === 0) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to remove ${selectedItems.size} item${selectedItems.size > 1 ? 's' : ''} from this shop?\n\n` +
+      `This will not delete the items from your library.`
+    );
+
+    if (!confirmed) return;
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const itemId of selectedItems) {
+      try {
+        await ShopItemService.removeItemFromShop(itemId);
+        successCount++;
+      } catch (err: any) {
+        failCount++;
+      }
+    }
+
+    // Show results
+    if (successCount > 0) {
+      setToast({
+        message: `Successfully removed ${successCount} item${successCount > 1 ? 's' : ''}!${failCount > 0 ? ` (${failCount} failed)` : ''}`,
+        type: failCount > 0 ? 'error' : 'success'
+      });
+    } else {
+      setToast({
+        message: `Failed to remove items`,
+        type: 'error'
+      });
+    }
+
+    // Reset selection mode and reload
+    setSelectionMode(false);
+    setSelectedItems(new Set());
+    loadData();
+  };
+
+  const openDuplicateModal = async () => {
+    if (!user) return;
+
+    try {
+      // Load markets and all shops
+      const [marketsData, shopsData] = await Promise.all([
+        MarketService.getMarketsByDM(user.uid),
+        // We'll load all shops for all markets
+        Promise.resolve([]) as Promise<FirestoreShop[]>
+      ]);
+
+      setMarkets(marketsData);
+
+      // Load shops for all markets
+      const allShopsPromises = marketsData.map(market => ShopService.getShopsByMarket(market.id));
+      const allShopsArrays = await Promise.all(allShopsPromises);
+      const allShopsFlat = allShopsArrays.flat();
+
+      setAllShops(allShopsFlat);
+      setShowDuplicateModal(true);
+      setDuplicateSameShop(true);
+      setSelectedMarketId('');
+      setSelectedTargetShopId('');
+    } catch (err: any) {
+      setToast({ message: err.message, type: 'error' });
+    }
+  };
+
+  const handleDuplicate = async () => {
+    if (selectedItems.size === 0) return;
+
+    const targetShopId = duplicateSameShop ? shopId : selectedTargetShopId;
+
+    if (!targetShopId) {
+      setToast({ message: 'Please select a target shop', type: 'error' });
+      return;
+    }
+
+    setDuplicating(true);
+
+    try {
+      let successCount = 0;
+      let failCount = 0;
+
+      // Get target shop to get its marketId
+      const targetShop = duplicateSameShop ? shop : allShops.find(s => s.id === targetShopId);
+
+      if (!targetShop) {
+        throw new Error('Target shop not found');
+      }
+
+      for (const itemId of selectedItems) {
+        try {
+          const shopItem = shopItems.find(item => item.id === itemId);
+          if (!shopItem) continue;
+
+          // Duplicate with same price and stock
+          await ShopItemService.addItemToShop({
+            shopId: targetShopId!,
+            marketId: targetShop.marketId,
+            itemLibraryId: shopItem.itemLibraryId,
+            price: shopItem.price,
+            stock: shopItem.stock
+          });
+
+          successCount++;
+        } catch (err: any) {
+          failCount++;
+        }
+      }
+
+      // Show results
+      if (successCount > 0) {
+        setToast({
+          message: `Successfully duplicated ${successCount} item${successCount > 1 ? 's' : ''}!${failCount > 0 ? ` (${failCount} failed)` : ''}`,
+          type: failCount > 0 ? 'error' : 'success'
+        });
+      } else {
+        setToast({
+          message: `Failed to duplicate items`,
+          type: 'error'
+        });
+      }
+
+      // Close modal and reload if duplicating to same shop
+      setShowDuplicateModal(false);
+      if (duplicateSameShop) {
+        loadData();
+      }
+
+      // Reset selection mode
+      setSelectionMode(false);
+      setSelectedItems(new Set());
+    } catch (err: any) {
+      setToast({ message: err.message, type: 'error' });
+    } finally {
+      setDuplicating(false);
+    }
+  };
+
+  const filteredShops = allShops.filter(s =>
+    duplicateSameShop ? false : (selectedMarketId ? s.marketId === selectedMarketId : true)
+  );
+
+  const startEditingPrice = (shopItem: ShopItem) => {
+    const price = shopItem.price || { cp: 0, sp: 0, gp: 0 };
+    setPriceForm({
+      cp: ((price as any).cp || 0).toString(),
+      sp: ((price as any).sp || 0).toString(),
+      gp: ((price as any).gp || 0).toString(),
+    });
+    setEditingPriceId(shopItem.id);
+  };
+
+  const cancelEditingPrice = () => {
+    setEditingPriceId(null);
+    setPriceForm({ cp: '', sp: '', gp: '' });
+  };
+
+  const savePrice = async (shopItemId: string) => {
+    try {
+      // Only include currencies that have a value > 0
+      const newPrice: any = {};
+      const cpVal = parseInt(priceForm.cp) || 0;
+      const spVal = parseInt(priceForm.sp) || 0;
+      const gpVal = parseInt(priceForm.gp) || 0;
+
+      if (cpVal > 0) newPrice.cp = cpVal;
+      if (spVal > 0) newPrice.sp = spVal;
+      if (gpVal > 0) newPrice.gp = gpVal;
+
+      await ShopItemService.updateShopItem(shopItemId, { price: newPrice });
+      setToast({ message: 'Price updated!', type: 'success' });
+      setEditingPriceId(null);
+      loadData();
+    } catch (err: any) {
+      setToast({ message: err.message, type: 'error' });
+    }
+  };
+
+  const startEditingStock = (shopItem: ShopItem) => {
+    setStockForm({
+      stock: shopItem.stock !== null ? shopItem.stock.toString() : '',
+      unlimited: shopItem.stock === null
+    });
+    setEditingStockId(shopItem.id);
+  };
+
+  const cancelEditingStock = () => {
+    setEditingStockId(null);
+    setStockForm({ stock: '', unlimited: false });
+  };
+
+  const saveStock = async (shopItemId: string) => {
+    try {
+      const newStock = stockForm.unlimited ? null : (parseInt(stockForm.stock) || 0);
+
+      await ShopItemService.updateShopItem(shopItemId, { stock: newStock });
+      setToast({ message: 'Stock updated!', type: 'success' });
+      setEditingStockId(null);
+      loadData();
+    } catch (err: any) {
+      setToast({ message: err.message, type: 'error' });
+    }
+  };
+
   const formatCost = (cost: any) => {
     if (!cost) return 'No cost';
     const parts = [];
     if (cost.cp) parts.push(`${cost.cp} CP`);
     if (cost.sp) parts.push(`${cost.sp} SP`);
     if (cost.gp) parts.push(`${cost.gp} GP`);
-    if (cost.pp) parts.push(`${cost.pp} PP`);
     return parts.length > 0 ? parts.join(', ') : 'No cost';
   };
 
@@ -116,12 +362,7 @@ export function ShopInventory() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <div className="loading-container">
         Loading...
       </div>
     );
@@ -129,26 +370,11 @@ export function ShopInventory() {
 
   if (!shop) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '20px'
-      }}>
-        <h2 style={{ color: '#666' }}>Shop not found</h2>
+      <div className="error-container">
+        <h2>Shop not found</h2>
         <button
           onClick={() => navigate('/dashboard')}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}
+          className="btn btn-primary"
         >
           Go to Dashboard
         </button>
@@ -160,205 +386,366 @@ export function ShopInventory() {
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(`/market/${shop.marketId}/shops`)}
+        style={{
+          position: 'fixed',
+          top: '20px',
+          left: '20px',
+          width: '50px',
+          height: '50px',
+          backgroundColor: '#6c757d',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '20px',
-          padding: '20px',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '8px'
-        }}>
-          <div>
-            <h1 style={{ margin: 0 }}>{shop.name} - Inventory</h1>
-            <p style={{ margin: '5px 0 0 0', color: '#666' }}>
-              {shop.description || 'Manage items in this shop'}
-            </p>
-          </div>
-          <button
-            onClick={() => navigate(`/market/${shop.marketId}/shops`)}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Back to Shops
-          </button>
+          justifyContent: 'center',
+          fontSize: '24px',
+          color: 'white',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          transition: 'background-color 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a6268'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
+        title="Back to Shops"
+      >
+        ←
+      </button>
+
+      {/* Hamburger Menu */}
+      <HamburgerMenu />
+
+      {/* Header */}
+      <div className="page-header-fullwidth">
+        <div className="page-header-content">
+          <h1>{shop.name} - Inventory</h1>
+          <p>
+            {shop.description || 'Manage items in this shop'}
+          </p>
         </div>
+      </div>
+
+      <div className="page-container">
 
         {/* Inventory Header */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '20px'
-        }}>
+        <div className="controls-container">
           <div>
             <h2 style={{ margin: 0 }}>Inventory ({shopItems.length}/{LIMITS.ITEMS_PER_SHOP})</h2>
             {shopItems.length >= LIMITS.ITEMS_PER_SHOP && (
-              <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#dc3545' }}>
+              <p className="text-danger">
                 ⚠️ You've reached the maximum number of items for this shop
               </p>
             )}
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="button-group">
             <button
               onClick={() => navigate('/item-library')}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
+              className="btn btn-primary"
             >
               Go to Item Library
             </button>
             <button
               onClick={() => setShowAddModal(true)}
               disabled={shopItems.length >= LIMITS.ITEMS_PER_SHOP}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? '#6c757d' : '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? 'not-allowed' : 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                opacity: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? 0.6 : 1
-              }}
               title={shopItems.length >= LIMITS.ITEMS_PER_SHOP ? `Maximum of ${LIMITS.ITEMS_PER_SHOP} items per shop reached` : ''}
+              className="btn btn-success"
             >
               + Add Item
+            </button>
+            <button
+              onClick={toggleSelectionMode}
+              disabled={shopItems.length === 0}
+              className={`btn ${selectionMode ? 'btn-warning' : 'btn-primary'}`}
+            >
+              {selectionMode ? 'Cancel Selection' : 'Select'}
             </button>
           </div>
         </div>
 
         {/* Empty State */}
         {shopItems.length === 0 ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '60px 20px',
-            backgroundColor: '#f9f9f9',
-            borderRadius: '8px',
-            border: '2px dashed #ddd'
-          }}>
-            <h2 style={{ marginTop: 0, color: '#666' }}>No Items Yet</h2>
-            <p style={{ color: '#999', marginBottom: '30px' }}>
+          <div className="empty-state">
+            <h2>No Items Yet</h2>
+            <p>
               Add items from your library to start stocking this shop!
             </p>
             <button
               onClick={() => setShowAddModal(true)}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '16px',
-                fontWeight: 'bold'
-              }}
+              className="btn btn-success btn-lg"
             >
               + Add Your First Item
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gap: '15px' }}>
+          <div className="grid-container-sm">
             {shopItems.map((shopItem) => {
               const item = getItemData(shopItem);
               if (!item) return null;
+              const isSelected = selectedItems.has(shopItem.id);
 
               return (
                 <div
                   key={shopItem.id}
-                  style={{
-                    padding: '20px',
-                    backgroundColor: 'white',
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }}
+                  onClick={() => selectionMode && toggleItemSelection(shopItem.id)}
+                  className={`card ${selectionMode ? 'card-clickable' : ''} ${isSelected ? 'card-selected' : ''} ${selectionMode ? 'card-with-checkbox' : ''}`}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
-                        <h3 style={{ margin: 0 }}>{item.name}</h3>
-                        <span style={{
-                          padding: '3px 8px',
-                          fontSize: '12px',
-                          borderRadius: '3px',
-                          backgroundColor: '#e7f3ff',
-                          color: '#004085',
-                          fontWeight: 'bold'
-                        }}>
+                  {selectionMode && (
+                    <div className="card-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleItemSelection(shopItem.id)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  )}
+                  <div className="card-header">
+                    <div className={`card-body ${selectionMode ? 'card-content-shifted' : ''}`}>
+                      <div className="badge-container">
+                        <h3 className="card-title">{item.name}</h3>
+                        <span className="badge badge-type">
                           {item.type}
                         </span>
                         {shopItem.isIndependent && (
-                          <span style={{
-                            padding: '3px 8px',
-                            fontSize: '12px',
-                            borderRadius: '3px',
-                            backgroundColor: '#fff3cd',
-                            color: '#856404',
-                            fontWeight: 'bold'
-                          }}>
+                          <span className="badge badge-independent">
                             Independent
                           </span>
                         )}
                       </div>
-                      <p style={{ margin: '10px 0', color: '#666' }}>
-                        <strong>Price:</strong> {formatCost(shopItem.price)}
-                      </p>
-                      <p style={{ margin: '10px 0', color: '#666' }}>
-                        <strong>Stock:</strong> {shopItem.stock === null ? 'Unlimited' : shopItem.stock}
-                      </p>
+                      {editingPriceId === shopItem.id ? (
+                        <div className="price-edit-form" style={{ marginTop: '8px', marginBottom: '8px' }}>
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>CP</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={priceForm.cp}
+                                onChange={(e) => setPriceForm({ ...priceForm, cp: e.target.value })}
+                                style={{ width: '60px', padding: '4px' }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>SP</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={priceForm.sp}
+                                onChange={(e) => setPriceForm({ ...priceForm, sp: e.target.value })}
+                                style={{ width: '60px', padding: '4px' }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>GP</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={priceForm.gp}
+                                onChange={(e) => setPriceForm({ ...priceForm, gp: e.target.value })}
+                                style={{ width: '60px', padding: '4px' }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                savePrice(shopItem.id);
+                              }}
+                              className="btn btn-success btn-sm"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                cancelEditingPrice();
+                              }}
+                              className="btn btn-secondary btn-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p
+                          className="item-price"
+                          onClick={(e) => {
+                            if (!selectionMode) {
+                              e.stopPropagation();
+                              startEditingPrice(shopItem);
+                            }
+                          }}
+                          style={{
+                            cursor: selectionMode ? 'default' : 'pointer',
+                            padding: '4px',
+                            borderRadius: '4px',
+                            transition: 'all 0.2s',
+                            textDecoration: selectionMode ? 'none' : 'underline',
+                            textDecorationStyle: 'dotted',
+                            textUnderlineOffset: '3px'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!selectionMode) {
+                              e.currentTarget.style.backgroundColor = '#f0f0f0';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                          title={selectionMode ? '' : 'Click to edit price'}
+                        >
+                          <strong>Price:</strong> {formatCost(shopItem.price)}
+                        </p>
+                      )}
+                      {editingStockId === shopItem.id ? (
+                        <div className="stock-edit-form" style={{ marginTop: '8px', marginBottom: '8px' }}>
+                          <div style={{ marginBottom: '8px' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+                              <input
+                                type="checkbox"
+                                checked={stockForm.unlimited}
+                                onChange={(e) => setStockForm({ ...stockForm, unlimited: e.target.checked })}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <span>Unlimited Stock</span>
+                            </label>
+                          </div>
+                          {!stockForm.unlimited && (
+                            <div style={{ marginBottom: '8px' }}>
+                              <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                                Stock Quantity
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={stockForm.stock}
+                                onChange={(e) => setStockForm({ ...stockForm, stock: e.target.value })}
+                                placeholder="0"
+                                style={{ width: '100px', padding: '4px' }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                saveStock(shopItem.id);
+                              }}
+                              className="btn btn-success btn-sm"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                cancelEditingStock();
+                              }}
+                              className="btn btn-secondary btn-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p
+                          className="item-stock"
+                          onClick={(e) => {
+                            if (!selectionMode) {
+                              e.stopPropagation();
+                              startEditingStock(shopItem);
+                            }
+                          }}
+                          style={{
+                            cursor: selectionMode ? 'default' : 'pointer',
+                            padding: '4px',
+                            borderRadius: '4px',
+                            transition: 'all 0.2s',
+                            textDecoration: selectionMode ? 'none' : 'underline',
+                            textDecorationStyle: 'dotted',
+                            textUnderlineOffset: '3px'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!selectionMode) {
+                              e.currentTarget.style.backgroundColor = '#f0f0f0';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                          title={selectionMode ? '' : 'Click to edit stock'}
+                        >
+                          <strong>Stock:</strong> {shopItem.stock === null ? 'Unlimited' : shopItem.stock}
+                        </p>
+                      )}
                       {item.description && (
-                        <p style={{ margin: '10px 0', fontSize: '14px', color: '#666' }}>
+                        <p className="card-description">
                           {item.description}
                         </p>
                       )}
                     </div>
                   </div>
 
-                  <div style={{
-                    marginTop: '15px',
-                    paddingTop: '15px',
-                    borderTop: '1px solid #eee',
-                    display: 'flex',
-                    gap: '10px'
-                  }}>
-                    <button
-                      onClick={() => handleRemoveItem(shopItem.id, item.name)}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#dc3545',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
-                    >
-                      Remove from Shop
-                    </button>
-                  </div>
+                  {!selectionMode && (
+                    <div className="card-footer">
+                      <button
+                        onClick={() => handleRemoveItem(shopItem.id, item.name)}
+                        className="btn btn-danger btn-sm"
+                      >
+                        Remove from Shop
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
         )}
       </div>
+
+      {/* Sticky Bottom Toolbar */}
+      {selectionMode && selectedItems.size > 0 && (
+        <div className="toolbar-bottom">
+          <div className="toolbar-info">
+            <span className="toolbar-count">
+              {selectedItems.size} item{selectedItems.size !== 1 ? 's' : ''} selected
+            </span>
+            <button
+              onClick={handleSelectAll}
+              className="btn btn-info btn-sm"
+            >
+              {selectedItems.size === shopItems.length ? 'Deselect All' : 'Select All'}
+            </button>
+          </div>
+          <div className="toolbar-actions">
+            <button
+              onClick={openDuplicateModal}
+              className="btn btn-primary"
+            >
+              Duplicate
+            </button>
+            <button
+              onClick={handleBulkRemove}
+              className="btn btn-danger"
+            >
+              Remove from Shop
+            </button>
+            <button
+              onClick={toggleSelectionMode}
+              className="btn btn-secondary"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Add Item Modal */}
       {showAddModal && user && shop && (
@@ -373,6 +760,130 @@ export function ShopInventory() {
             setShowAddModal(false);
           }}
         />
+      )}
+
+      {/* Duplicate Items Modal */}
+      {showDuplicateModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '8px',
+            maxWidth: '500px',
+            width: '100%'
+          }}>
+            <h2 style={{ marginTop: 0 }}>Duplicate Items to Shop</h2>
+            <p style={{ color: '#666', marginBottom: '20px', fontSize: '14px' }}>
+              Duplicating {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} with the same price and stock.
+            </p>
+
+            {/* Same Shop Option */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: 'bold' }}>
+                <input
+                  type="checkbox"
+                  checked={duplicateSameShop}
+                  onChange={(e) => setDuplicateSameShop(e.target.checked)}
+                />
+                <span>Duplicate in the same shop</span>
+              </label>
+            </div>
+
+            {/* Market Selection */}
+            {!duplicateSameShop && (
+              <>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                    Select Market *
+                  </label>
+                  <select
+                    value={selectedMarketId}
+                    onChange={(e) => {
+                      setSelectedMarketId(e.target.value);
+                      setSelectedTargetShopId(''); // Reset shop selection
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      border: '1px solid #ddd',
+                      borderRadius: '5px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="">Choose a market...</option>
+                    {markets.map(market => (
+                      <option key={market.id} value={market.id}>
+                        {market.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Shop Selection */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                    Select Shop *
+                  </label>
+                  <select
+                    value={selectedTargetShopId}
+                    onChange={(e) => setSelectedTargetShopId(e.target.value)}
+                    disabled={!selectedMarketId}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      border: '1px solid #ddd',
+                      borderRadius: '5px',
+                      fontSize: '14px',
+                      cursor: !selectedMarketId ? 'not-allowed' : 'pointer',
+                      backgroundColor: !selectedMarketId ? '#f5f5f5' : 'white'
+                    }}
+                  >
+                    <option value="">Choose a shop...</option>
+                    {filteredShops.map(shop => (
+                      <option key={shop.id} value={shop.id}>
+                        {shop.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => setShowDuplicateModal(false)}
+                className="btn btn-secondary"
+                style={{ flex: 1 }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDuplicate}
+                disabled={duplicating || (!duplicateSameShop && !selectedTargetShopId)}
+                className="btn btn-success"
+                style={{
+                  flex: 1,
+                  cursor: (duplicating || (!duplicateSameShop && !selectedTargetShopId)) ? 'not-allowed' : 'pointer',
+                  opacity: (duplicating || (!duplicateSameShop && !selectedTargetShopId)) ? 0.6 : 1
+                }}
+              >
+                {duplicating ? 'Duplicating...' : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

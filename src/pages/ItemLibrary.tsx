@@ -8,6 +8,7 @@ import { Toast } from '../components/Toast';
 import { CreateItemModal } from '../components/CreateItemModal';
 import { EditItemModal } from '../components/EditItemModal';
 import { LIMITS } from '../config/limits';
+import { HamburgerMenu } from '../components/HamburgerMenu';
 
 const WARNING_THRESHOLD = ItemLibraryService.ITEM_LIBRARY_WARNING_THRESHOLD;
 
@@ -22,6 +23,8 @@ export function ItemLibraryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingItem, setEditingItem] = useState<ItemLibrary | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -104,6 +107,84 @@ export function ItemLibraryPage() {
     }
   };
 
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedItems(new Set()); // Clear selections when toggling mode
+  };
+
+  const toggleItemSelection = (itemId: string) => {
+    const newSelected = new Set(selectedItems);
+    if (newSelected.has(itemId)) {
+      newSelected.delete(itemId);
+    } else {
+      newSelected.add(itemId);
+    }
+    setSelectedItems(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItems.size === filteredItems.length) {
+      // Deselect all
+      setSelectedItems(new Set());
+    } else {
+      // Select all
+      setSelectedItems(new Set(filteredItems.map(item => item.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedItems.size === 0) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selectedItems.size} item${selectedItems.size > 1 ? 's' : ''}?\n\n` +
+      `⚠️ Items in active markets cannot be deleted and will be skipped.\n` +
+      `⚠️ Items used in shops will be removed from those shops.\n\n` +
+      `This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    let successCount = 0;
+    let failCount = 0;
+    const errors: string[] = [];
+
+    for (const itemId of selectedItems) {
+      try {
+        // Check if item is in active market
+        const inActiveMarket = await ItemLibraryService.isItemInActiveMarket(itemId);
+        if (inActiveMarket) {
+          failCount++;
+          errors.push('Some items are in active markets');
+          continue;
+        }
+
+        await ItemLibraryService.deleteItem(itemId);
+        successCount++;
+      } catch (err: any) {
+        failCount++;
+        errors.push(err.message);
+      }
+    }
+
+    // Show results
+    if (successCount > 0) {
+      setToast({
+        message: `Successfully deleted ${successCount} item${successCount > 1 ? 's' : ''}!${failCount > 0 ? ` (${failCount} failed)` : ''}`,
+        type: failCount > 0 ? 'error' : 'success'
+      });
+    } else {
+      setToast({
+        message: `Failed to delete items: ${errors[0] || 'Unknown error'}`,
+        type: 'error'
+      });
+    }
+
+    // Reset selection mode and reload
+    setSelectionMode(false);
+    setSelectedItems(new Set());
+    loadItems();
+  };
+
 
   const getSourceBadgeColor = (source: string) => {
     switch (source) {
@@ -140,12 +221,7 @@ export function ItemLibraryPage() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <div className="loading-container">
         Loading...
       </div>
     );
@@ -155,89 +231,76 @@ export function ItemLibraryPage() {
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{
+      {/* Back Button */}
+      <button
+        onClick={() => navigate('/dashboard')}
+        style={{
+          position: 'fixed',
+          top: '20px',
+          left: '20px',
+          width: '50px',
+          height: '50px',
+          backgroundColor: '#6c757d',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '20px',
-          padding: '20px',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '8px'
-        }}>
-          <div>
-            <h1 style={{ margin: 0 }}>Item Library</h1>
-            <p style={{ margin: '5px 0 0 0', color: '#666' }}>
-              Your personal catalog of reusable items ({items.length}/{LIMITS.ITEMS_PER_LIBRARY})
+          justifyContent: 'center',
+          fontSize: '24px',
+          color: 'white',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          transition: 'background-color 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a6268'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
+        title="Back to Dashboard"
+      >
+        ←
+      </button>
+
+      {/* Hamburger Menu */}
+      <HamburgerMenu />
+
+      {/* Header */}
+      <div className="page-header-fullwidth">
+        <div className="page-header-content">
+          <h1>Item Library</h1>
+          <p>
+            Your personal catalog of reusable items ({items.length}/{LIMITS.ITEMS_PER_LIBRARY})
+          </p>
+          {items.length >= WARNING_THRESHOLD && items.length < LIMITS.ITEMS_PER_LIBRARY && (
+            <p className="text-warning">
+              ⚠️ You're approaching the limit ({LIMITS.ITEMS_PER_LIBRARY - items.length} slots remaining)
             </p>
-            {items.length >= WARNING_THRESHOLD && items.length < LIMITS.ITEMS_PER_LIBRARY && (
-              <p style={{ margin: '5px 0 0 0', color: '#856404', fontSize: '14px' }}>
-                ⚠️ You're approaching the limit ({LIMITS.ITEMS_PER_LIBRARY - items.length} slots remaining)
-              </p>
-            )}
-            {items.length >= LIMITS.ITEMS_PER_LIBRARY && (
-              <p style={{ margin: '5px 0 0 0', color: '#721c24', fontSize: '14px' }}>
-                ⚠️ You've reached the maximum limit. Delete items to create new ones.
-              </p>
-            )}
-          </div>
-          <button
-            onClick={() => navigate('/dashboard')}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Back to Dashboard
-          </button>
+          )}
+          {items.length >= LIMITS.ITEMS_PER_LIBRARY && (
+            <p className="text-danger">
+              ⚠️ You've reached the maximum limit. Delete items to create new ones.
+            </p>
+          )}
         </div>
+      </div>
+
+      <div className="page-container">
 
         {/* Filters and Search */}
-        <div style={{
-          display: 'flex',
-          gap: '15px',
-          marginBottom: '20px',
-          padding: '15px',
-          backgroundColor: 'white',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-          flexWrap: 'wrap',
-          alignItems: 'center'
-        }}>
-          <div style={{ flex: '1 1 300px' }}>
-            <input
-              type="text"
-              placeholder="Search items by name or description..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px'
-              }}
-            />
-          </div>
+        <div className="filter-container">
+          <input
+            type="text"
+            placeholder="Search items by name or description..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
 
-          <div>
-            <label style={{ marginRight: '8px', fontSize: '14px', color: '#666' }}>Type:</label>
+          <div className="filter-group">
+            <label className="filter-label">Type:</label>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              style={{
-                padding: '8px 12px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px',
-                cursor: 'pointer'
-              }}
+              className="filter-select"
             >
               <option value="all">All Types</option>
               <option value="weapon">Weapon</option>
@@ -250,18 +313,12 @@ export function ItemLibraryPage() {
             </select>
           </div>
 
-          <div>
-            <label style={{ marginRight: '8px', fontSize: '14px', color: '#666' }}>Source:</label>
+          <div className="filter-group">
+            <label className="filter-label">Source:</label>
             <select
               value={filterSource}
               onChange={(e) => setFilterSource(e.target.value)}
-              style={{
-                padding: '8px 12px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px',
-                cursor: 'pointer'
-              }}
+              className="filter-select"
             >
               <option value="all">All Sources</option>
               <option value="official">Official (D&D)</option>
@@ -271,62 +328,56 @@ export function ItemLibraryPage() {
           </div>
 
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => {
+              if (selectionMode) {
+                setSelectionMode(false);
+                setSelectedItems(new Set());
+              }
+              setShowCreateModal(true);
+            }}
             disabled={items.length >= LIMITS.ITEMS_PER_LIBRARY}
             title={items.length >= LIMITS.ITEMS_PER_LIBRARY ? `Maximum of ${LIMITS.ITEMS_PER_LIBRARY} items reached` : ''}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: items.length >= LIMITS.ITEMS_PER_LIBRARY ? '#6c757d' : '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: items.length >= LIMITS.ITEMS_PER_LIBRARY ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              opacity: items.length >= LIMITS.ITEMS_PER_LIBRARY ? 0.6 : 1
-            }}
+            className="btn btn-success"
           >
             + Create New Item
+          </button>
+
+          <button
+            onClick={toggleSelectionMode}
+            disabled={filteredItems.length === 0}
+            className={`btn ${selectionMode ? 'btn-warning' : 'btn-primary'}`}
+          >
+            {selectionMode ? 'Cancel Selection' : 'Select'}
           </button>
         </div>
 
         {/* Empty State */}
         {filteredItems.length === 0 ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '60px 20px',
-            backgroundColor: '#f9f9f9',
-            borderRadius: '8px',
-            border: '2px dashed #ddd'
-          }}>
+          <div className="empty-state">
             {items.length === 0 ? (
               <>
-                <h2 style={{ marginTop: 0, color: '#666' }}>No Items Yet</h2>
-                <p style={{ color: '#999', marginBottom: '30px' }}>
+                <h2>No Items Yet</h2>
+                <p>
                   Create your first item or import from the D&D API to get started!
                 </p>
                 <button
-                  onClick={() => setShowCreateModal(true)}
-                  disabled={items.length >= LIMITS.ITEMS_PER_LIBRARY}
-                  style={{
-                    padding: '12px 24px',
-                    backgroundColor: items.length >= LIMITS.ITEMS_PER_LIBRARY ? '#6c757d' : '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: items.length >= LIMITS.ITEMS_PER_LIBRARY ? 'not-allowed' : 'pointer',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    opacity: items.length >= LIMITS.ITEMS_PER_LIBRARY ? 0.6 : 1
+                  onClick={() => {
+                    if (selectionMode) {
+                      setSelectionMode(false);
+                      setSelectedItems(new Set());
+                    }
+                    setShowCreateModal(true);
                   }}
+                  disabled={items.length >= LIMITS.ITEMS_PER_LIBRARY}
+                  className="btn btn-success btn-lg"
                 >
                   + Create Your First Item
                 </button>
               </>
             ) : (
               <>
-                <h2 style={{ marginTop: 0, color: '#666' }}>No Results Found</h2>
-                <p style={{ color: '#999', marginBottom: '0' }}>
+                <h2>No Results Found</h2>
+                <p style={{ marginBottom: '0' }}>
                   No items match your search or filters. Try adjusting your criteria.
                 </p>
               </>
@@ -335,62 +386,51 @@ export function ItemLibraryPage() {
         ) : (
           <>
             {/* Item Count */}
-            <div style={{ marginBottom: '15px' }}>
-              <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
-                Showing {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''}
-              </p>
-            </div>
+            <p className="count-display">
+              Showing {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''}
+            </p>
 
             {/* Item Grid */}
-            <div style={{ display: 'grid', gap: '20px' }}>
-              {filteredItems.map((libraryItem) => (
-                <div
-                  key={libraryItem.id}
-                  style={{
-                    padding: '20px',
-                    backgroundColor: 'white',
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                        <h3 style={{ margin: 0 }}>{libraryItem.item.name}</h3>
-
-                        <span style={{
-                          padding: '3px 8px',
-                          fontSize: '12px',
-                          borderRadius: '3px',
-                          ...getTypeBadgeColor(libraryItem.item.type),
-                          fontWeight: 'bold'
-                        }}>
-                          {libraryItem.item.type}
-                        </span>
-
-                        <span style={{
-                          padding: '3px 8px',
-                          fontSize: '12px',
-                          borderRadius: '3px',
-                          ...getSourceBadgeColor(libraryItem.source),
-                          fontWeight: 'bold'
-                        }}>
-                          {libraryItem.source}
-                        </span>
+            <div className="grid-container">
+              {filteredItems.map((libraryItem) => {
+                const isSelected = selectedItems.has(libraryItem.id);
+                return (
+                  <div
+                    key={libraryItem.id}
+                    onClick={() => selectionMode && toggleItemSelection(libraryItem.id)}
+                    className={`card ${selectionMode ? 'card-clickable' : ''} ${isSelected ? 'card-selected' : ''} ${selectionMode ? 'card-with-checkbox' : ''}`}
+                  >
+                    {selectionMode && (
+                      <div className="card-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleItemSelection(libraryItem.id)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
                       </div>
+                    )}
+                    <div className="card-header">
+                      <div className={`card-body ${selectionMode ? 'card-content-shifted' : ''}`}>
+                        <div className="badge-container">
+                          <h3 className="card-title">
+                            {libraryItem.item.name}
+                          </h3>
 
-                      <p style={{ margin: '8px 0', color: '#666' }}>
-                        {libraryItem.item.description}
-                      </p>
+                          <span className={`badge badge-${libraryItem.item.type}`}>
+                            {libraryItem.item.type}
+                          </span>
 
-                      <div style={{
-                        display: 'flex',
-                        gap: '20px',
-                        marginTop: '10px',
-                        fontSize: '14px',
-                        color: '#999'
-                      }}>
+                          <span className={`badge badge-${libraryItem.source}`}>
+                            {libraryItem.source}
+                          </span>
+                        </div>
+
+                        <p className="card-description">
+                          {libraryItem.item.description}
+                        </p>
+
+                        <div className="item-details">
                         {libraryItem.item.weight !== null && (
                           <span><strong>Weight:</strong> {libraryItem.item.weight} lb</span>
                         )}
@@ -401,49 +441,60 @@ export function ItemLibraryPage() {
                     </div>
                   </div>
 
-                  <div style={{
-                    marginTop: '15px',
-                    paddingTop: '15px',
-                    borderTop: '1px solid #eee',
-                    display: 'flex',
-                    gap: '10px',
-                    flexWrap: 'wrap'
-                  }}>
-                    <button
-                      onClick={() => setEditingItem(libraryItem)}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#007bff',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteItem(libraryItem.id, libraryItem.item.name)}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#dc3545',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  {!selectionMode && (
+                    <div className="card-footer">
+                      <button
+                        onClick={() => setEditingItem(libraryItem)}
+                        className="btn btn-primary btn-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteItem(libraryItem.id, libraryItem.item.name)}
+                        className="btn btn-danger btn-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
-              ))}
+              );
+              })}
             </div>
           </>
         )}
       </div>
+
+      {/* Sticky Bottom Toolbar */}
+      {selectionMode && selectedItems.size > 0 && (
+        <div className="toolbar-bottom">
+          <div className="toolbar-info">
+            <span className="toolbar-count">
+              {selectedItems.size} item{selectedItems.size !== 1 ? 's' : ''} selected
+            </span>
+            <button
+              onClick={handleSelectAll}
+              className="btn btn-info btn-sm"
+            >
+              {selectedItems.size === filteredItems.length ? 'Deselect All' : 'Select All'}
+            </button>
+          </div>
+          <div className="toolbar-actions">
+            <button
+              onClick={handleBulkDelete}
+              className="btn btn-danger"
+            >
+              Delete All
+            </button>
+            <button
+              onClick={toggleSelectionMode}
+              className="btn btn-secondary"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Create Item Modal */}
       {showCreateModal && user && (

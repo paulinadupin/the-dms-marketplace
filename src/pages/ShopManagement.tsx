@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
 import { MarketService } from '../services/market.service';
 import { ShopService } from '../services/shop.service';
+import { ShopItemService } from '../services/shop-item.service';
 import type { Market, FirestoreShop } from '../types/firebase';
 import type { User } from 'firebase/auth';
 import { Toast } from '../components/Toast';
@@ -11,6 +12,7 @@ import { EditShopModal } from '../components/EditShopModal';
 import { EditMarketModal } from '../components/EditMarketModal';
 import { ActivateMarketModal } from '../components/ActivateMarketModal';
 import { LIMITS } from '../config/limits';
+import { HamburgerMenu } from '../components/HamburgerMenu';
 
 export function ShopManagement() {
   const { marketId } = useParams<{ marketId: string }>();
@@ -26,6 +28,15 @@ export function ShopManagement() {
   const [editingMarket, setEditingMarket] = useState(false);
   const [activatingMarket, setActivatingMarket] = useState(false);
   const [activeMarket, setActiveMarket] = useState<Market | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedShops, setSelectedShops] = useState<Set<string>>(new Set());
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [duplicateSameMarket, setDuplicateSameMarket] = useState(true);
+  const [allMarkets, setAllMarkets] = useState<Market[]>([]);
+  const [selectedTargetMarketId, setSelectedTargetMarketId] = useState('');
+  const [duplicating, setDuplicating] = useState(false);
+  const [editingShopNameId, setEditingShopNameId] = useState<string | null>(null);
+  const [shopNameForm, setShopNameForm] = useState('');
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -138,14 +149,192 @@ export function ShopManagement() {
     setToast({ message: 'Market URL copied to clipboard!', type: 'success' });
   };
 
+  const startEditingShopName = (shop: FirestoreShop) => {
+    setShopNameForm(shop.name);
+    setEditingShopNameId(shop.id);
+  };
+
+  const cancelEditingShopName = () => {
+    setEditingShopNameId(null);
+    setShopNameForm('');
+  };
+
+  const saveShopName = async (shopId: string) => {
+    if (!shopNameForm.trim()) {
+      setToast({ message: 'Shop name cannot be empty', type: 'error' });
+      return;
+    }
+
+    try {
+      await ShopService.updateShop(shopId, { name: shopNameForm.trim() });
+      setToast({ message: 'Shop name updated!', type: 'success' });
+      setEditingShopNameId(null);
+      loadData();
+    } catch (err: any) {
+      setToast({ message: err.message, type: 'error' });
+    }
+  };
+
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedShops(new Set());
+  };
+
+  const toggleShopSelection = (shopId: string) => {
+    const newSelected = new Set(selectedShops);
+    if (newSelected.has(shopId)) {
+      newSelected.delete(shopId);
+    } else {
+      newSelected.add(shopId);
+    }
+    setSelectedShops(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedShops.size === shops.length) {
+      setSelectedShops(new Set());
+    } else {
+      setSelectedShops(new Set(shops.map(shop => shop.id)));
+    }
+  };
+
+  const openDuplicateModal = async () => {
+    if (!user) return;
+
+    try {
+      const marketsData = await MarketService.getMarketsByDM(user.uid);
+      setAllMarkets(marketsData);
+      setShowDuplicateModal(true);
+      setDuplicateSameMarket(true);
+      setSelectedTargetMarketId('');
+    } catch (err: any) {
+      setToast({ message: err.message, type: 'error' });
+    }
+  };
+
+  const handleDuplicateShops = async () => {
+    if (selectedShops.size === 0) return;
+
+    const targetMarketId = duplicateSameMarket ? marketId : selectedTargetMarketId;
+
+    if (!targetMarketId) {
+      setToast({ message: 'Please select a target market', type: 'error' });
+      return;
+    }
+
+    setDuplicating(true);
+
+    try {
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const shopId of selectedShops) {
+        try {
+          const shop = shops.find(s => s.id === shopId);
+          if (!shop) continue;
+
+          // Create new shop - only add " (Copy)" suffix if duplicating in same market
+          const newShopData = {
+            marketId: targetMarketId,
+            name: duplicateSameMarket ? `${shop.name} (Copy)` : shop.name,
+            description: shop.description,
+            location: shop.location,
+            category: shop.category,
+            shopkeeper: shop.shopkeeper,
+            tags: shop.tags || []
+          };
+
+          const newShop = await ShopService.createShop(newShopData);
+
+          // Get all items in the original shop
+          const shopItems = await ShopItemService.getItemsByShop(shopId);
+
+          // Duplicate all items to the new shop
+          for (const item of shopItems) {
+            await ShopItemService.addItemToShop({
+              shopId: newShop.id,
+              marketId: targetMarketId,
+              itemLibraryId: item.itemLibraryId,
+              price: item.price,
+              stock: item.stock
+            });
+          }
+
+          successCount++;
+        } catch (err: any) {
+          failCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        setToast({
+          message: `Successfully duplicated ${successCount} shop${successCount > 1 ? 's' : ''}!${failCount > 0 ? ` (${failCount} failed)` : ''}`,
+          type: failCount > 0 ? 'error' : 'success'
+        });
+      } else {
+        setToast({
+          message: `Failed to duplicate shops`,
+          type: 'error'
+        });
+      }
+
+      setShowDuplicateModal(false);
+      if (duplicateSameMarket) {
+        loadData();
+      }
+
+      setSelectionMode(false);
+      setSelectedShops(new Set());
+    } catch (err: any) {
+      setToast({ message: err.message, type: 'error' });
+    } finally {
+      setDuplicating(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedShops.size === 0) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selectedShops.size} shop${selectedShops.size > 1 ? 's' : ''}?\n\n` +
+      `⚠️ This will delete the shops but NOT their items.\n\n` +
+      `This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const shopId of selectedShops) {
+      try {
+        await ShopService.deleteShop(shopId);
+        successCount++;
+      } catch (err: any) {
+        failCount++;
+      }
+    }
+
+    if (successCount > 0) {
+      setToast({
+        message: `Successfully deleted ${successCount} shop${successCount > 1 ? 's' : ''}!${failCount > 0 ? ` (${failCount} failed)` : ''}`,
+        type: failCount > 0 ? 'error' : 'success'
+      });
+    } else {
+      setToast({
+        message: `Failed to delete shops`,
+        type: 'error'
+      });
+    }
+
+    setSelectionMode(false);
+    setSelectedShops(new Set());
+    loadData();
+  };
+
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <div className="loading-container">
         Loading...
       </div>
     );
@@ -159,38 +348,49 @@ export function ShopManagement() {
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{
+      {/* Back Button */}
+      <button
+        onClick={() => navigate('/dashboard')}
+        style={{
+          position: 'fixed',
+          top: '20px',
+          left: '20px',
+          width: '50px',
+          height: '50px',
+          backgroundColor: '#6c757d',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '20px',
-          padding: '20px',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '8px'
-        }}>
-          <div>
-            <h1 style={{ margin: 0 }}>{market.name}</h1>
-            <p style={{ margin: '5px 0 0 0', color: '#666' }}>
-              {market.description || 'Manage your shops and inventory'}
-            </p>
-          </div>
-          <button
-            onClick={() => navigate('/dashboard')}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Back
-          </button>
+          justifyContent: 'center',
+          fontSize: '24px',
+          color: 'white',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          transition: 'background-color 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a6268'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
+        title="Back to Dashboard"
+      >
+        ←
+      </button>
+
+      {/* Hamburger Menu */}
+      <HamburgerMenu />
+
+      {/* Header */}
+      <div className="page-header-fullwidth">
+        <div className="page-header-content">
+          <h1>{market.name}</h1>
+          <p>
+            {market.description || 'Manage your shops and inventory'}
+          </p>
         </div>
+      </div>
+
+      <div className="page-container">
 
         {/* Market Controls */}
         <div style={{
@@ -345,127 +545,234 @@ export function ShopManagement() {
                   </p>
                 )}
               </div>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                disabled={shops.length >= LIMITS.SHOPS_PER_MARKET}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: shops.length >= LIMITS.SHOPS_PER_MARKET ? '#6c757d' : '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: shops.length >= LIMITS.SHOPS_PER_MARKET ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  opacity: shops.length >= LIMITS.SHOPS_PER_MARKET ? 0.6 : 1
-                }}
-                title={shops.length >= LIMITS.SHOPS_PER_MARKET ? `Maximum of ${LIMITS.SHOPS_PER_MARKET} shops per market reached` : ''}
-              >
-                + Create New Shop
-              </button>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  disabled={shops.length >= LIMITS.SHOPS_PER_MARKET}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: shops.length >= LIMITS.SHOPS_PER_MARKET ? '#6c757d' : '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: shops.length >= LIMITS.SHOPS_PER_MARKET ? 'not-allowed' : 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    opacity: shops.length >= LIMITS.SHOPS_PER_MARKET ? 0.6 : 1
+                  }}
+                  title={shops.length >= LIMITS.SHOPS_PER_MARKET ? `Maximum of ${LIMITS.SHOPS_PER_MARKET} shops per market reached` : ''}
+                >
+                  + Create New Shop
+                </button>
+                <button
+                  onClick={toggleSelectionMode}
+                  disabled={shops.length === 0}
+                  className={`btn ${selectionMode ? 'btn-warning' : 'btn-primary'}`}
+                >
+                  {selectionMode ? 'Cancel Selection' : 'Select'}
+                </button>
+              </div>
             </div>
 
             {/* Shop List */}
             <div style={{ display: 'grid', gap: '20px' }}>
-              {shops.map((shop) => (
+              {shops.map((shop) => {
+                const isSelected = selectedShops.has(shop.id);
+                return (
                 <div
                   key={shop.id}
+                  onClick={() => selectionMode ? toggleShopSelection(shop.id) : navigate(`/shop/${shop.id}/inventory`)}
+                  className={`card ${selectionMode ? 'card-clickable' : ''} ${isSelected ? 'card-selected' : ''} ${selectionMode ? 'card-with-checkbox' : ''}`}
                   style={{
                     padding: '20px',
                     backgroundColor: 'white',
                     border: '1px solid #ddd',
                     borderRadius: '8px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    cursor: 'pointer'
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
-                        <h3 style={{ margin: 0 }}>{shop.name}</h3>
-                        <span style={{
-                          padding: '3px 8px',
-                          fontSize: '12px',
-                          borderRadius: '3px',
-                          backgroundColor: '#e7f3ff',
-                          color: '#004085',
-                          fontWeight: 'bold'
-                        }}>
-                          {shop.category}
-                        </span>
-                      </div>
-                      <p style={{ margin: '5px 0', color: '#666' }}>{shop.description}</p>
-                      {shop.shopkeeper && (
-                        <p style={{ margin: '5px 0', fontSize: '14px', color: '#999' }}>
-                          Shopkeeper: <strong>{shop.shopkeeper}</strong>
-                        </p>
-                      )}
-                      <p style={{ margin: '5px 0', fontSize: '14px', color: '#999' }}>
-                        Location: {shop.location}
-                      </p>
+                  {selectionMode && (
+                    <div className="card-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleShopSelection(shop.id)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
                     </div>
-                  </div>
+                  )}
+                  <div className={`card-body ${selectionMode ? 'card-content-shifted' : ''}`}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                      <div style={{ flex: 1 }}>
+                        {editingShopNameId === shop.id ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
+                            <input
+                              type="text"
+                              value={shopNameForm}
+                              onChange={(e) => setShopNameForm(e.target.value)}
+                              style={{
+                                fontSize: '1.17em',
+                                fontWeight: 'bold',
+                                padding: '4px 8px',
+                                border: '2px solid #007bff',
+                                borderRadius: '4px',
+                                width: '300px'
+                              }}
+                              autoFocus
+                              onClick={(e) => e.stopPropagation()}
+                              onKeyDown={(e) => {
+                                e.stopPropagation();
+                                if (e.key === 'Enter') saveShopName(shop.id);
+                                if (e.key === 'Escape') cancelEditingShopName();
+                              }}
+                            />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                saveShopName(shop.id);
+                              }}
+                              className="btn btn-success btn-sm"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                cancelEditingShopName();
+                              }}
+                              className="btn btn-secondary btn-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
+                            <h3
+                              className="editable-heading"
+                              style={{ margin: 0 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                startEditingShopName(shop);
+                              }}
+                              title="Click to edit shop name"
+                            >
+                              {shop.name}
+                            </h3>
+                            <span style={{
+                              padding: '3px 8px',
+                              fontSize: '12px',
+                              borderRadius: '3px',
+                              backgroundColor: '#e7f3ff',
+                              color: '#004085',
+                              fontWeight: 'bold'
+                            }}>
+                              {shop.category}
+                            </span>
+                          </div>
+                        )}
+                        <p style={{ margin: '5px 0', color: '#666' }}>{shop.description}</p>
+                        {shop.shopkeeper && (
+                          <p style={{ margin: '5px 0', fontSize: '14px', color: '#999' }}>
+                            Shopkeeper: <strong>{shop.shopkeeper}</strong>
+                          </p>
+                        )}
+                        <p style={{ margin: '5px 0', fontSize: '14px', color: '#999' }}>
+                          Location: {shop.location}
+                        </p>
+                      </div>
+                    </div>
 
-                  <div style={{
-                    marginTop: '15px',
-                    paddingTop: '15px',
-                    borderTop: '1px solid #eee',
-                    display: 'flex',
-                    gap: '10px',
-                    flexWrap: 'wrap'
-                  }}>
-                    <button
-                      onClick={() => {
-                        console.log('Navigating to inventory for shop:', shop.id, shop);
-                        navigate(`/shop/${shop.id}/inventory`);
-                      }}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#28a745',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      Manage Inventory
-                    </button>
-                    <button
-                      onClick={() => setEditingShop(shop)}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#007bff',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteShop(shop.id, shop.name)}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#dc3545',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
-                    >
-                      Delete
-                    </button>
+                    {!selectionMode && (
+                      <div style={{
+                        marginTop: '15px',
+                        paddingTop: '15px',
+                        borderTop: '1px solid #eee',
+                        display: 'flex',
+                        gap: '10px',
+                        flexWrap: 'wrap'
+                      }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingShop(shop);
+                          }}
+                          style={{
+                            padding: '8px 16px',
+                            backgroundColor: '#007bff',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            fontSize: '14px'
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteShop(shop.id, shop.name);
+                          }}
+                          style={{
+                            padding: '8px 16px',
+                            backgroundColor: '#dc3545',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            fontSize: '14px'
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           </>
         )}
       </div>
+
+      {/* Sticky Bottom Toolbar */}
+      {selectionMode && selectedShops.size > 0 && (
+        <div className="toolbar-bottom">
+          <div className="toolbar-info">
+            <span className="toolbar-count">
+              {selectedShops.size} shop{selectedShops.size !== 1 ? 's' : ''} selected
+            </span>
+            <button
+              onClick={handleSelectAll}
+              className="btn btn-info btn-sm"
+            >
+              {selectedShops.size === shops.length ? 'Deselect All' : 'Select All'}
+            </button>
+          </div>
+          <div className="toolbar-actions">
+            <button
+              onClick={openDuplicateModal}
+              className="btn btn-primary"
+            >
+              Duplicate
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              className="btn btn-danger"
+            >
+              Delete Selected
+            </button>
+            <button
+              onClick={toggleSelectionMode}
+              className="btn btn-secondary"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Create Shop Modal */}
       {showCreateModal && (
@@ -515,6 +822,98 @@ export function ShopManagement() {
             setActivatingMarket(false);
           }}
         />
+      )}
+
+      {/* Duplicate Shops Modal */}
+      {showDuplicateModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '8px',
+            maxWidth: '500px',
+            width: '100%'
+          }}>
+            <h2 style={{ marginTop: 0 }}>Duplicate Shops to Market</h2>
+            <p style={{ color: '#666', marginBottom: '20px', fontSize: '14px' }}>
+              Duplicating {selectedShops.size} shop{selectedShops.size > 1 ? 's' : ''} with all items, prices, and stock.
+              {duplicateSameMarket && (selectedShops.size > 1 ? ' Each shop will be named with " (Copy)" suffix.' : ' Shop will be named with " (Copy)" suffix.')}
+            </p>
+
+            {/* Same Market Option */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: 'bold' }}>
+                <input
+                  type="checkbox"
+                  checked={duplicateSameMarket}
+                  onChange={(e) => setDuplicateSameMarket(e.target.checked)}
+                />
+                <span>Duplicate in the same market</span>
+              </label>
+            </div>
+
+            {/* Market Selection */}
+            {!duplicateSameMarket && (
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Select Market *
+                </label>
+                <select
+                  value={selectedTargetMarketId}
+                  onChange={(e) => setSelectedTargetMarketId(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '1px solid #ddd',
+                    borderRadius: '5px',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="">Choose a market...</option>
+                  {allMarkets.map(market => (
+                    <option key={market.id} value={market.id}>
+                      {market.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => setShowDuplicateModal(false)}
+                className="btn btn-secondary"
+                style={{ flex: 1 }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDuplicateShops}
+                disabled={duplicating || (!duplicateSameMarket && !selectedTargetMarketId)}
+                className="btn btn-success"
+                style={{
+                  flex: 1,
+                  cursor: (duplicating || (!duplicateSameMarket && !selectedTargetMarketId)) ? 'not-allowed' : 'pointer',
+                  opacity: (duplicating || (!duplicateSameMarket && !selectedTargetMarketId)) ? 0.6 : 1
+                }}
+              >
+                {duplicating ? 'Duplicating...' : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

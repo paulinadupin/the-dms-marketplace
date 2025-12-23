@@ -6,6 +6,7 @@ import { MarketList } from '../components/MarketList';
 import { CreateMarketModal } from '../components/CreateMarketModal';
 import { MarketService } from '../services/market.service';
 import { LIMITS } from '../config/limits';
+import { HamburgerMenu } from '../components/HamburgerMenu';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -39,11 +40,6 @@ export function Dashboard() {
     }
   };
 
-  const handleSignOut = async () => {
-    await AuthService.signOut();
-    navigate('/auth');
-  };
-
   const handleMarketCreated = () => {
     setRefreshKey(prev => prev + 1); // Trigger refresh
     if (user) loadMarketCount(user.uid); // Update count
@@ -63,87 +59,39 @@ export function Dashboard() {
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+    <>
+      {/* Hamburger Menu */}
+      <HamburgerMenu />
+
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '30px',
-        padding: '20px',
-        backgroundColor: '#f5f5f5',
-        borderRadius: '8px'
-      }}>
-        <div>
-          <h1 style={{ margin: 0 }}>DM Dashboard</h1>
-          <p style={{ margin: '5px 0 0 0', color: '#666' }}>
-            Welcome, {user.displayName || user.email}!
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button
-            onClick={() => navigate('/item-library')}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Item Library
-          </button>
-          <button
-            onClick={() => navigate('/settings')}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Settings
-          </button>
-          <button
-            onClick={handleSignOut}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Sign Out
-          </button>
+      <div className="page-header-fullwidth">
+        <div className="page-header-content">
+          <h1>DM Dashboard</h1>
+          <p>Welcome, {user.displayName || user.email}!</p>
         </div>
       </div>
 
-      {/* Market List */}
-      <MarketList
-        key={refreshKey}
-        dmId={user.uid}
-        onCreateMarket={() => setShowCreateModal(true)}
-        onMarketDeleted={() => loadMarketCount(user.uid)}
-      />
-
-      {/* Create Market Modal */}
-      {showCreateModal && (
-        <CreateMarketModal
+      {/* Content */}
+      <div className="page-container">
+        {/* Market List */}
+        <MarketList
+          key={refreshKey}
           dmId={user.uid}
-          currentCount={marketCount}
-          maxLimit={LIMITS.MARKETS_PER_DM}
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={handleMarketCreated}
+          onCreateMarket={() => setShowCreateModal(true)}
+          onMarketDeleted={() => loadMarketCount(user.uid)}
         />
-      )}
-    </div>
+
+        {/* Create Market Modal */}
+        {showCreateModal && (
+          <CreateMarketModal
+            dmId={user.uid}
+            currentCount={marketCount}
+            maxLimit={LIMITS.MARKETS_PER_DM}
+            onClose={() => setShowCreateModal(false)}
+            onSuccess={handleMarketCreated}
+          />
+        )}
+      </div>
+    </>
   );
 }

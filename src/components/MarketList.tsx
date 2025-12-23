@@ -22,6 +22,8 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
   const [editingMarket, setEditingMarket] = useState<Market | null>(null);
   const [activatingMarket, setActivatingMarket] = useState<Market | null>(null);
   const [activeMarket, setActiveMarket] = useState<Market | null>(null);
+  const [editingMarketNameId, setEditingMarketNameId] = useState<string | null>(null);
+  const [marketNameForm, setMarketNameForm] = useState('');
 
   useEffect(() => {
     loadMarkets();
@@ -98,6 +100,37 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
       setToast({ message: 'Market deleted successfully!', type: 'success' });
     } catch (err: any) {
       setToast({ message: 'Failed to delete market: ' + err.message, type: 'error' });
+    }
+  };
+
+  const startEditingMarketName = (market: Market, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMarketNameForm(market.name);
+    setEditingMarketNameId(market.id);
+  };
+
+  const cancelEditingMarketName = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingMarketNameId(null);
+    setMarketNameForm('');
+  };
+
+  const saveMarketName = async (marketId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!marketNameForm.trim()) {
+      setToast({ message: 'Market name cannot be empty', type: 'error' });
+      return;
+    }
+
+    try {
+      await MarketService.updateMarket(marketId, { name: marketNameForm.trim() });
+      setToast({ message: 'Market name updated!', type: 'success' });
+      setEditingMarketNameId(null);
+      setMarketNameForm('');
+      loadMarkets();
+    } catch (err: any) {
+      setToast({ message: 'Failed to update market name: ' + err.message, type: 'error' });
     }
   };
 
@@ -200,7 +233,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
         {markets.map((market) => (
           <div
             key={market.id}
-            onClick={() => navigate(`/market/${market.id}/shops`)}
+            onClick={() => navigate(`/dm/market/${market.id}/shops`)}
             style={{
               padding: '20px',
               backgroundColor: 'white',
@@ -213,7 +246,51 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
-                  <h3 style={{ margin: 0 }}>{market.name}</h3>
+                  {editingMarketNameId === market.id ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="text"
+                        value={marketNameForm}
+                        onChange={(e) => setMarketNameForm(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            saveMarketName(market.id, e as any);
+                          } else if (e.key === 'Escape') {
+                            cancelEditingMarketName(e as any);
+                          }
+                        }}
+                        autoFocus
+                        style={{
+                          fontSize: '1.17em',
+                          fontWeight: 'bold',
+                          padding: '4px 8px',
+                          border: '2px solid #007bff',
+                          borderRadius: '4px',
+                          minWidth: '200px'
+                        }}
+                      />
+                      <button
+                        onClick={(e) => saveMarketName(market.id, e)}
+                        className="btn btn-sm btn-success"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={cancelEditingMarketName}
+                        className="btn btn-sm btn-secondary"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <h3
+                      className="editable-heading"
+                      style={{ margin: 0 }}
+                      onClick={(e) => startEditingMarketName(market, e)}
+                    >
+                      {market.name}
+                    </h3>
+                  )}
                   <span style={{
                     padding: '3px 8px',
                     fontSize: '12px',
