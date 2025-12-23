@@ -97,17 +97,18 @@ export function PlayerShopsList() {
 
   return (
     <>
-      {/* Player Inventory Menu */}
-      <PlayerInventoryMenu accessCode={accessCode!} />
-
-      {/* Shopping Overview Button */}
-      <button
-        onClick={() => setShowOverview(true)}
-        className="shopping-overview-button"
-        title="View Shopping Overview"
-      >
-        Shopping Overview
-      </button>
+      {/* Fixed Header Bar */}
+      <div className="player-header-bar">
+        <button
+          onClick={() => setShowOverview(true)}
+          className="shopping-overview-button"
+          title="View Shopping Overview"
+        >
+          📋
+        </button>
+        <h1 className="player-header-title">{market.name}</h1>
+        <PlayerInventoryMenu accessCode={accessCode!} />
+      </div>
 
       {/* Expiration Warning */}
       {showExpirationWarning && (
@@ -118,7 +119,6 @@ export function PlayerShopsList() {
 
       <div className="player-container">
         <div className="player-header">
-          <h1>{market.name}</h1>
           {market.description && <p>{market.description}</p>}
         </div>
 

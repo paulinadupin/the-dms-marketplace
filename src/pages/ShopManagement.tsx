@@ -9,8 +9,6 @@ import type { User } from 'firebase/auth';
 import { Toast } from '../components/Toast';
 import { CreateShopModal } from '../components/CreateShopModal';
 import { EditShopModal } from '../components/EditShopModal';
-import { EditMarketModal } from '../components/EditMarketModal';
-import { ActivateMarketModal } from '../components/ActivateMarketModal';
 import { LIMITS } from '../config/limits';
 import { HamburgerMenu } from '../components/HamburgerMenu';
 
@@ -25,9 +23,6 @@ export function ShopManagement() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingShop, setEditingShop] = useState<FirestoreShop | null>(null);
-  const [editingMarket, setEditingMarket] = useState(false);
-  const [activatingMarket, setActivatingMarket] = useState(false);
-  const [activeMarket, setActiveMarket] = useState<Market | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedShops, setSelectedShops] = useState<Set<string>>(new Set());
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
@@ -37,6 +32,7 @@ export function ShopManagement() {
   const [duplicating, setDuplicating] = useState(false);
   const [editingShopNameId, setEditingShopNameId] = useState<string | null>(null);
   const [shopNameForm, setShopNameForm] = useState('');
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -50,6 +46,21 @@ export function ShopManagement() {
     return () => unsubscribe();
   }, [navigate]);
 
+  // Click outside handler to close kebab menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.kebab-menu-container')) {
+        setOpenMenuId(null);
+      }
+    };
+
+    if (openMenuId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openMenuId]);
+
   useEffect(() => {
     if (marketId && user) {
       loadData();
@@ -61,10 +72,9 @@ export function ShopManagement() {
 
     setLoading(true);
     try {
-      const [marketData, shopsData, activeMarketData] = await Promise.all([
+      const [marketData, shopsData] = await Promise.all([
         MarketService.getMarket(marketId),
-        ShopService.getShopsByMarket(marketId),
-        MarketService.getActiveMarket(user.uid)
+        ShopService.getShopsByMarket(marketId)
       ]);
 
       if (!marketData) {
@@ -82,7 +92,12 @@ export function ShopManagement() {
 
       setMarket(marketData);
       setShops(shopsData);
-      setActiveMarket(activeMarketData);
+
+      // Auto-migrate items to populate customData for player access (runs once per load)
+      console.log('Running migration for market:', marketId);
+      ShopItemService.migrateItemsWithCustomData(marketId)
+        .then(() => console.log('Migration completed'))
+        .catch((err) => console.error('Migration failed:', err));
     } catch (err: any) {
       setToast({ message: err.message, type: 'error' });
     } finally {
@@ -106,47 +121,6 @@ export function ShopManagement() {
     } catch (err: any) {
       setToast({ message: err.message, type: 'error' });
     }
-  };
-
-  const handleDeactivateMarket = async () => {
-    if (!market) return;
-
-    try {
-      await MarketService.deactivateMarket(market.id);
-      setToast({ message: 'Market deactivated successfully!', type: 'success' });
-      loadData();
-    } catch (err: any) {
-      setToast({ message: 'Failed to deactivate market: ' + err.message, type: 'error' });
-    }
-  };
-
-  const handleDeleteMarket = async () => {
-    if (!market) return;
-
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${market.name}"?\n\n` +
-      `⚠️ This will permanently DELETE:\n` +
-      `- The market\n` +
-      `- All shops in this market\n\n` +
-      `✓ Items will be kept in your library for reuse\n\n` +
-      `This action cannot be undone.`
-    );
-
-    if (!confirmed) return;
-
-    try {
-      await MarketService.deleteMarket(market.id);
-      setToast({ message: 'Market deleted successfully!', type: 'success' });
-      navigate('/dashboard');
-    } catch (err: any) {
-      setToast({ message: 'Failed to delete market: ' + err.message, type: 'error' });
-    }
-  };
-
-  const copyShareUrl = (accessCode: string) => {
-    const url = MarketService.getShareableURL(accessCode);
-    navigator.clipboard.writeText(url);
-    setToast({ message: 'Market URL copied to clipboard!', type: 'success' });
   };
 
   const startEditingShopName = (shop: FirestoreShop) => {
@@ -348,156 +322,20 @@ export function ShopManagement() {
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* Back Button */}
-      <button
-        onClick={() => navigate('/dashboard')}
-        style={{
-          position: 'fixed',
-          top: '20px',
-          left: '20px',
-          width: '50px',
-          height: '50px',
-          backgroundColor: '#6c757d',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '24px',
-          color: 'white',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          transition: 'background-color 0.2s'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a6268'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
-        title="Back to Dashboard"
-      >
-        ←
-      </button>
-
-      {/* Hamburger Menu */}
-      <HamburgerMenu />
-
-      {/* Header */}
-      <div className="page-header-fullwidth">
-        <div className="page-header-content">
-          <h1>{market.name}</h1>
-          <p>
-            {market.description || 'Manage your shops and inventory'}
-          </p>
-        </div>
+      {/* Fixed Header Bar */}
+      <div className="dm-header-bar">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="dm-back-button"
+          title="Back to Dashboard"
+        >
+          ←
+        </button>
+        <h1 className="dm-header-title">{market.name}</h1>
+        <HamburgerMenu />
       </div>
 
       <div className="page-container">
-
-        {/* Market Controls */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '30px',
-          padding: '15px 20px',
-          backgroundColor: 'white',
-          border: '1px solid #ddd',
-          borderRadius: '8px'
-        }}>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            {market.isActive ? (
-              <button
-                onClick={handleDeactivateMarket}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#ffc107',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                Deactivate Market
-              </button>
-            ) : activeMarket && activeMarket.id !== market.id ? (
-              <button
-                disabled
-                title="There is already an active market in your account"
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'not-allowed',
-                  fontSize: '14px',
-                  opacity: 0.6
-                }}
-              >
-                Activate Market (Blocked)
-              </button>
-            ) : (
-              <button
-                onClick={() => setActivatingMarket(true)}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                Activate Market
-              </button>
-            )}
-            <button
-              onClick={() => copyShareUrl(market.accessCode)}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              Share Market Link
-            </button>
-          </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              onClick={() => setEditingMarket(true)}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              Edit Market
-            </button>
-            <button
-              onClick={handleDeleteMarket}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#dc3545',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              Delete Market
-            </button>
-          </div>
-        </div>
 
         {/* Empty State */}
         {shops.length === 0 ? (
@@ -681,53 +519,48 @@ export function ShopManagement() {
                           Location: {shop.location}
                         </p>
                       </div>
-                    </div>
 
-                    {!selectionMode && (
-                      <div style={{
-                        marginTop: '15px',
-                        paddingTop: '15px',
-                        borderTop: '1px solid #eee',
-                        display: 'flex',
-                        gap: '10px',
-                        flexWrap: 'wrap'
-                      }}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingShop(shop);
-                          }}
-                          style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#007bff',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                            fontSize: '14px'
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteShop(shop.id, shop.name);
-                          }}
-                          style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#dc3545',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                            fontSize: '14px'
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
+                      {/* Kebab Menu */}
+                      {!selectionMode && (
+                        <div className="kebab-menu-container" style={{ position: 'relative', marginLeft: '10px' }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(openMenuId === shop.id ? null : shop.id);
+                            }}
+                            className="kebab-button"
+                            title="Shop options"
+                          >
+                            ⋮
+                          </button>
+
+                          {openMenuId === shop.id && (
+                            <div className="dropdown-menu">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingShop(shop);
+                                  setOpenMenuId(null);
+                                }}
+                                className="dropdown-item"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(null);
+                                  handleDeleteShop(shop.id, shop.name);
+                                }}
+                                className="dropdown-item dropdown-item-danger"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -794,32 +627,6 @@ export function ShopManagement() {
           onSuccess={() => {
             loadData();
             setEditingShop(null);
-          }}
-        />
-      )}
-
-      {/* Edit Market Modal */}
-      {editingMarket && market && (
-        <EditMarketModal
-          market={market}
-          onClose={() => setEditingMarket(false)}
-          onSuccess={() => {
-            loadData();
-            setEditingMarket(false);
-          }}
-        />
-      )}
-
-      {/* Activate Market Modal */}
-      {activatingMarket && market && (
-        <ActivateMarketModal
-          marketId={market.id}
-          marketName={market.name}
-          dmId={market.dmId}
-          onClose={() => setActivatingMarket(false)}
-          onSuccess={() => {
-            loadData();
-            setActivatingMarket(false);
           }}
         />
       )}

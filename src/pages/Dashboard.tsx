@@ -60,19 +60,18 @@ export function Dashboard() {
 
   return (
     <>
-      {/* Hamburger Menu */}
-      <HamburgerMenu />
-
-      {/* Header */}
-      <div className="page-header-fullwidth">
-        <div className="page-header-content">
-          <h1>DM Dashboard</h1>
-          <p>Welcome, {user.displayName || user.email}!</p>
-        </div>
+      {/* Fixed Header Bar */}
+      <div className="dm-header-bar">
+        <div style={{ width: '40px' }}></div> {/* Spacer for alignment */}
+        <h1 className="dm-header-title">DM Dashboard</h1>
+        <HamburgerMenu />
       </div>
 
       {/* Content */}
       <div className="page-container">
+        <div style={{ marginBottom: '20px', textAlign: 'center', color: '#666' }}>
+          <p>Welcome, {user.displayName || user.email}!</p>
+        </div>
         {/* Market List */}
         <MarketList
           key={refreshKey}

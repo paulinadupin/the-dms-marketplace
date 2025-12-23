@@ -36,6 +36,7 @@ export function ShopInventory() {
   const [selectedMarketId, setSelectedMarketId] = useState('');
   const [selectedTargetShopId, setSelectedTargetShopId] = useState('');
   const [duplicating, setDuplicating] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -48,6 +49,21 @@ export function ShopInventory() {
 
     return () => unsubscribe();
   }, [navigate]);
+
+  // Click outside handler to close kebab menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.kebab-menu-container')) {
+        setOpenMenuId(null);
+      }
+    };
+
+    if (openMenuId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openMenuId]);
 
   useEffect(() => {
     if (shopId && user) {
@@ -109,6 +125,12 @@ export function ShopInventory() {
     } catch (err: any) {
       setToast({ message: err.message, type: 'error' });
     }
+  };
+
+  const handleDuplicateSingleItem = async (shopItemId: string) => {
+    // Set the selected item and open the duplicate modal
+    setSelectedItems(new Set([shopItemId]));
+    await openDuplicateModal();
   };
 
   const toggleSelectionMode = () => {
@@ -334,7 +356,12 @@ export function ShopInventory() {
     try {
       const newStock = stockForm.unlimited ? null : (parseInt(stockForm.stock) || 0);
 
-      await ShopItemService.updateShopItem(shopItemId, { stock: newStock });
+      // Update both stock and originalStock when manually editing
+      // This sets a new baseline for stock resets
+      await ShopItemService.updateShopItem(shopItemId, {
+        stock: newStock,
+        originalStock: newStock
+      });
       setToast({ message: 'Stock updated!', type: 'success' });
       setEditingStockId(null);
       loadData();
@@ -386,46 +413,17 @@ export function ShopInventory() {
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(`/market/${shop.marketId}/shops`)}
-        style={{
-          position: 'fixed',
-          top: '20px',
-          left: '20px',
-          width: '50px',
-          height: '50px',
-          backgroundColor: '#6c757d',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '24px',
-          color: 'white',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          transition: 'background-color 0.2s'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a6268'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
-        title="Back to Shops"
-      >
-        ←
-      </button>
-
-      {/* Hamburger Menu */}
-      <HamburgerMenu />
-
-      {/* Header */}
-      <div className="page-header-fullwidth">
-        <div className="page-header-content">
-          <h1>{shop.name} - Inventory</h1>
-          <p>
-            {shop.description || 'Manage items in this shop'}
-          </p>
-        </div>
+      {/* Fixed Header Bar */}
+      <div className="dm-header-bar">
+        <button
+          onClick={() => navigate(`/dm/market/${shop.marketId}/shops`)}
+          className="dm-back-button"
+          title="Back to Shops"
+        >
+          ←
+        </button>
+        <h1 className="dm-header-title">{shop.name}</h1>
+        <HamburgerMenu />
       </div>
 
       <div className="page-container">
@@ -504,15 +502,58 @@ export function ShopInventory() {
                   )}
                   <div className="card-header">
                     <div className={`card-body ${selectionMode ? 'card-content-shifted' : ''}`}>
-                      <div className="badge-container">
-                        <h3 className="card-title">{item.name}</h3>
-                        <span className="badge badge-type">
-                          {item.type}
-                        </span>
-                        {shopItem.isIndependent && (
-                          <span className="badge badge-independent">
-                            Independent
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                        <div className="badge-container" style={{ flex: 1 }}>
+                          <h3 className="card-title">{item.name}</h3>
+                          <span className="badge badge-type">
+                            {item.type}
                           </span>
+                          {shopItem.isIndependent && (
+                            <span className="badge badge-independent">
+                              Independent
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Kebab Menu */}
+                        {!selectionMode && (
+                          <div className="kebab-menu-container" style={{ position: 'relative', marginLeft: '10px' }}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(openMenuId === shopItem.id ? null : shopItem.id);
+                              }}
+                              className="kebab-button"
+                              title="Item options"
+                            >
+                              ⋮
+                            </button>
+
+                            {openMenuId === shopItem.id && (
+                              <div className="dropdown-menu">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenMenuId(null);
+                                    handleDuplicateSingleItem(shopItem.id);
+                                  }}
+                                  className="dropdown-item"
+                                >
+                                  Duplicate
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenMenuId(null);
+                                    handleRemoveItem(shopItem.id, item.name);
+                                  }}
+                                  className="dropdown-item dropdown-item-danger"
+                                >
+                                  Remove from shop
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                       {editingPriceId === shopItem.id ? (
@@ -692,17 +733,6 @@ export function ShopInventory() {
                       )}
                     </div>
                   </div>
-
-                  {!selectionMode && (
-                    <div className="card-footer">
-                      <button
-                        onClick={() => handleRemoveItem(shopItem.id, item.name)}
-                        className="btn btn-danger btn-sm"
-                      >
-                        Remove from Shop
-                      </button>
-                    </div>
-                  )}
                 </div>
               );
             })}

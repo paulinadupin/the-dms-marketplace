@@ -64,8 +64,22 @@ export interface ShopItem {
   itemLibraryId: string; // Reference to ItemLibrary
   price: Item['cost']; // Shop-specific price (can differ from library template)
   stock: number | null; // Shop-specific stock (null = unlimited)
+  originalStock?: number | null; // Original stock value to reset to when market is deactivated
   isIndependent: boolean; // If true, this item is "kept separate" from library updates
   customData?: Item; // Snapshot of item data if isIndependent=true (for items that diverged)
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/**
+ * Session Stock - Live stock tracking for active market sessions
+ * Shared across all players in the same market session
+ */
+export interface SessionStock {
+  id: string; // Format: {marketId}_{shopItemId}
+  marketId: string;
+  shopItemId: string;
+  currentStock: number | null; // Current stock in this session (null = unlimited)
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
