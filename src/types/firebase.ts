@@ -64,6 +64,7 @@ export interface ShopItem {
   itemLibraryId: string; // Reference to ItemLibrary
   price: Item['cost']; // Shop-specific price (can differ from library template)
   stock: number | null; // Shop-specific stock (null = unlimited)
+  originalStock?: number | null; // Original stock value to reset to when market is deactivated
   isIndependent: boolean; // If true, this item is "kept separate" from library updates
   customData?: Item; // Snapshot of item data if isIndependent=true (for items that diverged)
   createdAt: Timestamp;

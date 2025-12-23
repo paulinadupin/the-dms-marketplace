@@ -38,12 +38,14 @@ export class ShopItemService {
         throw new Error('Library item not found');
       }
 
+      const stockValue = input.stock !== undefined ? input.stock : null;
       const shopItemData = {
         shopId: input.shopId,
         marketId: input.marketId,
         itemLibraryId: input.itemLibraryId,
         price: input.price || libraryItem.item.cost,
-        stock: input.stock !== undefined ? input.stock : null,
+        stock: stockValue,
+        originalStock: stockValue, // Save original stock to reset when market is deactivated
         isIndependent: false,
         customData: null,
         createdAt: Timestamp.now(),
@@ -132,6 +134,7 @@ export class ShopItemService {
     updates: {
       price?: ShopItem['price'];
       stock?: number | null;
+      originalStock?: number | null;
       isIndependent?: boolean;
       customData?: ShopItem['customData'];
     }
@@ -148,6 +151,9 @@ export class ShopItemService {
       }
       if (updates.stock !== undefined) {
         updateData.stock = updates.stock;
+      }
+      if (updates.originalStock !== undefined) {
+        updateData.originalStock = updates.originalStock;
       }
       if (updates.isIndependent !== undefined) {
         updateData.isIndependent = updates.isIndependent;
@@ -322,6 +328,36 @@ export class ShopItemService {
       return true;
     } catch (error: any) {
       throw new Error('Failed to decrease stock: ' + error.message);
+    }
+  }
+
+  /**
+   * Reset all stock in a market to original values
+   * Called when market is deactivated
+   */
+  static async resetStockInMarket(marketId: string): Promise<void> {
+    try {
+      const items = await this.getItemsByMarket(marketId);
+
+      if (items.length === 0) {
+        return;
+      }
+
+      const batch = writeBatch(db);
+
+      items.forEach((item) => {
+        const docRef = doc(db, this.COLLECTION, item.id);
+        // Reset stock to originalStock if it exists, otherwise keep current value
+        const resetStock = item.originalStock !== undefined ? item.originalStock : item.stock;
+        batch.update(docRef, {
+          stock: resetStock,
+          updatedAt: Timestamp.now(),
+        });
+      });
+
+      await batch.commit();
+    } catch (error: any) {
+      throw new Error('Failed to reset stock: ' + error.message);
     }
   }
 }

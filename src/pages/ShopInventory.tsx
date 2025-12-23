@@ -356,7 +356,12 @@ export function ShopInventory() {
     try {
       const newStock = stockForm.unlimited ? null : (parseInt(stockForm.stock) || 0);
 
-      await ShopItemService.updateShopItem(shopItemId, { stock: newStock });
+      // Update both stock and originalStock when manually editing
+      // This sets a new baseline for stock resets
+      await ShopItemService.updateShopItem(shopItemId, {
+        stock: newStock,
+        originalStock: newStock
+      });
       setToast({ message: 'Stock updated!', type: 'success' });
       setEditingStockId(null);
       loadData();

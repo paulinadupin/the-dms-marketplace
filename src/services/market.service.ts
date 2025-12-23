@@ -209,10 +209,14 @@ export class MarketService {
   }
 
   /**
-   * Deactivate a market
+   * Deactivate a market and reset all item stock to original values
    */
   static async deactivateMarket(marketId: string): Promise<void> {
     try {
+      // Reset all stock in the market to original values
+      await ShopItemService.resetStockInMarket(marketId);
+
+      // Deactivate the market
       await updateDoc(doc(db, this.COLLECTION, marketId), {
         isActive: false,
         activeUntil: null,
