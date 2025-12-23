@@ -388,7 +388,7 @@ export function ShopInventory() {
 
       {/* Back Button */}
       <button
-        onClick={() => navigate(`/market/${shop.marketId}/shops`)}
+        onClick={() => navigate(`/dm/market/${shop.marketId}/shops`)}
         style={{
           position: 'fixed',
           top: '20px',
