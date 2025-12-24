@@ -79,13 +79,13 @@ export class MarketService {
 
   /**
    * Get market by access code (for player URL)
+   * Returns market regardless of active status - calling code should validate
    */
   static async getMarketByAccessCode(accessCode: string): Promise<Market | null> {
     try {
       const q = query(
         collection(db, this.COLLECTION),
-        where('accessCode', '==', accessCode),
-        where('isActive', '==', true)
+        where('accessCode', '==', accessCode)
       );
 
       const querySnapshot = await getDocs(q);

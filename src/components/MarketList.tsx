@@ -159,7 +159,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+      <div className="market-loading">
         Loading markets...
       </div>
     );
@@ -167,12 +167,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
 
   if (error) {
     return (
-      <div style={{
-        padding: '20px',
-        backgroundColor: '#f8d7da',
-        color: '#721c24',
-        borderRadius: '5px'
-      }}>
+      <div className="market-error">
         Error loading markets: {error}
       </div>
     );
@@ -181,29 +176,14 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
   // Empty State
   if (markets.length === 0) {
     return (
-      <div style={{
-        textAlign: 'center',
-        padding: '60px 20px',
-        backgroundColor: '#f9f9f9',
-        borderRadius: '8px',
-        border: '2px dashed #ddd'
-      }}>
-        <h2 style={{ marginTop: 0, color: '#666' }}>No Markets Yet</h2>
-        <p style={{ color: '#999', marginBottom: '30px' }}>
+      <div className="market-empty-state">
+        <h2 className="market-empty-title">No Markets Yet</h2>
+        <p className="market-empty-text">
           Create your first market to start building shops for your campaign!
         </p>
         <button
           onClick={onCreateMarket}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#28a745',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontSize: '16px',
-            fontWeight: 'bold'
-          }}
+          className="market-empty-button"
         >
           + Create Your First Market
         </button>
@@ -225,52 +205,40 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '20px'
-      }}>
-        <div>
-          <h2 style={{ margin: 0 }}>Your Markets</h2>
-          {isAtLimit && (
-            <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#dc3545' }}>
-              ⚠️ You've reached the maximum number of markets
-            </p>
-          )}
+        <div className="market-list-header">
+          <div>
+            <h2 className="market-list-title">Your Markets</h2>
+            {isAtLimit && (
+              <p className="market-limit-warning">
+                ⚠️ You've reached the maximum number of markets
+              </p>
+            )}
+          </div>
+          <button
+            onClick={onCreateMarket}
+            disabled={isAtLimit}
+            className="btn btn-success btn-create-circle"
+            title={isAtLimit ? `Maximum of ${LIMITS.MARKETS_PER_DM} markets reached` : 'Create New Market'}
+          >
+            +
+          </button>
         </div>
-        <button
-          onClick={onCreateMarket}
-          disabled={isAtLimit}
-          className="btn btn-success btn-create-circle"
-          title={isAtLimit ? `Maximum of ${LIMITS.MARKETS_PER_DM} markets reached` : 'Create New Market'}
-        >
-          +
-        </button>
-      </div>
 
-      <div style={{ display: 'grid', gap: '20px' }}>
+        <div className="market-grid">
         {sortedMarkets.map((market) => {
           const isBlocked = !market.isActive && activeMarket && activeMarket.id !== market.id;
+          const cardClassName = `market-card ${market.isActive ? 'market-card-active' : ''} ${isBlocked ? 'market-card-blocked' : ''}`;
           return (
           <div
             key={market.id}
             onClick={() => navigate(`/dm/market/${market.id}/shops`)}
-            className={market.isActive ? 'market-card-active' : isBlocked ? 'market-card-blocked' : ''}
-            style={{
-              padding: '20px',
-              backgroundColor: 'white',
-              border: '1px solid #ddd',
-              borderRadius: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              cursor: 'pointer'
-            }}
+            className={cardClassName}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px', position: 'relative' }}>
+            <div className="market-card-header">
+              <div className="market-card-content">
+                <div className="market-title-row">
                   {editingMarketNameId === market.id ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
+                    <div className="market-title-edit-form" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="text"
                         value={marketNameForm}
@@ -283,14 +251,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                           }
                         }}
                         autoFocus
-                        style={{
-                          fontSize: '1.17em',
-                          fontWeight: 'bold',
-                          padding: '4px 8px',
-                          border: '2px solid #007bff',
-                          borderRadius: '4px',
-                          minWidth: '200px'
-                        }}
+                        className="market-title-input"
                       />
                       <button
                         onClick={(e) => saveMarketName(market.id, e)}
@@ -307,26 +268,18 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                     </div>
                   ) : (
                     <h3
-                      className="editable-heading"
-                      style={{ margin: 0 }}
+                      className="editable-heading market-title"
                       onClick={(e) => startEditingMarketName(market, e)}
                     >
                       {market.name}
                     </h3>
                   )}
-                  <span style={{
-                    padding: '3px 8px',
-                    fontSize: '12px',
-                    borderRadius: '3px',
-                    backgroundColor: market.isActive ? '#d4edda' : '#f8d7da',
-                    color: market.isActive ? '#155724' : '#721c24',
-                    fontWeight: 'bold'
-                  }}>
+                  <span className={`market-status-badge ${market.isActive ? 'market-status-active' : 'market-status-inactive'}`}>
                     {market.isActive ? `Active (${getTimeRemaining(market.activeUntil)})` : 'Inactive'}
                   </span>
                 </div>
-                <p style={{ margin: '5px 0', color: '#666' }}>{market.description}</p>
-                <div style={{ margin: '10px 0 0 0', fontSize: '14px', color: '#999' }}>
+                <p className="market-description">{market.description}</p>
+                <div className="market-access-code">
                   <span>Access Code: </span>
                   <code
                     onClick={(e) => {
@@ -342,24 +295,13 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
               </div>
 
               {/* Kebab Menu */}
-              <div style={{ position: 'relative', marginLeft: 'auto' }}>
+              <div className="market-kebab-container">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setOpenMenuId(openMenuId === market.id ? null : market.id);
                   }}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '20px',
-                    cursor: 'pointer',
-                    padding: '4px 8px',
-                    color: '#666',
-                    borderRadius: '4px',
-                    lineHeight: 1
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  className="market-kebab-button"
                   title="More options"
                 >
                   ⋮
@@ -367,17 +309,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
 
                 {openMenuId === market.id && (
                   <div
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      right: 0,
-                      backgroundColor: 'white',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                      zIndex: 1000,
-                      minWidth: '120px'
-                    }}
+                    className="market-kebab-menu"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
@@ -386,19 +318,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                         setEditingMarket(market);
                         setOpenMenuId(null);
                       }}
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        padding: '10px 16px',
-                        textAlign: 'left',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        borderBottom: '1px solid #eee'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      className="market-kebab-menu-item"
                     >
                       Edit
                     </button>
@@ -408,19 +328,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                         setOpenMenuId(null);
                         deleteMarket(market.id, market.name);
                       }}
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        padding: '10px 16px',
-                        textAlign: 'left',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        color: '#dc3545'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      className="market-kebab-menu-item delete"
                     >
                       Delete
                     </button>
@@ -429,14 +337,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
               </div>
             </div>
 
-            <div style={{
-              marginTop: '15px',
-              paddingTop: '15px',
-              borderTop: '1px solid #eee',
-              display: 'flex',
-              gap: '10px',
-              alignItems: 'center'
-            }}>
+            <div className="market-toggle-section">
               <label className="toggle-switch" onClick={(e) => e.stopPropagation()}>
                 <input
                   type="checkbox"
@@ -462,7 +363,8 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
               </label>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
 

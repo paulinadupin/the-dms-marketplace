@@ -65,8 +65,12 @@ export function PlayerMarketEntry() {
     const startingSilver = parseInt(silver) || 0;
     const startingCopper = parseInt(copper) || 0;
 
+    // Get player name from localStorage
+    const playerName = localStorage.getItem(`player_${accessCode}_name`) || 'Adventurer';
+
     // Save player's starting currency to localStorage
     const playerData = {
+      name: playerName,
       gold: startingGold,
       silver: startingSilver,
       copper: startingCopper,
