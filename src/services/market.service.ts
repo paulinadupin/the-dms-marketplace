@@ -15,6 +15,7 @@ import { db } from '../config/firebase';
 import type { Market, CreateMarketInput } from '../types/firebase';
 import { ShopItemService } from './shop-item.service';
 import { SessionStockService } from './session-stock.service';
+import { PlayerSessionService } from './player-session.service';
 
 export class MarketService {
   private static readonly COLLECTION = 'markets';
@@ -226,6 +227,9 @@ export class MarketService {
 
       // Reset all stock in the market to original values
       await ShopItemService.resetStockInMarket(marketId);
+
+      // Delete all player sessions for this market
+      await PlayerSessionService.deleteMarketSessions(marketId);
 
       // Deactivate the market
       await updateDoc(doc(db, this.COLLECTION, marketId), {

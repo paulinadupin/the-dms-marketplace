@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PlayerSessionService } from '../services/player-session.service';
 
 interface SellItemModalProps {
   accessCode: string;
@@ -12,7 +13,7 @@ export function SellItemModal({ accessCode, onClose, onSell }: SellItemModalProp
   const [silver, setSilver] = useState('');
   const [copper, setCopper] = useState('');
 
-  const handleSell = () => {
+  const handleSell = async () => {
     if (!itemName.trim()) {
       alert('Please enter an item name');
       return;
@@ -51,6 +52,21 @@ export function SellItemModal({ accessCode, onClose, onSell }: SellItemModalProp
 
     // Save to localStorage
     localStorage.setItem(`player_${accessCode}_data`, JSON.stringify(playerData));
+
+    // Log transaction for DM tracking
+    if (playerData.sessionId) {
+      try {
+        await PlayerSessionService.addTransaction(
+          playerData.sessionId,
+          'sell',
+          itemName.trim(),
+          1
+        );
+      } catch (err) {
+        console.error('Failed to log transaction:', err);
+        // Don't fail the sale if transaction logging fails
+      }
+    }
 
     onSell();
   };

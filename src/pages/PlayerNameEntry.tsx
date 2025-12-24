@@ -10,7 +10,6 @@ export function PlayerNameEntry() {
   const [playerName, setPlayerName] = useState('');
   const [market, setMarket] = useState<Market | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadMarket();
@@ -18,8 +17,7 @@ export function PlayerNameEntry() {
 
   const loadMarket = async () => {
     if (!accessCode) {
-      setError('Invalid access code');
-      setLoading(false);
+      navigate('/', { state: { error: 'Invalid access code. Please enter a valid code and try again.' } });
       return;
     }
 
@@ -27,30 +25,26 @@ export function PlayerNameEntry() {
       const marketData = await MarketService.getMarketByAccessCode(accessCode);
 
       if (!marketData) {
-        setError('This Market is Closed');
-        setLoading(false);
+        navigate('/', { state: { error: 'Market not found. Please check your access code and try again.' } });
         return;
       }
 
       // Check if market is active
       if (!marketData.isActive) {
-        setError('This Market is Closed');
-        setLoading(false);
+        navigate('/', { state: { error: 'This market is currently closed. Please try again later.' } });
         return;
       }
 
       // Check if market has expired
       if (marketData.activeUntil && marketData.activeUntil.toMillis() <= Date.now()) {
-        setError('This Market is Closed');
-        setLoading(false);
+        navigate('/', { state: { error: 'This market has expired. Please try again later.' } });
         return;
       }
 
       setMarket(marketData);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load market');
-    } finally {
       setLoading(false);
+    } catch (err: any) {
+      navigate('/', { state: { error: 'Failed to load market. Please check your access code and try again.' } });
     }
   };
 
@@ -65,35 +59,10 @@ export function PlayerNameEntry() {
     navigate(`/market/${accessCode}`);
   };
 
-  if (loading) {
+  if (loading || !market) {
     return (
       <div className="player-loading">
         <p>Loading market...</p>
-      </div>
-    );
-  }
-
-  if (error || !market) {
-    return (
-      <div className="player-error">
-        <h1>{error || 'This Market is Closed'}</h1>
-        <p>Please check your access code and try again.</p>
-        <button
-          onClick={() => navigate('/')}
-          style={{
-            marginTop: '2rem',
-            padding: '0.8rem 2rem',
-            backgroundColor: '#4ecdc4',
-            color: '#1a1a2e',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '1rem',
-            fontWeight: '600'
-          }}
-        >
-          Return to Home
-        </button>
       </div>
     );
   }

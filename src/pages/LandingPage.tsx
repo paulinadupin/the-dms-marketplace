@@ -1,9 +1,21 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Toast } from '../components/Toast';
 
 export function LandingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [accessCode, setAccessCode] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check if there's an error message from navigation state
+    if (location.state?.error) {
+      setErrorMessage(location.state.error);
+      // Clear the error from location state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleAccessCodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,6 +26,14 @@ export function LandingPage() {
 
   return (
     <>
+      {errorMessage && (
+        <Toast
+          message={errorMessage}
+          type="error"
+          onClose={() => setErrorMessage(null)}
+        />
+      )}
+
       {/* Navigation Bar */}
       <nav className="landing-nav">
         <div className="landing-nav-container">

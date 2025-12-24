@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MarketService } from '../services/market.service';
+import { PlayerSessionService } from '../services/player-session.service';
 import type { Market } from '../types/firebase';
 import { Toast } from './Toast';
 import { EditMarketModal } from './EditMarketModal';
@@ -25,10 +26,26 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
   const [editingMarketNameId, setEditingMarketNameId] = useState<string | null>(null);
   const [marketNameForm, setMarketNameForm] = useState('');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [expandedActivityMarketId, setExpandedActivityMarketId] = useState<string | null>(null);
+  const [playerSessions, setPlayerSessions] = useState<Map<string, any[]>>(new Map());
 
   useEffect(() => {
     loadMarkets();
   }, [dmId]);
+
+  // Subscribe to player sessions for expanded market
+  useEffect(() => {
+    if (!expandedActivityMarketId) return;
+
+    const unsubscribe = PlayerSessionService.subscribeToMarketSessions(
+      expandedActivityMarketId,
+      (sessions) => {
+        setPlayerSessions(prev => new Map(prev).set(expandedActivityMarketId, sessions));
+      }
+    );
+
+    return () => unsubscribe();
+  }, [expandedActivityMarketId]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -79,6 +96,19 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
   const handleDeactivate = async (marketId: string) => {
     try {
       await MarketService.deactivateMarket(marketId);
+
+      // Clear player sessions from state
+      setPlayerSessions(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(marketId);
+        return newMap;
+      });
+
+      // Close dropdown if this market was expanded
+      if (expandedActivityMarketId === marketId) {
+        setExpandedActivityMarketId(null);
+      }
+
       setToast({ message: 'Market deactivated successfully!', type: 'success' });
       loadMarkets(); // Refresh list
     } catch (err: any) {
@@ -361,7 +391,72 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                 />
                 <span className="toggle-slider"></span>
               </label>
+
+              {market.isActive && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpandedActivityMarketId(
+                      expandedActivityMarketId === market.id ? null : market.id
+                    );
+                  }}
+                  className="market-activity-toggle"
+                  title="Toggle player activity"
+                >
+                  <span className={`market-activity-triangle ${expandedActivityMarketId === market.id ? 'expanded' : ''}`}>
+                    ▼
+                  </span>
+                  Player Activity
+                </button>
+              )}
             </div>
+
+            {/* Player Activity Dropdown */}
+            {market.isActive && expandedActivityMarketId === market.id && (
+              <div className="market-activity-dropdown" onClick={(e) => e.stopPropagation()}>
+                {(() => {
+                  const sessions = playerSessions.get(market.id) || [];
+
+                  if (sessions.length === 0) {
+                    return (
+                      <div className="player-activity-empty">
+                        <p>No players have entered this market yet.</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="player-activity-list">
+                      {sessions.map((session) => (
+                        <div key={session.id} className="player-activity-item">
+                          <div className="player-activity-header">
+                            <div className="player-name">
+                              👤 {session.playerName}
+                            </div>
+                            <div className="player-time">
+                              Entered: {(() => {
+                                if (!session.enteredAt) return '';
+                                const date = session.enteredAt.toDate();
+                                return date.toLocaleTimeString('en-US', {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                });
+                              })()}
+                            </div>
+                          </div>
+                          <div className="player-transactions">
+                            <strong>Activity:</strong>{' '}
+                            <span className="transaction-text">
+                              {PlayerSessionService.formatTransactions(session.transactions)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
           </div>
           );
         })}

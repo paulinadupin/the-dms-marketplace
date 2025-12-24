@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { SessionStockService } from '../services/session-stock.service';
+import { PlayerSessionService } from '../services/player-session.service';
 import type { ShopItem } from '../types/firebase';
 
 interface PlayerItemDetailModalProps {
@@ -129,6 +130,21 @@ export function PlayerItemDetailModal({
       // Update session stock in Firestore (if not unlimited)
       if (shopItem.stock !== null) {
         await SessionStockService.decreaseStock(shopItem.marketId, shopItem.id, 1);
+      }
+
+      // Log transaction for DM tracking
+      if (playerData.sessionId) {
+        try {
+          await PlayerSessionService.addTransaction(
+            playerData.sessionId,
+            'buy',
+            itemData.name,
+            1
+          );
+        } catch (err) {
+          console.error('Failed to log transaction:', err);
+          // Don't fail the purchase if transaction logging fails
+        }
       }
 
       // Show success notification and reload
