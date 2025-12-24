@@ -169,6 +169,16 @@ html, body {
   cursor: not-allowed;
 }
 
+/* Filter Toggle Button */
+.btn-filter-toggle {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+  position: relative;
+}
+
 /* ========================================
    CARDS
    ======================================== */
@@ -326,12 +336,13 @@ html, body {
   background-color: var(--bg-white);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
 }
 
 .search-input {
-  flex: 1 1 300px;
+  flex: 1 1 auto;
+  min-width: 100px;
   width: 100%;
   padding: var(--spacing-sm);
   border: 1px solid var(--border-color);
@@ -2025,19 +2036,26 @@ html, body {
 
   /* Filter Container - Mobile */
   .filter-container {
-    gap: 8px;
+    gap: 6px;
     padding: 10px;
+    flex-wrap: nowrap;
   }
 
   .search-input {
-    flex: 1 1 100%;
+    flex: 1 1 auto;
+    min-width: 80px;
     font-size: 16px;
   }
 
   .filter-toggle-btn {
-    flex: 1 1 auto;
-    justify-content: center;
-    font-size: 14px;
+    flex: 0 0 auto;
+  }
+
+  /* Keep buttons at fixed size on mobile */
+  .btn-create-circle,
+  .btn-filter-toggle,
+  .button-group .btn {
+    flex-shrink: 0;
   }
 
   .filter-panel-content {

@@ -280,25 +280,28 @@ export function ItemLibraryPage() {
 
         {/* Filters and Search */}
         <div className="filter-container">
-          <input
-            type="text"
-            placeholder="Search items by name or description..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="btn btn-secondary filter-toggle-btn"
-          >
-            ⚙️ Filters {showFilters ? '▲' : '▼'}
-            {(filterType !== 'all' || filterSource !== 'all') && (
-              <span className="filter-badge">
-                {(filterType !== 'all' ? 1 : 0) + (filterSource !== 'all' ? 1 : 0)}
-              </span>
-            )}
-          </button>
+          <div style={{ display: 'flex', gap: '8px', flex: '1 1 auto', minWidth: '150px' }}>
+            <input
+              type="text"
+              placeholder="Search items by name or description..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+              style={{ flex: 1, minWidth: '100px' }}
+            />
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="btn btn-secondary btn-filter-toggle"
+              title="Toggle Filters"
+            >
+              ▽
+              {(filterType !== 'all' || filterSource !== 'all') && (
+                <span className="filter-badge" style={{ position: 'absolute', top: '-5px', right: '-5px' }}>
+                  {(filterType !== 'all' ? 1 : 0) + (filterSource !== 'all' ? 1 : 0)}
+                </span>
+              )}
+            </button>
+          </div>
 
           <button
             onClick={() => {
@@ -309,10 +312,10 @@ export function ItemLibraryPage() {
               setShowCreateModal(true);
             }}
             disabled={items.length >= LIMITS.ITEMS_PER_LIBRARY}
-            title={items.length >= LIMITS.ITEMS_PER_LIBRARY ? `Maximum of ${LIMITS.ITEMS_PER_LIBRARY} items reached` : ''}
-            className="btn btn-success"
+            title={items.length >= LIMITS.ITEMS_PER_LIBRARY ? `Maximum of ${LIMITS.ITEMS_PER_LIBRARY} items reached` : 'Create New Item'}
+            className="btn btn-success btn-create-circle"
           >
-            + Create New Item
+            +
           </button>
 
           <button
