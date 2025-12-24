@@ -239,6 +239,20 @@ html, body {
   border-color: #28a745 !important;
 }
 
+/* Clickable Code (for copying) */
+.clickable-code {
+  background-color: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-block;
+}
+
+.clickable-code:hover {
+  background-color: #e0e0e0;
+}
+
 /* ========================================
    CARDS
    ======================================== */

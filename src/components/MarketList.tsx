@@ -71,6 +71,11 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
     setToast({ message: 'Market URL copied to clipboard!', type: 'success' });
   };
 
+  const copyAccessCode = (accessCode: string) => {
+    navigator.clipboard.writeText(accessCode);
+    setToast({ message: 'Access code copied to clipboard!', type: 'success' });
+  };
+
   const handleDeactivate = async (marketId: string) => {
     try {
       await MarketService.deactivateMarket(marketId);
@@ -312,9 +317,19 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                   </span>
                 </div>
                 <p style={{ margin: '5px 0', color: '#666' }}>{market.description}</p>
-                <p style={{ margin: '10px 0 0 0', fontSize: '14px', color: '#999' }}>
-                  Access Code: <code style={{ backgroundColor: '#f5f5f5', padding: '2px 6px', borderRadius: '3px' }}>{market.accessCode}</code>
-                </p>
+                <div style={{ margin: '10px 0 0 0', fontSize: '14px', color: '#999' }}>
+                  <span>Access Code: </span>
+                  <code
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyAccessCode(market.accessCode);
+                    }}
+                    className="clickable-code"
+                    title="Click to copy"
+                  >
+                    {market.accessCode}
+                  </code>
+                </div>
                 {!market.isActive && activeMarket && activeMarket.id !== market.id && (
                   <p style={{
                     margin: '10px 0 0 0',
