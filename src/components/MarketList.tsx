@@ -214,6 +214,13 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
   // Market List
   const isAtLimit = markets.length >= LIMITS.MARKETS_PER_DM;
 
+  // Sort markets to show active market first
+  const sortedMarkets = [...markets].sort((a, b) => {
+    if (a.isActive) return -1;
+    if (b.isActive) return 1;
+    return 0;
+  });
+
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
@@ -243,7 +250,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
       </div>
 
       <div style={{ display: 'grid', gap: '20px' }}>
-        {markets.map((market) => (
+        {sortedMarkets.map((market) => (
           <div
             key={market.id}
             onClick={() => navigate(`/dm/market/${market.id}/shops`)}
