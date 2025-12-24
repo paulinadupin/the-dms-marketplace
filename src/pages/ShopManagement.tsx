@@ -387,16 +387,7 @@ export function ShopManagement() {
                 <button
                   onClick={() => setShowCreateModal(true)}
                   disabled={shops.length >= LIMITS.SHOPS_PER_MARKET}
-                  className="btn btn-success"
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    padding: '0',
-                    fontSize: '24px',
-                    lineHeight: '1',
-                    opacity: shops.length >= LIMITS.SHOPS_PER_MARKET ? 0.5 : 1,
-                    cursor: shops.length >= LIMITS.SHOPS_PER_MARKET ? 'not-allowed' : 'pointer'
-                  }}
+                  className="btn btn-success btn-create-circle"
                   title={shops.length >= LIMITS.SHOPS_PER_MARKET ? `Maximum of ${LIMITS.SHOPS_PER_MARKET} shops per market reached` : 'Create New Shop'}
                 >
                   +

@@ -230,16 +230,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
         <button
           onClick={onCreateMarket}
           disabled={isAtLimit}
-          className="btn btn-success"
-          style={{
-            width: '40px',
-            height: '40px',
-            padding: '0',
-            fontSize: '24px',
-            lineHeight: '1',
-            opacity: isAtLimit ? 0.5 : 1,
-            cursor: isAtLimit ? 'not-allowed' : 'pointer'
-          }}
+          className="btn btn-success btn-create-circle"
           title={isAtLimit ? `Maximum of ${LIMITS.MARKETS_PER_DM} markets reached` : 'Create New Market'}
         >
           +

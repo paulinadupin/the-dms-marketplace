@@ -443,16 +443,7 @@ export function ShopInventory() {
               onClick={() => setShowAddModal(true)}
               disabled={shopItems.length >= LIMITS.ITEMS_PER_SHOP}
               title={shopItems.length >= LIMITS.ITEMS_PER_SHOP ? `Maximum of ${LIMITS.ITEMS_PER_SHOP} items per shop reached` : 'Add from Library'}
-              className="btn btn-success"
-              style={{
-                width: '40px',
-                height: '40px',
-                padding: '0',
-                fontSize: '24px',
-                lineHeight: '1',
-                opacity: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? 0.5 : 1,
-                cursor: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? 'not-allowed' : 'pointer'
-              }}
+              className="btn btn-success btn-create-circle"
             >
               +
             </button>
