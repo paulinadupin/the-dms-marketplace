@@ -220,7 +220,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
         marginBottom: '20px'
       }}>
         <div>
-          <h2 style={{ margin: 0 }}>Your Markets ({markets.length}/{LIMITS.MARKETS_PER_DM})</h2>
+          <h2 style={{ margin: 0 }}>Your Markets</h2>
           {isAtLimit && (
             <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#dc3545' }}>
               ⚠️ You've reached the maximum number of markets
@@ -230,20 +230,19 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
         <button
           onClick={onCreateMarket}
           disabled={isAtLimit}
+          className="btn btn-success"
           style={{
-            padding: '10px 20px',
-            backgroundColor: isAtLimit ? '#6c757d' : '#28a745',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: isAtLimit ? 'not-allowed' : 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            opacity: isAtLimit ? 0.6 : 1
+            width: '40px',
+            height: '40px',
+            padding: '0',
+            fontSize: '24px',
+            lineHeight: '1',
+            opacity: isAtLimit ? 0.5 : 1,
+            cursor: isAtLimit ? 'not-allowed' : 'pointer'
           }}
-          title={isAtLimit ? `Maximum of ${LIMITS.MARKETS_PER_DM} markets reached` : ''}
+          title={isAtLimit ? `Maximum of ${LIMITS.MARKETS_PER_DM} markets reached` : 'Create New Market'}
         >
-          + Create New Market
+          +
         </button>
       </div>
 
@@ -489,23 +488,6 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                   Activate
                 </button>
               )}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  copyShareUrl(market.accessCode);
-                }}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                Share Market Link
-              </button>
             </div>
           </div>
         ))}

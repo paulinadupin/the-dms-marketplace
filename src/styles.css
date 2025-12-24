@@ -144,6 +144,17 @@ html, body {
   color: white;
 }
 
+.btn-outline {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.btn-outline:hover {
+  background-color: var(--color-primary);
+  color: white;
+}
+
 /* ========================================
    CARDS
    ======================================== */
@@ -153,6 +164,7 @@ html, body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
 }
 
 .card-clickable {
@@ -276,6 +288,7 @@ html, body {
 .button-group {
   display: flex;
   gap: var(--spacing-sm);
+  align-items: center;
 }
 
 .grid-container {
@@ -329,6 +342,62 @@ html, body {
   border-radius: var(--radius-md);
   font-size: 14px;
   cursor: pointer;
+}
+
+/* Filter Toggle Button */
+.filter-toggle-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+/* Collapsible Filter Panel */
+.filter-panel {
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background-color: #f8f9fa;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 200px;
+    padding-top: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+  }
+}
+
+.filter-panel-content {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: flex-end;
+  flex-wrap: wrap;
 }
 
 /* ========================================
@@ -727,29 +796,7 @@ html, body {
   color: #666;
 }
 
-/* Back Button */
-.player-back-button {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  width: 50px;
-  height: 50px;
-  background-color: #6c757d;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  z-index: 999;
-}
-
-.player-back-button:hover {
-  background-color: #5a6268;
-}
+/* Back Button - Now handled by header bar styles below */
 
 /* Expiration Warning */
 .player-expiration-warning {
@@ -873,19 +920,19 @@ html, body {
 }
 
 .player-inventory-button {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   background-color: #28a745;
   border: none;
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 5px;
-  padding: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  gap: 3px;
+  padding: 8px;
+  transition: background-color 0.2s;
 }
 
 .player-inventory-button:hover {
@@ -893,8 +940,8 @@ html, body {
 }
 
 .player-inventory-icon-line {
-  width: 25px;
-  height: 3px;
+  width: 20px;
+  height: 2px;
   background-color: white;
   border-radius: 2px;
 }
@@ -1172,26 +1219,7 @@ html, body {
   margin-top: 20px;
 }
 
-/* Shopping Overview Button */
-.shopping-overview-button {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  z-index: 999;
-}
-
-.shopping-overview-button:hover {
-  background-color: #0056b3;
-}
+/* Shopping Overview Button - Now handled by header bar styles below */
 
 /* Shopping Overview Modal */
 .shopping-overview-modal {
@@ -1424,7 +1452,7 @@ html, body {
 
 .sell-item-currency-inputs {
   display: flex;
-  gap: 10px;
+  gap: 6px;
 }
 
 .sell-item-currency-group {
@@ -1441,10 +1469,12 @@ html, body {
 }
 
 .sell-item-currency-input {
-  padding: 10px;
+  padding: 6px 8px;
   border: 1px solid #ddd;
   border-radius: 5px;
-  font-size: 16px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sell-item-actions {
@@ -1509,6 +1539,19 @@ html, body {
    ======================================== */
 .kebab-menu-container {
   position: relative;
+}
+
+/* Kebab menu in cards - position at top-right */
+.card .kebab-menu-container {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 10;
+}
+
+/* Add padding to card content to avoid overlap with kebab menu */
+.card .card-header {
+  padding-right: 40px;
 }
 
 .kebab-button {
@@ -1785,24 +1828,13 @@ html, body {
     overflow-x: hidden;
   }
 
-  /* Controls Container */
-  .controls-container {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 15px;
-  }
-
-  .controls-container > div {
-    width: 100%;
-  }
-
+  /* Controls Container - keep horizontal on tablet */
   .button-group {
-    flex-direction: column;
-    width: 100%;
+    flex-wrap: wrap;
   }
 
   .button-group button {
-    width: 100%;
+    flex: 0 0 auto;
   }
 
   /* Cards */
@@ -1973,8 +2005,43 @@ html, body {
   }
 
   .player-inventory-button {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Filter Container - Mobile */
+  .filter-container {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .search-input {
+    flex: 1 1 100%;
+    font-size: 16px;
+  }
+
+  .filter-toggle-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .filter-panel-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-label {
+    margin-bottom: 5px;
+  }
+
+  .filter-select {
+    width: 100%;
   }
 
   /* Kebab Menu - Better touch targets */
@@ -2048,6 +2115,25 @@ html, body {
   .card-checkbox input[type="checkbox"] {
     width: 20px;
     height: 20px;
+  }
+
+  /* Sell Item Modal - Mobile adjustments */
+  .sell-item-modal {
+    padding: 20px;
+    max-width: 90%;
+  }
+
+  .sell-item-modal h2 {
+    font-size: 20px;
+  }
+
+  .sell-item-currency-group label {
+    font-size: 12px;
+  }
+
+  .sell-item-currency-input {
+    padding: 8px 6px;
+    font-size: 14px;
   }
 
   /* Final catch-all for any overflow issues */

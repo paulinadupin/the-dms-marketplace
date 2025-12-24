@@ -431,7 +431,7 @@ export function ShopInventory() {
         {/* Inventory Header */}
         <div className="controls-container">
           <div>
-            <h2 style={{ margin: 0 }}>Inventory ({shopItems.length}/{LIMITS.ITEMS_PER_SHOP})</h2>
+            <h2 style={{ margin: 0 }}>Inventory</h2>
             {shopItems.length >= LIMITS.ITEMS_PER_SHOP && (
               <p className="text-danger">
                 ⚠️ You've reached the maximum number of items for this shop
@@ -440,25 +440,28 @@ export function ShopInventory() {
           </div>
           <div className="button-group">
             <button
-              onClick={() => navigate('/item-library')}
-              className="btn btn-primary"
-            >
-              Go to Item Library
-            </button>
-            <button
               onClick={() => setShowAddModal(true)}
               disabled={shopItems.length >= LIMITS.ITEMS_PER_SHOP}
-              title={shopItems.length >= LIMITS.ITEMS_PER_SHOP ? `Maximum of ${LIMITS.ITEMS_PER_SHOP} items per shop reached` : ''}
+              title={shopItems.length >= LIMITS.ITEMS_PER_SHOP ? `Maximum of ${LIMITS.ITEMS_PER_SHOP} items per shop reached` : 'Add from Library'}
               className="btn btn-success"
+              style={{
+                width: '40px',
+                height: '40px',
+                padding: '0',
+                fontSize: '24px',
+                lineHeight: '1',
+                opacity: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? 0.5 : 1,
+                cursor: shopItems.length >= LIMITS.ITEMS_PER_SHOP ? 'not-allowed' : 'pointer'
+              }}
             >
-              + Add Item
+              +
             </button>
             <button
               onClick={toggleSelectionMode}
               disabled={shopItems.length === 0}
               className={`btn ${selectionMode ? 'btn-warning' : 'btn-primary'}`}
             >
-              {selectionMode ? 'Cancel Selection' : 'Select'}
+              {selectionMode ? 'Cancel Selection' : 'Select Items'}
             </button>
           </div>
         </div>
@@ -500,60 +503,59 @@ export function ShopInventory() {
                       />
                     </div>
                   )}
+
+                  {/* Kebab Menu */}
+                  {!selectionMode && (
+                    <div className="kebab-menu-container">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(openMenuId === shopItem.id ? null : shopItem.id);
+                        }}
+                        className="kebab-button"
+                        title="Item options"
+                      >
+                        ⋮
+                      </button>
+
+                      {openMenuId === shopItem.id && (
+                        <div className="dropdown-menu">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                              handleDuplicateSingleItem(shopItem.id);
+                            }}
+                            className="dropdown-item"
+                          >
+                            Duplicate
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                              handleRemoveItem(shopItem.id, item.name);
+                            }}
+                            className="dropdown-item dropdown-item-danger"
+                          >
+                            Remove from shop
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="card-header">
                     <div className={`card-body ${selectionMode ? 'card-content-shifted' : ''}`}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                        <div className="badge-container" style={{ flex: 1 }}>
-                          <h3 className="card-title">{item.name}</h3>
-                          <span className="badge badge-type">
-                            {item.type}
+                      <div className="badge-container">
+                        <h3 className="card-title">{item.name}</h3>
+                        <span className="badge badge-type">
+                          {item.type}
+                        </span>
+                        {shopItem.isIndependent && (
+                          <span className="badge badge-independent">
+                            Independent
                           </span>
-                          {shopItem.isIndependent && (
-                            <span className="badge badge-independent">
-                              Independent
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Kebab Menu */}
-                        {!selectionMode && (
-                          <div className="kebab-menu-container" style={{ position: 'relative', marginLeft: '10px' }}>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenMenuId(openMenuId === shopItem.id ? null : shopItem.id);
-                              }}
-                              className="kebab-button"
-                              title="Item options"
-                            >
-                              ⋮
-                            </button>
-
-                            {openMenuId === shopItem.id && (
-                              <div className="dropdown-menu">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setOpenMenuId(null);
-                                    handleDuplicateSingleItem(shopItem.id);
-                                  }}
-                                  className="dropdown-item"
-                                >
-                                  Duplicate
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setOpenMenuId(null);
-                                    handleRemoveItem(shopItem.id, item.name);
-                                  }}
-                                  className="dropdown-item dropdown-item-danger"
-                                >
-                                  Remove from shop
-                                </button>
-                              </div>
-                            )}
-                          </div>
                         )}
                       </div>
                       {editingPriceId === shopItem.id ? (

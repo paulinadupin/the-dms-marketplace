@@ -25,6 +25,23 @@ export function ItemLibraryPage() {
   const [editingItem, setEditingItem] = useState<ItemLibrary | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Click outside handler to close kebab menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.kebab-menu-container')) {
+        setOpenMenuId(null);
+      }
+    };
+
+    if (openMenuId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openMenuId]);
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -271,37 +288,17 @@ export function ItemLibraryPage() {
             className="search-input"
           />
 
-          <div className="filter-group">
-            <label className="filter-label">Type:</label>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Types</option>
-              <option value="weapon">Weapon</option>
-              <option value="armor">Armor</option>
-              <option value="consumable">Consumable</option>
-              <option value="tool">Tool</option>
-              <option value="magic">Magic</option>
-              <option value="gear">Gear</option>
-              <option value="treasure">Treasure</option>
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label className="filter-label">Source:</label>
-            <select
-              value={filterSource}
-              onChange={(e) => setFilterSource(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Sources</option>
-              <option value="official">Official (D&D)</option>
-              <option value="custom">Custom</option>
-              <option value="modified">Modified</option>
-            </select>
-          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="btn btn-secondary filter-toggle-btn"
+          >
+            ⚙️ Filters {showFilters ? '▲' : '▼'}
+            {(filterType !== 'all' || filterSource !== 'all') && (
+              <span className="filter-badge">
+                {(filterType !== 'all' ? 1 : 0) + (filterSource !== 'all' ? 1 : 0)}
+              </span>
+            )}
+          </button>
 
           <button
             onClick={() => {
@@ -326,6 +323,57 @@ export function ItemLibraryPage() {
             {selectionMode ? 'Cancel Selection' : 'Select'}
           </button>
         </div>
+
+        {/* Collapsible Filter Panel */}
+        {showFilters && (
+          <div className="filter-panel">
+            <div className="filter-panel-content">
+              <div className="filter-group">
+                <label className="filter-label">Type:</label>
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="all">All Types</option>
+                  <option value="weapon">Weapon</option>
+                  <option value="armor">Armor</option>
+                  <option value="consumable">Consumable</option>
+                  <option value="tool">Tool</option>
+                  <option value="magic">Magic</option>
+                  <option value="gear">Gear</option>
+                  <option value="treasure">Treasure</option>
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label className="filter-label">Source:</label>
+                <select
+                  value={filterSource}
+                  onChange={(e) => setFilterSource(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="all">All Sources</option>
+                  <option value="official">Official (D&D)</option>
+                  <option value="custom">Custom</option>
+                  <option value="modified">Modified</option>
+                </select>
+              </div>
+
+              {(filterType !== 'all' || filterSource !== 'all') && (
+                <button
+                  onClick={() => {
+                    setFilterType('all');
+                    setFilterSource('all');
+                  }}
+                  className="btn btn-outline btn-sm"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Empty State */}
         {filteredItems.length === 0 ? (
@@ -386,6 +434,48 @@ export function ItemLibraryPage() {
                         />
                       </div>
                     )}
+
+                    {/* Kebab Menu */}
+                    {!selectionMode && (
+                      <div className="kebab-menu-container">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(openMenuId === libraryItem.id ? null : libraryItem.id);
+                          }}
+                          className="kebab-button"
+                          title="Item options"
+                        >
+                          ⋮
+                        </button>
+
+                        {openMenuId === libraryItem.id && (
+                          <div className="dropdown-menu">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(null);
+                                setEditingItem(libraryItem);
+                              }}
+                              className="dropdown-item"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(null);
+                                handleDeleteItem(libraryItem.id, libraryItem.item.name);
+                              }}
+                              className="dropdown-item dropdown-item-danger"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <div className="card-header">
                       <div className={`card-body ${selectionMode ? 'card-content-shifted' : ''}`}>
                         <div className="badge-container">
@@ -416,23 +506,6 @@ export function ItemLibraryPage() {
                       </div>
                     </div>
                   </div>
-
-                  {!selectionMode && (
-                    <div className="card-footer">
-                      <button
-                        onClick={() => setEditingItem(libraryItem)}
-                        className="btn btn-primary btn-sm"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteItem(libraryItem.id, libraryItem.item.name)}
-                        className="btn btn-danger btn-sm"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
                 </div>
               );
               })}

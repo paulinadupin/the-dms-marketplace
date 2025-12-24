@@ -376,31 +376,30 @@ export function ShopManagement() {
               marginBottom: '20px'
             }}>
               <div>
-                <h2 style={{ margin: 0 }}>Shops ({shops.length}/{LIMITS.SHOPS_PER_MARKET})</h2>
+                <h2 style={{ margin: 0 }}>Shops</h2>
                 {shops.length >= LIMITS.SHOPS_PER_MARKET && (
                   <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#dc3545' }}>
                     ⚠️ You've reached the maximum number of shops for this market
                   </p>
                 )}
               </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                 <button
                   onClick={() => setShowCreateModal(true)}
                   disabled={shops.length >= LIMITS.SHOPS_PER_MARKET}
+                  className="btn btn-success"
                   style={{
-                    padding: '10px 20px',
-                    backgroundColor: shops.length >= LIMITS.SHOPS_PER_MARKET ? '#6c757d' : '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: shops.length >= LIMITS.SHOPS_PER_MARKET ? 'not-allowed' : 'pointer',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    opacity: shops.length >= LIMITS.SHOPS_PER_MARKET ? 0.6 : 1
+                    width: '40px',
+                    height: '40px',
+                    padding: '0',
+                    fontSize: '24px',
+                    lineHeight: '1',
+                    opacity: shops.length >= LIMITS.SHOPS_PER_MARKET ? 0.5 : 1,
+                    cursor: shops.length >= LIMITS.SHOPS_PER_MARKET ? 'not-allowed' : 'pointer'
                   }}
-                  title={shops.length >= LIMITS.SHOPS_PER_MARKET ? `Maximum of ${LIMITS.SHOPS_PER_MARKET} shops per market reached` : ''}
+                  title={shops.length >= LIMITS.SHOPS_PER_MARKET ? `Maximum of ${LIMITS.SHOPS_PER_MARKET} shops per market reached` : 'Create New Shop'}
                 >
-                  + Create New Shop
+                  +
                 </button>
                 <button
                   onClick={toggleSelectionMode}
@@ -440,9 +439,51 @@ export function ShopManagement() {
                       />
                     </div>
                   )}
+
+                  {/* Kebab Menu */}
+                  {!selectionMode && (
+                    <div className="kebab-menu-container">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(openMenuId === shop.id ? null : shop.id);
+                        }}
+                        className="kebab-button"
+                        title="Shop options"
+                      >
+                        ⋮
+                      </button>
+
+                      {openMenuId === shop.id && (
+                        <div className="dropdown-menu">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingShop(shop);
+                              setOpenMenuId(null);
+                            }}
+                            className="dropdown-item"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                              handleDeleteShop(shop.id, shop.name);
+                            }}
+                            className="dropdown-item dropdown-item-danger"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className={`card-body ${selectionMode ? 'card-content-shifted' : ''}`}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                      <div style={{ flex: 1 }}>
+                    <div>
+                      <div>
                         {editingShopNameId === shop.id ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
                             <input
@@ -519,47 +560,6 @@ export function ShopManagement() {
                           Location: {shop.location}
                         </p>
                       </div>
-
-                      {/* Kebab Menu */}
-                      {!selectionMode && (
-                        <div className="kebab-menu-container" style={{ position: 'relative', marginLeft: '10px' }}>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenMenuId(openMenuId === shop.id ? null : shop.id);
-                            }}
-                            className="kebab-button"
-                            title="Shop options"
-                          >
-                            ⋮
-                          </button>
-
-                          {openMenuId === shop.id && (
-                            <div className="dropdown-menu">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingShop(shop);
-                                  setOpenMenuId(null);
-                                }}
-                                className="dropdown-item"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setOpenMenuId(null);
-                                  handleDeleteShop(shop.id, shop.name);
-                                }}
-                                className="dropdown-item dropdown-item-danger"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
