@@ -250,11 +250,13 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
       </div>
 
       <div style={{ display: 'grid', gap: '20px' }}>
-        {sortedMarkets.map((market) => (
+        {sortedMarkets.map((market) => {
+          const isBlocked = !market.isActive && activeMarket && activeMarket.id !== market.id;
+          return (
           <div
             key={market.id}
             onClick={() => navigate(`/dm/market/${market.id}/shops`)}
-            className={market.isActive ? 'market-card-active' : ''}
+            className={market.isActive ? 'market-card-active' : isBlocked ? 'market-card-blocked' : ''}
             style={{
               padding: '20px',
               backgroundColor: 'white',
@@ -337,18 +339,6 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                     {market.accessCode}
                   </code>
                 </div>
-                {!market.isActive && activeMarket && activeMarket.id !== market.id && (
-                  <p style={{
-                    margin: '10px 0 0 0',
-                    fontSize: '13px',
-                    color: '#856404',
-                    backgroundColor: '#fff3cd',
-                    padding: '8px',
-                    borderRadius: '4px'
-                  }}>
-                    ⚠️ Cannot activate: <strong>"{activeMarket.name}"</strong> is currently active
-                  </p>
-                )}
               </div>
 
               {/* Kebab Menu */}
