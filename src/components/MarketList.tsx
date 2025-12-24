@@ -242,6 +242,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
           <div
             key={market.id}
             onClick={() => navigate(`/dm/market/${market.id}/shops`)}
+            className={market.isActive ? 'market-card-active' : ''}
             style={{
               padding: '20px',
               backgroundColor: 'white',
@@ -422,63 +423,31 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
               borderTop: '1px solid #eee',
               display: 'flex',
               gap: '10px',
-              flexWrap: 'wrap'
+              alignItems: 'center'
             }}>
-              {market.isActive ? (
-                <button
-                  onClick={(e) => {
+              <label className="toggle-switch" onClick={(e) => e.stopPropagation()}>
+                <input
+                  type="checkbox"
+                  checked={market.isActive}
+                  disabled={!market.isActive && activeMarket && activeMarket.id !== market.id}
+                  onChange={(e) => {
                     e.stopPropagation();
-                    handleDeactivate(market.id);
+                    if (market.isActive) {
+                      handleDeactivate(market.id);
+                    } else {
+                      setActivatingMarket(market);
+                    }
                   }}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#ffc107',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    fontSize: '14px'
-                  }}
-                >
-                  Deactivate
-                </button>
-              ) : activeMarket && activeMarket.id !== market.id ? (
-                <button
-                  disabled
-                  onClick={(e) => e.stopPropagation()}
-                  title="There is already an active market in your account"
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'not-allowed',
-                    fontSize: '14px',
-                    opacity: 0.6
-                  }}
-                >
-                  Activate (Blocked)
-                </button>
-              ) : (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActivatingMarket(market);
-                  }}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    fontSize: '14px'
-                  }}
-                >
-                  Activate
-                </button>
-              )}
+                  title={
+                    !market.isActive && activeMarket && activeMarket.id !== market.id
+                      ? "There is already an active market in your account"
+                      : market.isActive
+                      ? "Deactivate market"
+                      : "Activate market"
+                  }
+                />
+                <span className="toggle-slider"></span>
+              </label>
             </div>
           </div>
         ))}
