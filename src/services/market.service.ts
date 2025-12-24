@@ -21,11 +21,15 @@ export class MarketService {
 
   /**
    * Generate a unique access code for market URL
+   * Returns an 8-character random alphanumeric code
    */
-  private static generateAccessCode(name: string): string {
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    const randomId = Math.random().toString(36).substring(2, 8);
-    return `${slug}-${randomId}`;
+  private static generateAccessCode(): string {
+    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) {
+      code += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return code;
   }
 
   /**
@@ -33,7 +37,7 @@ export class MarketService {
    */
   static async createMarket(dmId: string, input: CreateMarketInput): Promise<Market> {
     try {
-      const accessCode = this.generateAccessCode(input.name);
+      const accessCode = this.generateAccessCode();
 
       const marketData = {
         name: input.name,
