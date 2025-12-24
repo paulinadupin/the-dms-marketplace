@@ -288,6 +288,7 @@ html, body {
 .button-group {
   display: flex;
   gap: var(--spacing-sm);
+  align-items: center;
 }
 
 .grid-container {
@@ -1827,24 +1828,13 @@ html, body {
     overflow-x: hidden;
   }
 
-  /* Controls Container */
-  .controls-container {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 15px;
-  }
-
-  .controls-container > div {
-    width: 100%;
-  }
-
+  /* Controls Container - keep horizontal on tablet */
   .button-group {
-    flex-direction: column;
-    width: 100%;
+    flex-wrap: wrap;
   }
 
   .button-group button {
-    width: 100%;
+    flex: 0 0 auto;
   }
 
   /* Cards */
