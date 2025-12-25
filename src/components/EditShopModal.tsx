@@ -85,7 +85,7 @@ export function EditShopModal({ shop, onClose, onSuccess }: EditShopModalProps) 
         zIndex: 1000
       }}>
         <div style={{
-          backgroundColor: 'white',
+          backgroundColor: '#161b22',
           padding: '30px',
           borderRadius: '8px',
           maxWidth: '600px',

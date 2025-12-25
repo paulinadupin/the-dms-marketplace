@@ -32,13 +32,15 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
             style={{
               width: '100%',
               padding: '10px',
-              border: '1px solid #ddd',
+              border: '1px solid #30363d',
               borderRadius: '5px',
-              fontSize: '14px'
+              fontSize: '14px',
+              backgroundColor: '#010409',
+              color: '#e6edf3'
             }}
           />
           {field.helpText && (
-            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#999' }}>
+            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#8d96a0' }}>
               {field.helpText}
             </p>
           )}
@@ -63,13 +65,15 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
             style={{
               width: '100%',
               padding: '10px',
-              border: '1px solid #ddd',
+              border: '1px solid #30363d',
               borderRadius: '5px',
-              fontSize: '14px'
+              fontSize: '14px',
+              backgroundColor: '#010409',
+              color: '#e6edf3'
             }}
           />
           {field.helpText && (
-            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#999' }}>
+            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#8d96a0' }}>
               {field.helpText}
             </p>
           )}
@@ -91,15 +95,17 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
             style={{
               width: '100%',
               padding: '10px',
-              border: '1px solid #ddd',
+              border: '1px solid #30363d',
               borderRadius: '5px',
               fontSize: '14px',
               fontFamily: 'inherit',
-              resize: 'vertical'
+              resize: 'vertical',
+              backgroundColor: '#010409',
+              color: '#e6edf3'
             }}
           />
           {field.helpText && (
-            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#999' }}>
+            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#8d96a0' }}>
               {field.helpText}
             </p>
           )}
@@ -119,9 +125,11 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
             style={{
               width: '100%',
               padding: '10px',
-              border: '1px solid #ddd',
+              border: '1px solid #30363d',
               borderRadius: '5px',
-              fontSize: '14px'
+              fontSize: '14px',
+              backgroundColor: '#010409',
+              color: '#e6edf3'
             }}
           >
             <option value="">-- Select {field.label} --</option>
@@ -136,7 +144,7 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
             })}
           </select>
           {field.helpText && (
-            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#999' }}>
+            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#8d96a0' }}>
               {field.helpText}
             </p>
           )}
@@ -150,12 +158,12 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
             {field.label} {field.required && '*'}
           </label>
           <div style={{
-            border: '1px solid #ddd',
+            border: '1px solid #30363d',
             borderRadius: '5px',
             padding: '10px',
             maxHeight: '150px',
             overflowY: 'auto',
-            backgroundColor: 'white'
+            backgroundColor: '#010409'
           }}>
             {field.options?.map((option) => {
               const optValue = typeof option === 'string' ? option : option.value;
@@ -191,7 +199,7 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
             })}
           </div>
           {field.helpText && (
-            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#999' }}>
+            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#8d96a0' }}>
               {field.helpText}
             </p>
           )}
@@ -213,7 +221,7 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
             </span>
           </label>
           {field.helpText && (
-            <p style={{ margin: '5px 0 0 26px', fontSize: '12px', color: '#999' }}>
+            <p style={{ margin: '5px 0 0 26px', fontSize: '12px', color: '#8d96a0' }}>
               {field.helpText}
             </p>
           )}

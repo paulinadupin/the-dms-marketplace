@@ -49,7 +49,7 @@ export function ActivateMarketModal({ marketId, marketName, dmId, onClose, onSuc
         zIndex: 1000
       }}>
         <div style={{
-          backgroundColor: 'white',
+          backgroundColor: '#161b22',
           padding: '30px',
           borderRadius: '8px',
           maxWidth: '500px',
@@ -62,13 +62,13 @@ export function ActivateMarketModal({ marketId, marketName, dmId, onClose, onSuc
 
           <div style={{
             padding: '15px',
-            backgroundColor: '#fff3cd',
-            border: '1px solid #ffc107',
+            backgroundColor: '#2f3947ff',
+            border: '1px solid #a29671ff',
             borderRadius: '5px',
             marginBottom: '20px'
           }}>
-            <strong style={{ color: '#856404' }}>Important:</strong>
-            <ul style={{ margin: '10px 0 0 20px', color: '#856404' }}>
+            <strong style={{ color: '#c6b891ff' }}>Important:</strong>
+            <ul style={{ margin: '10px 0 0 20px', color: '#bdb08bff' }}>
               <li><strong>Only ONE market can be active at a time</strong> per account</li>
               <li>This market will be <strong>active for 3 hours</strong></li>
               <li>To activate another market, you must deactivate this one first</li>

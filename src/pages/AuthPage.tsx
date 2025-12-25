@@ -94,57 +94,30 @@ export function AuthPage() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f5f5f5',
-      padding: '20px'
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: '400px',
-        backgroundColor: 'white',
-        padding: '30px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-      }}>
+    <div className="auth-container">
+      <div className="auth-card">
         {/* Header */}
-        <h1 style={{ textAlign: 'center', marginBottom: '10px' }}>
-          The DM's Marketplace
-        </h1>
-        <p style={{ textAlign: 'center', color: '#666', marginBottom: '30px' }}>
-          {mode === 'signin' ? 'Sign in to your account' : 'Create a new DM account'}
-        </p>
+        <div className="auth-header">
+          <div className="auth-icon">⚔️</div>
+          <h1 className="auth-title">The DM's Marketplace</h1>
+          <p className="auth-subtitle">
+            {mode === 'signin' ? 'Sign in to your account' : 'Create a new DM account'}
+          </p>
+        </div>
+
+        <div className="auth-divider" />
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <div className="auth-tabs">
           <button
             onClick={() => setMode('signin')}
-            style={{
-              flex: 1,
-              padding: '10px',
-              border: mode === 'signin' ? '2px solid #007bff' : '1px solid #ddd',
-              backgroundColor: mode === 'signin' ? '#e7f3ff' : 'white',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontWeight: mode === 'signin' ? 'bold' : 'normal'
-            }}
+            className={`auth-tab ${mode === 'signin' ? 'active' : ''}`}
           >
             Sign In
           </button>
           <button
             onClick={() => setMode('signup')}
-            style={{
-              flex: 1,
-              padding: '10px',
-              border: mode === 'signup' ? '2px solid #007bff' : '1px solid #ddd',
-              backgroundColor: mode === 'signup' ? '#e7f3ff' : 'white',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontWeight: mode === 'signup' ? 'bold' : 'normal'
-            }}
+            className={`auth-tab ${mode === 'signup' ? 'active' : ''}`}
           >
             Sign Up
           </button>
@@ -153,22 +126,23 @@ export function AuthPage() {
         {/* Error Message */}
         {error && (
           <div style={{
-            padding: '10px',
-            marginBottom: '20px',
-            backgroundColor: '#f8d7da',
-            color: '#721c24',
-            borderRadius: '5px',
-            fontSize: '14px'
+            padding: 'var(--spacing-sm)',
+            marginBottom: 'var(--spacing-md)',
+            backgroundColor: 'rgba(218, 54, 51, 0.15)',
+            color: 'var(--gh-danger-fg)',
+            borderRadius: 'var(--radius-sm)',
+            fontSize: '14px',
+            border: '1px solid var(--gh-danger-emphasis)'
           }}>
             {error}
           </div>
         )}
 
         {/* Email/Password Form */}
-        <form onSubmit={mode === 'signup' ? handleEmailSignUp : handleEmailSignIn}>
+        <form onSubmit={mode === 'signup' ? handleEmailSignUp : handleEmailSignIn} className="auth-form">
           {mode === 'signup' && (
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+            <div className="auth-input-group">
+              <label className="auth-label">
                 Display Name
               </label>
               <input
@@ -177,19 +151,13 @@ export function AuthPage() {
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
                 placeholder="Dungeon Master Dave"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '5px',
-                  fontSize: '14px'
-                }}
+                className="auth-input"
               />
             </div>
           )}
 
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          <div className="auth-input-group">
+            <label className="auth-label">
               Email
             </label>
             <input
@@ -198,18 +166,12 @@ export function AuthPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="dm@example.com"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px'
-              }}
+              className="auth-input"
             />
           </div>
 
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          <div className="auth-input-group">
+            <label className="auth-label">
               Password
             </label>
             <input
@@ -219,49 +181,25 @@ export function AuthPage() {
               required
               placeholder="Min. 6 characters"
               minLength={6}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px'
-              }}
+              className="auth-input"
             />
           </div>
 
           {mode === 'signin' && (
-            <div style={{ textAlign: 'right', marginBottom: '15px' }}>
-              <button
-                type="button"
+            <div className="auth-forgot-password">
+              <a
                 onClick={() => setShowForgotPassword(true)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#007bff',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  textDecoration: 'underline'
-                }}
+                className="auth-forgot-link"
               >
                 Forgot password?
-              </button>
+              </a>
             </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: loading ? '#6c757d' : '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '16px',
-              fontWeight: 'bold'
-            }}
+            className="auth-submit-btn"
           >
             {loading ? 'Please wait...' : mode === 'signup' ? 'Create Account' : 'Sign In'}
           </button>
@@ -271,31 +209,19 @@ export function AuthPage() {
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          margin: '20px 0',
-          color: '#666'
+          margin: 'var(--spacing-lg) 0',
+          color: 'var(--gh-fg-muted)'
         }}>
-          <div style={{ flex: 1, height: '1px', backgroundColor: '#ddd' }} />
-          <span style={{ padding: '0 10px', fontSize: '14px' }}>OR</span>
-          <div style={{ flex: 1, height: '1px', backgroundColor: '#ddd' }} />
+          <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--gh-border-default)' }} />
+          <span style={{ padding: '0 var(--spacing-sm)', fontSize: '12px' }}>OR</span>
+          <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--gh-border-default)' }} />
         </div>
 
         {/* Google Sign In */}
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
-          style={{
-            width: '100%',
-            padding: '12px',
-            backgroundColor: 'white',
-            border: '1px solid #ddd',
-            borderRadius: '5px',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            fontSize: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px'
-          }}
+          className="auth-google-btn"
         >
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -305,78 +231,67 @@ export function AuthPage() {
           </svg>
           Continue with Google
         </button>
+
+        {/* Back to Home */}
+        <div className="auth-back-section">
+          <button
+            onClick={() => navigate('/')}
+            className="auth-back-btn"
+          >
+            ← Back to Home
+          </button>
+        </div>
       </div>
 
       {/* Forgot Password Modal */}
       {showForgotPassword && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '30px',
-            borderRadius: '8px',
-            maxWidth: '400px',
-            width: '100%'
-          }}>
-            <h2 style={{ marginTop: 0 }}>Reset Password</h2>
+        <div className="auth-modal-overlay" onClick={closeForgotPassword}>
+          <div className="auth-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="auth-modal-close" onClick={closeForgotPassword}>×</button>
+
+            <h2 className="auth-modal-title">Reset Password</h2>
 
             {resetSent ? (
               <>
                 <div style={{
-                  padding: '15px',
-                  backgroundColor: '#d4edda',
-                  color: '#155724',
-                  borderRadius: '5px',
-                  marginBottom: '20px'
+                  padding: 'var(--spacing-md)',
+                  backgroundColor: 'rgba(35, 134, 54, 0.15)',
+                  color: 'var(--gh-success-fg)',
+                  borderRadius: 'var(--radius-sm)',
+                  marginBottom: 'var(--spacing-lg)',
+                  border: '1px solid var(--gh-success-emphasis)'
                 }}>
                   Password reset email sent! Check your inbox and follow the instructions.
                 </div>
                 <button
                   onClick={closeForgotPassword}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer'
-                  }}
+                  className="auth-submit-btn"
                 >
                   Close
                 </button>
               </>
             ) : (
-              <form onSubmit={handlePasswordReset}>
-                <p style={{ color: '#666', marginBottom: '20px' }}>
+              <form onSubmit={handlePasswordReset} className="auth-modal-form">
+                <p className="auth-modal-text">
                   Enter your email address and we'll send you a link to reset your password.
                 </p>
 
                 {error && (
                   <div style={{
-                    padding: '10px',
-                    marginBottom: '15px',
-                    backgroundColor: '#f8d7da',
-                    color: '#721c24',
-                    borderRadius: '5px',
-                    fontSize: '14px'
+                    padding: 'var(--spacing-sm)',
+                    marginBottom: 'var(--spacing-md)',
+                    backgroundColor: 'rgba(218, 54, 51, 0.15)',
+                    color: 'var(--gh-danger-fg)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    border: '1px solid var(--gh-danger-emphasis)'
                   }}>
                     {error}
                   </div>
                 )}
 
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                <div className="auth-input-group">
+                  <label className="auth-label">
                     Email
                   </label>
                   <input
@@ -385,28 +300,25 @@ export function AuthPage() {
                     onChange={(e) => setResetEmail(e.target.value)}
                     required
                     placeholder="dm@example.com"
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '5px',
-                      fontSize: '14px'
-                    }}
+                    className="auth-input"
                   />
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
                   <button
                     type="button"
                     onClick={closeForgotPassword}
                     style={{
                       flex: 1,
-                      padding: '10px',
-                      backgroundColor: '#6c757d',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: 'pointer'
+                      padding: 'var(--spacing-sm) var(--spacing-md)',
+                      backgroundColor: 'var(--gh-btn-bg)',
+                      color: 'var(--gh-fg-default)',
+                      border: '1px solid var(--gh-border-default)',
+                      borderRadius: 'var(--radius-sm)',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif'
                     }}
                   >
                     Cancel
@@ -414,15 +326,8 @@ export function AuthPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      backgroundColor: loading ? '#6c757d' : '#007bff',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: loading ? 'not-allowed' : 'pointer'
-                    }}
+                    className="auth-submit-btn"
+                    style={{ flex: 1 }}
                   >
                     {loading ? 'Sending...' : 'Send Reset Link'}
                   </button>

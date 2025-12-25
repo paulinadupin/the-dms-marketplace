@@ -411,14 +411,6 @@ export function ShopManagement() {
                   key={shop.id}
                   onClick={() => selectionMode ? toggleShopSelection(shop.id) : navigate(`/shop/${shop.id}/inventory`)}
                   className={`card ${selectionMode ? 'card-clickable' : ''} ${isSelected ? 'card-selected' : ''} ${selectionMode ? 'card-with-checkbox' : ''}`}
-                  style={{
-                    padding: '20px',
-                    backgroundColor: 'white',
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    cursor: 'pointer'
-                  }}
                 >
                   {selectionMode && (
                     <div className="card-checkbox">
@@ -533,21 +525,21 @@ export function ShopManagement() {
                               padding: '3px 8px',
                               fontSize: '12px',
                               borderRadius: '3px',
-                              backgroundColor: '#e7f3ff',
-                              color: '#004085',
+                              backgroundColor: 'rgba(88, 166, 255, 0.15)',
+                              color: '#58a6ff',
                               fontWeight: 'bold'
                             }}>
                               {shop.category}
                             </span>
                           </div>
                         )}
-                        <p style={{ margin: '5px 0', color: '#666' }}>{shop.description}</p>
+                        <p style={{ margin: '5px 0', color: '#8d96a0' }}>{shop.description}</p>
                         {shop.shopkeeper && (
-                          <p style={{ margin: '5px 0', fontSize: '14px', color: '#999' }}>
+                          <p style={{ margin: '5px 0', fontSize: '14px', color: '#8d96a0' }}>
                             Shopkeeper: <strong>{shop.shopkeeper}</strong>
                           </p>
                         )}
-                        <p style={{ margin: '5px 0', fontSize: '14px', color: '#999' }}>
+                        <p style={{ margin: '5px 0', fontSize: '14px', color: '#8d96a0' }}>
                           Location: {shop.location}
                         </p>
                       </div>

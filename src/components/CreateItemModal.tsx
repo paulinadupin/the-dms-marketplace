@@ -192,20 +192,22 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: 'rgba(1, 4, 9, 0.8)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 1000
     }}>
       <div style={{
-        backgroundColor: 'white',
+        backgroundColor: '#161b22',
         padding: '30px',
         borderRadius: '8px',
         maxWidth: '700px',
         width: '90%',
         maxHeight: '90vh',
-        overflowY: 'auto'
+        overflowY: 'auto',
+        border: '1px solid #30363d',
+        color: '#e6edf3'
       }}>
         <h2 style={{ marginTop: 0 }}>Create New Item</h2>
 
@@ -213,11 +215,12 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
           {error && (
             <div style={{
               padding: '10px',
-              backgroundColor: '#f8d7da',
-              color: '#721c24',
+              backgroundColor: 'rgba(218, 54, 51, 0.15)',
+              color: '#f85149',
               borderRadius: '5px',
               marginBottom: '15px',
-              fontSize: '14px'
+              fontSize: '14px',
+              border: '1px solid #da3633'
             }}>
               {error}
             </div>
@@ -237,9 +240,11 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
               style={{
                 width: '100%',
                 padding: '10px',
-                border: '1px solid #ddd',
+                border: '1px solid #30363d',
                 borderRadius: '5px',
-                fontSize: '14px'
+                fontSize: '14px',
+                backgroundColor: '#010409',
+                color: '#e6edf3'
               }}
             />
           </div>
@@ -256,9 +261,11 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
               style={{
                 width: '100%',
                 padding: '10px',
-                border: '1px solid #ddd',
+                border: '1px solid #30363d',
                 borderRadius: '5px',
-                fontSize: '14px'
+                fontSize: '14px',
+                backgroundColor: '#010409',
+                color: '#e6edf3'
               }}
             >
               {enabledTypes.map((itemType) => (
@@ -283,9 +290,11 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
               style={{
                 width: '100%',
                 padding: '10px',
-                border: '1px solid #ddd',
+                border: '1px solid #30363d',
                 borderRadius: '5px',
                 fontSize: '14px',
+                backgroundColor: '#010409',
+                color: '#e6edf3',
                 fontFamily: 'inherit',
                 resize: 'vertical'
               }}
@@ -307,9 +316,11 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
               style={{
                 width: '100%',
                 padding: '10px',
-                border: '1px solid #ddd',
+                border: '1px solid #30363d',
                 borderRadius: '5px',
-                fontSize: '14px'
+                fontSize: '14px',
+                backgroundColor: '#010409',
+                color: '#e6edf3'
               }}
             />
           </div>
@@ -327,9 +338,11 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
               style={{
                 width: '100%',
                 padding: '10px',
-                border: '1px solid #ddd',
+                border: '1px solid #30363d',
                 borderRadius: '5px',
-                fontSize: '14px'
+                fontSize: '14px',
+                backgroundColor: '#010409',
+                color: '#e6edf3'
               }}
             />
           </div>
@@ -339,9 +352,9 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
             <div style={{
               marginBottom: '20px',
               padding: '15px',
-              backgroundColor: '#f8f9fa',
+              backgroundColor: '#0d1117',
               borderRadius: '8px',
-              border: '1px solid #dee2e6'
+              border: '1px solid #30363d'
             }}>
               <h3 style={{ marginTop: 0, marginBottom: '15px', fontSize: '16px' }}>
                 {type.charAt(0).toUpperCase() + type.slice(1)}-Specific Fields
@@ -365,9 +378,9 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
               disabled={loading}
               style={{
                 padding: '10px 20px',
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
+                backgroundColor: '#21262d',
+                color: '#e6edf3',
+                border: '1px solid #30363d',
                 borderRadius: '5px',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 fontSize: '14px',
@@ -381,7 +394,7 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
               disabled={loading}
               style={{
                 padding: '10px 20px',
-                backgroundColor: '#28a745',
+                backgroundColor: '#238636',
                 color: 'white',
                 border: 'none',
                 borderRadius: '5px',

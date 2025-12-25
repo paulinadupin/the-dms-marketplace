@@ -249,7 +249,7 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
         zIndex: 1000
       }}>
         <div style={{
-          backgroundColor: 'white',
+          backgroundColor: '#161b22',
           padding: '30px',
           borderRadius: '8px',
           maxWidth: '600px',
@@ -272,13 +272,13 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                 <div style={{
                   padding: '15px',
                   marginBottom: '20px',
-                  backgroundColor: '#fff3cd',
-                  border: '1px solid #ffc107',
+                  backgroundColor: '#3a4554ff',
+                  border: '1px solid #c9be9dff',
                   borderRadius: '5px',
                   fontSize: '14px',
-                  color: '#856404'
+                  color: '#c0b186ff'
                 }}>
-                  <strong>⚠️ This item is used in {usageCount} shop{usageCount > 1 ? 's' : ''}</strong>
+                  <strong>This item is used in {usageCount} shop{usageCount > 1 ? 's' : ''}</strong>
                   <p style={{ margin: '10px 0 0 0' }}>
                     You can either update all existing instances or create a new separate item.
                   </p>
@@ -289,8 +289,8 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                 <div style={{
                   padding: '10px',
                   marginBottom: '15px',
-                  backgroundColor: '#f8d7da',
-                  color: '#721c24',
+                  backgroundColor: '#7d4757ff',
+                  color: '#e06f7aff',
                   borderRadius: '5px',
                   fontSize: '14px'
                 }}>
@@ -373,7 +373,7 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                   <div style={{
                     marginBottom: '20px',
                     padding: '15px',
-                    backgroundColor: '#f8f9fa',
+                    backgroundColor: '#161b22',
                     border: '1px solid #dee2e6',
                     borderRadius: '5px'
                   }}>
@@ -396,7 +396,7 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                   <div style={{
                     marginBottom: '20px',
                     padding: '15px',
-                    backgroundColor: '#f8f9fa',
+                    backgroundColor: '#161b22',
                     border: '1px solid #dee2e6',
                     borderRadius: '5px'
                   }}>
@@ -408,10 +408,10 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                       display: 'block',
                       marginBottom: '10px',
                       padding: '12px',
-                      border: `2px solid ${editChoice === 'update' ? '#007bff' : '#ddd'}`,
+                      border: `2px solid ${editChoice === 'update' ? '#007bff' : '#4e617bff'}`,
                       borderRadius: '5px',
                       cursor: 'pointer',
-                      backgroundColor: editChoice === 'update' ? '#e7f3ff' : 'white'
+                      backgroundColor: editChoice === 'update' ? '#161b22' : '#161b22'
                     }}>
                       <input
                         type="radio"
@@ -422,7 +422,7 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                         style={{ marginRight: '10px' }}
                       />
                       <strong>Update existing items</strong>
-                      <p style={{ margin: '5px 0 0 28px', fontSize: '13px', color: '#666' }}>
+                      <p style={{ margin: '5px 0 0 28px', fontSize: '13px', color: '#8a8a8aff' }}>
                         Changes will be applied to all {usageCount} shop{usageCount > 1 ? 's' : ''} using this item
                       </p>
                     </label>
@@ -430,10 +430,10 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                     <label style={{
                       display: 'block',
                       padding: '12px',
-                      border: `2px solid ${editChoice === 'create' ? '#007bff' : '#ddd'}`,
+                      border: `2px solid ${editChoice === 'create' ? '#007bff' : '#516582ff'}`,
                       borderRadius: '5px',
                       cursor: 'pointer',
-                      backgroundColor: editChoice === 'create' ? '#e7f3ff' : 'white'
+                      backgroundColor: editChoice === 'create' ? '#161b22' : '#161b22'
                     }}>
                       <input
                         type="radio"
@@ -444,7 +444,7 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                         style={{ marginRight: '10px' }}
                       />
                       <strong>Create a new item</strong>
-                      <p style={{ margin: '5px 0 0 28px', fontSize: '13px', color: '#666' }}>
+                      <p style={{ margin: '5px 0 0 28px', fontSize: '13px', color: '#8b8a8aff' }}>
                         Keep the original item unchanged and create a new separate item with these changes
                       </p>
                     </label>
@@ -458,7 +458,7 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                     style={{
                       flex: 1,
                       padding: '10px',
-                      backgroundColor: '#6c757d',
+                      backgroundColor: '#4b5258ff',
                       color: 'white',
                       border: 'none',
                       borderRadius: '5px',
@@ -475,7 +475,7 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                       flex: 1,
                       padding: '10px',
                       backgroundColor: loading || !hasChanges ? '#6c757d' : '#28a745',
-                      color: 'white',
+                      color: '#161b22',
                       border: 'none',
                       borderRadius: '5px',
                       cursor: loading || !hasChanges ? 'not-allowed' : 'pointer',
