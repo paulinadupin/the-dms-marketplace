@@ -339,29 +339,14 @@ export function ShopManagement() {
 
         {/* Empty State */}
         {shops.length === 0 ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '60px 20px',
-            backgroundColor: '#f9f9f9',
-            borderRadius: '8px',
-            border: '2px dashed #ddd'
-          }}>
-            <h2 style={{ marginTop: 0, color: '#666' }}>No Shops Yet</h2>
-            <p style={{ color: '#999', marginBottom: '30px' }}>
+          <div className="empty-state">
+            <h2>No Shops Yet</h2>
+            <p>
               Create your first shop to start adding items for players to purchase!
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '16px',
-                fontWeight: 'bold'
-              }}
+              className="btn btn-success btn-lg"
             >
               + Create Your First Shop
             </button>
@@ -369,21 +354,16 @@ export function ShopManagement() {
         ) : (
           <>
             {/* Shop List Header */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '20px'
-            }}>
+            <div className="controls-container">
               <div>
                 <h2 style={{ margin: 0 }}>Shops</h2>
                 {shops.length >= LIMITS.SHOPS_PER_MARKET && (
-                  <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#dc3545' }}>
+                  <p className="text-danger">
                     ⚠️ You've reached the maximum number of shops for this market
                   </p>
                 )}
               </div>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <div className="button-group">
                 <button
                   onClick={() => setShowCreateModal(true)}
                   disabled={shops.length >= LIMITS.SHOPS_PER_MARKET}
@@ -403,7 +383,7 @@ export function ShopManagement() {
             </div>
 
             {/* Shop List */}
-            <div style={{ display: 'grid', gap: '20px' }}>
+            <div className="grid-container">
               {shops.map((shop) => {
                 const isSelected = selectedShops.has(shop.id);
                 return (
@@ -411,14 +391,6 @@ export function ShopManagement() {
                   key={shop.id}
                   onClick={() => selectionMode ? toggleShopSelection(shop.id) : navigate(`/shop/${shop.id}/inventory`)}
                   className={`card ${selectionMode ? 'card-clickable' : ''} ${isSelected ? 'card-selected' : ''} ${selectionMode ? 'card-with-checkbox' : ''}`}
-                  style={{
-                    padding: '20px',
-                    backgroundColor: 'white',
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    cursor: 'pointer'
-                  }}
                 >
                   {selectionMode && (
                     <div className="card-checkbox">
@@ -472,8 +444,8 @@ export function ShopManagement() {
                     </div>
                   )}
 
-                  <div className={`card-body ${selectionMode ? 'card-content-shifted' : ''}`}>
-                    <div>
+                  <div className="card-header">
+                    <div className={`card-body ${selectionMode ? 'card-content-shifted' : ''}`}>
                       <div>
                         {editingShopNameId === shop.id ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
@@ -517,10 +489,9 @@ export function ShopManagement() {
                             </button>
                           </div>
                         ) : (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
+                          <div className="badge-container">
                             <h3
-                              className="editable-heading"
-                              style={{ margin: 0 }}
+                              className="editable-heading card-title"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 startEditingShopName(shop);
@@ -529,25 +500,18 @@ export function ShopManagement() {
                             >
                               {shop.name}
                             </h3>
-                            <span style={{
-                              padding: '3px 8px',
-                              fontSize: '12px',
-                              borderRadius: '3px',
-                              backgroundColor: '#e7f3ff',
-                              color: '#004085',
-                              fontWeight: 'bold'
-                            }}>
+                            <span className="badge badge-type">
                               {shop.category}
                             </span>
                           </div>
                         )}
-                        <p style={{ margin: '5px 0', color: '#666' }}>{shop.description}</p>
+                        <p className="card-description">{shop.description}</p>
                         {shop.shopkeeper && (
-                          <p style={{ margin: '5px 0', fontSize: '14px', color: '#999' }}>
+                          <p className="item-details">
                             Shopkeeper: <strong>{shop.shopkeeper}</strong>
                           </p>
                         )}
-                        <p style={{ margin: '5px 0', fontSize: '14px', color: '#999' }}>
+                        <p className="item-details">
                           Location: {shop.location}
                         </p>
                       </div>
@@ -624,26 +588,8 @@ export function ShopManagement() {
 
       {/* Duplicate Shops Modal */}
       {showDuplicateModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '30px',
-            borderRadius: '8px',
-            maxWidth: '500px',
-            width: '100%'
-          }}>
+        <div className="modal-overlay">
+          <div className="modal-content">
             <h2 style={{ marginTop: 0 }}>Duplicate Shops to Market</h2>
             <p style={{ color: '#666', marginBottom: '20px', fontSize: '14px' }}>
               Duplicating {selectedShops.size} shop{selectedShops.size > 1 ? 's' : ''} with all items, prices, and stock.

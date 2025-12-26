@@ -47,12 +47,7 @@ export function Dashboard() {
 
   if (!user) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <div className="loading-container">
         Loading...
       </div>
     );
@@ -69,7 +64,7 @@ export function Dashboard() {
 
       {/* Content */}
       <div className="page-container">
-        <div style={{ marginBottom: '20px', textAlign: 'center', color: '#666' }}>
+        <div className="welcome-message">
           <p>Welcome, {user.displayName || user.email}!</p>
         </div>
         {/* Market List */}

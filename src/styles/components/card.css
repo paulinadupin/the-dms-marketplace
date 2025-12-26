@@ -1,0 +1,58 @@
+/* components/card.css */
+
+.card {
+  padding: var(--spacing-lg);
+  background-color: var(--background-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+.card-clickable {
+  cursor: pointer;
+}
+
+.card-selected {
+  border: 3px solid var(--color-button-primary);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.card-body {
+  flex: 1;
+}
+
+.card-title {
+  margin: 0;
+}
+
+.card-description {
+  margin: 8px 0;
+  color: var(--color-text-secondary);
+}
+
+/* Card with checkbox */
+.card-with-checkbox {
+  position: relative;
+}
+
+.card-checkbox {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+}
+
+.card-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.card-content-shifted {
+  margin-left: 35px;
+}

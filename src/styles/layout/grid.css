@@ -1,0 +1,11 @@
+/* layout/grid.css */
+
+.grid-container {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.grid-container-sm {
+  display: grid;
+  gap: var(--spacing-md);
+}
