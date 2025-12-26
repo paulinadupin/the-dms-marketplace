@@ -1,0 +1,56 @@
+/* base/variables.css */
+:root {
+  /* Background Colors */
+  --background-page: rgb(242, 242, 242);
+  --background-card: #ffffff;
+  --background-card-secondary: #d7d7d7;
+  --background-header: #a6a6a6;
+  --background-empty-state: #f9f9f9;
+
+  /* Button Colors */
+  --color-button-primary: oklch(60.483% 0.21664 257.23);
+  --color-button-success: #28a745;
+  --color-button-danger: #dc3545;
+  --color-button-warning: #ffc107;
+  --color-button-secondary: #6c757d;
+  --color-button-info: #3498db;
+
+  /* Text Colors */
+  --color-text-primary: #333;
+  --color-text-secondary: #666;
+  --color-text-muted: #999;
+  --color-text-white: #ffffff;
+  --color-text-dark: #2c3e50;
+
+  /* Border Colors */
+  --color-border: #ddd;
+  --color-border-light: #eee;
+
+  /* Badge Colors */
+  --background-badge-official: #d4edda;
+  --color-badge-official: #155724;
+  --background-badge-custom: #d1ecf1;
+  --color-badge-custom: #0c5460;
+  --background-badge-modified: #fff3cd;
+  --color-badge-modified: #856404;
+  --background-badge-type: #e7f3ff;
+  --color-badge-type: #004085;
+
+  /* Status Colors */
+  --color-status-success: #28a745;
+  --color-status-danger: #dc3545;
+  --color-status-warning: #ffc107;
+  --color-status-info: #3498db;
+
+  /* Spacing */
+  --spacing-xs: 5px;
+  --spacing-sm: 10px;
+  --spacing-md: 15px;
+  --spacing-lg: 20px;
+  --spacing-xl: 30px;
+
+  /* Border Radius */
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
+}

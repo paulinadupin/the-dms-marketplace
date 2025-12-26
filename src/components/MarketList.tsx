@@ -189,7 +189,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
 
   if (loading) {
     return (
-      <div className="market-loading">
+      <div className="loading-container">
         Loading markets...
       </div>
     );
@@ -197,8 +197,9 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
 
   if (error) {
     return (
-      <div className="market-error">
-        Error loading markets: {error}
+      <div className="error-container">
+        <h2>Error loading markets</h2>
+        <p>{error}</p>
       </div>
     );
   }
@@ -206,14 +207,14 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
   // Empty State
   if (markets.length === 0) {
     return (
-      <div className="market-empty-state">
-        <h2 className="market-empty-title">No Markets Yet</h2>
-        <p className="market-empty-text">
+      <div className="empty-state">
+        <h2>No Markets Yet</h2>
+        <p>
           Create your first market to start building shops for your campaign!
         </p>
         <button
           onClick={onCreateMarket}
-          className="market-empty-button"
+          className="btn btn-success btn-lg"
         >
           + Create Your First Market
         </button>
@@ -235,11 +236,11 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div>
-        <div className="market-list-header">
+        <div className="controls-container">
           <div>
-            <h2 className="market-list-title">Your Markets</h2>
+            <h2 style={{ margin: 0 }}>Your Markets</h2>
             {isAtLimit && (
-              <p className="market-limit-warning">
+              <p className="text-danger">
                 ⚠️ You've reached the maximum number of markets
               </p>
             )}
@@ -254,21 +255,21 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
           </button>
         </div>
 
-        <div className="market-grid">
+        <div className="grid-container">
         {sortedMarkets.map((market) => {
           const isBlocked = !market.isActive && activeMarket && activeMarket.id !== market.id;
-          const cardClassName = `market-card ${market.isActive ? 'market-card-active' : ''} ${isBlocked ? 'market-card-blocked' : ''}`;
+          const cardClassName = `card card-clickable ${market.isActive ? 'market-card-active' : ''} ${isBlocked ? 'market-card-blocked' : ''}`;
           return (
           <div
             key={market.id}
             onClick={() => navigate(`/dm/market/${market.id}/shops`)}
             className={cardClassName}
           >
-            <div className="market-card-header">
-              <div className="market-card-content">
-                <div className="market-title-row">
+            <div className="card-header">
+              <div className="card-body">
+                <div className="badge-container">
                   {editingMarketNameId === market.id ? (
-                    <div className="market-title-edit-form" onClick={(e) => e.stopPropagation()}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }} onClick={(e) => e.stopPropagation()}>
                       <input
                         type="text"
                         value={marketNameForm}
@@ -281,7 +282,14 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                           }
                         }}
                         autoFocus
-                        className="market-title-input"
+                        style={{
+                          fontSize: '1.17em',
+                          fontWeight: 'bold',
+                          padding: '4px 8px',
+                          border: '2px solid var(--color-button-primary)',
+                          borderRadius: '4px',
+                          width: '300px'
+                        }}
                       />
                       <button
                         onClick={(e) => saveMarketName(market.id, e)}
@@ -298,18 +306,18 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                     </div>
                   ) : (
                     <h3
-                      className="editable-heading market-title"
+                      className="editable-heading card-title"
                       onClick={(e) => startEditingMarketName(market, e)}
                     >
                       {market.name}
                     </h3>
                   )}
-                  <span className={`market-status-badge ${market.isActive ? 'market-status-active' : 'market-status-inactive'}`}>
+                  <span className={`badge ${market.isActive ? 'badge-success' : 'badge-secondary'}`}>
                     {market.isActive ? `Active (${getTimeRemaining(market.activeUntil)})` : 'Inactive'}
                   </span>
                 </div>
-                <p className="market-description">{market.description}</p>
-                <div className="market-access-code">
+                <p className="card-description">{market.description}</p>
+                <div className="item-details">
                   <span>Access Code: </span>
                   <code
                     onClick={(e) => {
@@ -325,13 +333,13 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
               </div>
 
               {/* Kebab Menu */}
-              <div className="market-kebab-container">
+              <div className="kebab-menu-container">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setOpenMenuId(openMenuId === market.id ? null : market.id);
                   }}
-                  className="market-kebab-button"
+                  className="kebab-button"
                   title="More options"
                 >
                   ⋮
@@ -339,7 +347,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
 
                 {openMenuId === market.id && (
                   <div
-                    className="market-kebab-menu"
+                    className="dropdown-menu"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
@@ -348,7 +356,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                         setEditingMarket(market);
                         setOpenMenuId(null);
                       }}
-                      className="market-kebab-menu-item"
+                      className="dropdown-item"
                     >
                       Edit
                     </button>
@@ -358,7 +366,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                         setOpenMenuId(null);
                         deleteMarket(market.id, market.name);
                       }}
-                      className="market-kebab-menu-item delete"
+                      className="dropdown-item dropdown-item-danger"
                     >
                       Delete
                     </button>

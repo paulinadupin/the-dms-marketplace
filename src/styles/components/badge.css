@@ -1,0 +1,89 @@
+/* components/badge.css */
+
+.badge {
+  padding: 3px 8px;
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+  font-weight: bold;
+  display: inline-block;
+}
+
+.badge-official {
+  background-color: var(--background-badge-official);
+  color: var(--color-badge-official);
+}
+
+.badge-custom {
+  background-color: var(--background-badge-custom);
+  color: var(--color-badge-custom);
+}
+
+.badge-modified {
+  background-color: var(--background-badge-modified);
+  color: var(--color-badge-modified);
+}
+
+.badge-type {
+  background-color: var(--background-badge-type);
+  color: var(--color-badge-type);
+}
+
+.badge-independent {
+  background-color: var(--background-badge-modified);
+  color: var(--color-badge-modified);
+}
+
+/* Type-specific badges */
+.badge-weapon {
+  background-color: var(--badge-weapon-bg);
+  color: var(--badge-weapon-text);
+}
+
+.badge-armor {
+  background-color: var(--badge-armor-bg);
+  color: var(--badge-armor-text);
+}
+
+.badge-consumable {
+  background-color: var(--badge-consumable-bg);
+  color: var(--badge-consumable-text);
+}
+
+.badge-tool {
+  background-color: var(--badge-tool-bg);
+  color: var(--badge-tool-text);
+}
+
+.badge-magic {
+  background-color: var(--badge-magic-bg);
+  color: var(--badge-magic-text);
+}
+
+.badge-gear {
+  background-color: var(--badge-gear-bg);
+  color: var(--badge-gear-text);
+}
+
+.badge-treasure {
+  background-color: var(--badge-treasure-bg);
+  color: var(--badge-treasure-text);
+}
+
+.badge-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+/* Status badges */
+.badge-success {
+  background-color: var(--color-status-success);
+  color: var(--color-text-white);
+}
+
+.badge-secondary {
+  background-color: var(--color-button-secondary);
+  color: var(--color-text-white);
+}
