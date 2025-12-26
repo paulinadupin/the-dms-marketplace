@@ -60,7 +60,7 @@ export function EditMarketModal({ market, onClose, onSuccess }: EditMarketModalP
       zIndex: 1000
     }}>
       <div style={{
-        backgroundColor: '#161b22',
+        backgroundColor: 'white',
         padding: '30px',
         borderRadius: '8px',
         maxWidth: '500px',
@@ -128,13 +128,13 @@ export function EditMarketModal({ market, onClose, onSuccess }: EditMarketModalP
 
           <div style={{
             padding: '10px',
-            backgroundColor: '#2f3947ff',
+            backgroundColor: '#e7f3ff',
             borderRadius: '5px',
             marginBottom: '20px',
             fontSize: '14px',
-            color: '#b0c2d5ff'
+            color: '#004085'
           }}>
-            Access code cannot be changed: <code style={{ backgroundColor: '#4e5f77ff', padding: '2px 6px', borderRadius: '3px' }}>{market.accessCode}</code>
+            ℹ️ Access code cannot be changed: <code style={{ backgroundColor: '#f5f5f5', padding: '2px 6px', borderRadius: '3px' }}>{market.accessCode}</code>
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>

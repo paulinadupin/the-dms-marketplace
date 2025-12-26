@@ -61,8 +61,8 @@ export function HamburgerMenu() {
             style={{
               width: '100%',
               padding: '15px 20px',
-              backgroundColor: '#161b22',
-              color: '#b4b4b4ff',
+              backgroundColor: 'white',
+              color: '#333',
               border: 'none',
               borderBottom: '1px solid #e0e0e0',
               cursor: 'pointer',
@@ -70,8 +70,8 @@ export function HamburgerMenu() {
               textAlign: 'left',
               transition: 'background-color 0.2s'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2f3947ff'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#161b22'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
           >
             Item Library
           </button>
@@ -83,8 +83,8 @@ export function HamburgerMenu() {
             style={{
               width: '100%',
               padding: '15px 20px',
-              backgroundColor: '#161b22',
-              color: '#bebbbbff',
+              backgroundColor: 'white',
+              color: '#333',
               border: 'none',
               borderBottom: '1px solid #e0e0e0',
               cursor: 'pointer',
@@ -92,8 +92,8 @@ export function HamburgerMenu() {
               textAlign: 'left',
               transition: 'background-color 0.2s'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2f3947ff'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#161b22'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
           >
             Settings
           </button>
@@ -105,7 +105,7 @@ export function HamburgerMenu() {
             style={{
               width: '100%',
               padding: '15px 20px',
-              backgroundColor: '#161b22',
+              backgroundColor: 'white',
               color: '#dc3545',
               border: 'none',
               cursor: 'pointer',
@@ -113,8 +113,8 @@ export function HamburgerMenu() {
               textAlign: 'left',
               transition: 'background-color 0.2s'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2f3947ff'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#161b22'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
           >
             Sign Out
           </button>

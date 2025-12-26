@@ -85,7 +85,7 @@ export function CreateShopModal({ marketId, onClose, onSuccess }: CreateShopModa
         zIndex: 1000
       }}>
         <div style={{
-          backgroundColor:'#161b22',
+          backgroundColor: 'white',
           padding: '30px',
           borderRadius: '8px',
           maxWidth: '600px',

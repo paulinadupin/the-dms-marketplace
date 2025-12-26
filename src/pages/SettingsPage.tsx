@@ -139,19 +139,38 @@ export function SettingsPage() {
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-{/* Fixed Header Bar */}
-      <div className="dm-header-bar">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="dm-back-button"
-          title="Back to Dashboard"
-        >
-          ←
-        </button>
-        <h1 className="dm-header-title">Settings</h1>
-        <HamburgerMenu />
-      </div>
 
+      {/* Back Button */}
+      <button
+        onClick={() => navigate('/dashboard')}
+        style={{
+          position: 'fixed',
+          top: '20px',
+          left: '20px',
+          width: '50px',
+          height: '50px',
+          backgroundColor: '#6c757d',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '24px',
+          color: 'white',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          transition: 'background-color 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a6268'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
+        title="Back to Dashboard"
+      >
+        ←
+      </button>
+
+      {/* Hamburger Menu */}
+      <HamburgerMenu />
 
       {/* Header */}
       <div className="page-header-fullwidth">
@@ -166,7 +185,7 @@ export function SettingsPage() {
         {/* Current Info */}
         <div style={{
           padding: '20px',
-          backgroundColor: '#161b22',
+          backgroundColor: '#e7f3ff',
           borderRadius: '8px',
           marginBottom: '30px'
         }}>
@@ -181,7 +200,7 @@ export function SettingsPage() {
             <p style={{
               margin: '15px 0 0 0',
               padding: '10px',
-              backgroundColor: '#161b22',
+              backgroundColor: '#fff3cd',
               borderRadius: '5px',
               fontSize: '14px',
               color: '#856404'
@@ -194,7 +213,7 @@ export function SettingsPage() {
         {/* Update Display Name */}
         <div style={{
           padding: '20px',
-          backgroundColor: '#161b22',
+          backgroundColor: 'white',
           border: '1px solid #ddd',
           borderRadius: '8px',
           marginBottom: '20px'
@@ -241,7 +260,7 @@ export function SettingsPage() {
         {!isGoogleUser && (
           <div style={{
             padding: '20px',
-            backgroundColor: '#161b22',
+            backgroundColor: 'white',
             border: '1px solid #ddd',
             borderRadius: '8px',
             marginBottom: '20px'
@@ -265,7 +284,7 @@ export function SettingsPage() {
                     padding: '10px',
                     border: '1px solid #ddd',
                     borderRadius: '5px',
-                    fontSize: '14px',
+                    fontSize: '14px'
                   }}
                 />
               </div>
@@ -310,7 +329,7 @@ export function SettingsPage() {
         {!isGoogleUser && (
           <div style={{
             padding: '20px',
-            backgroundColor: '#161b22',
+            backgroundColor: 'white',
             border: '1px solid #ddd',
             borderRadius: '8px',
             marginBottom: '20px'
@@ -398,7 +417,7 @@ export function SettingsPage() {
         {/* Danger Zone - Delete Account */}
         <div style={{
           padding: '20px',
-          backgroundColor: '#161b22',
+          backgroundColor: '#fff5f5',
           border: '2px solid #dc3545',
           borderRadius: '8px',
           marginBottom: '20px'
@@ -447,7 +466,7 @@ export function SettingsPage() {
           zIndex: 1000
         }}>
           <div style={{
-            backgroundColor: '#161b22',
+            backgroundColor: 'white',
             padding: '30px',
             borderRadius: '8px',
             maxWidth: '500px',
@@ -459,7 +478,7 @@ export function SettingsPage() {
             </p>
             <div style={{
               padding: '15px',
-              backgroundColor: '#161b22',
+              backgroundColor: '#fff5f5',
               border: '1px solid #dc3545',
               borderRadius: '5px',
               marginBottom: '20px'
@@ -509,7 +528,7 @@ export function SettingsPage() {
                   style={{
                     flex: 1,
                     padding: '10px',
-                    backgroundColor: '#161b22',
+                    backgroundColor: '#6c757d',
                     color: 'white',
                     border: 'none',
                     borderRadius: '5px',
@@ -525,7 +544,7 @@ export function SettingsPage() {
                   style={{
                     flex: 1,
                     padding: '10px',
-                    backgroundColor: deleteLoading ? '#161b22' : '#dc3545',
+                    backgroundColor: deleteLoading ? '#6c757d' : '#dc3545',
                     color: 'white',
                     border: 'none',
                     borderRadius: '5px',

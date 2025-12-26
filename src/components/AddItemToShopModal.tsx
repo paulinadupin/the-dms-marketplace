@@ -132,7 +132,7 @@ export function AddItemToShopModal({
         zIndex: 1000
       }}>
         <div style={{
-          backgroundColor: '#161b22',
+          backgroundColor: 'white',
           padding: '30px',
           borderRadius: '8px',
           maxWidth: '700px',

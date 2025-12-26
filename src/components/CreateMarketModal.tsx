@@ -67,7 +67,7 @@ export function CreateMarketModal({ dmId, currentCount, maxLimit, onClose, onSuc
       zIndex: 1000
     }}>
       <div style={{
-        backgroundColor: '#161b22',
+        backgroundColor: 'white',
         padding: '30px',
         borderRadius: '8px',
         maxWidth: '500px',
@@ -85,7 +85,7 @@ export function CreateMarketModal({ dmId, currentCount, maxLimit, onClose, onSuc
           <div style={{
             padding: '10px',
             marginBottom: '15px',
-            backgroundColor: '#161b22',
+            backgroundColor: '#f8d7da',
             color: '#721c24',
             borderRadius: '5px',
             fontSize: '14px'
@@ -138,11 +138,11 @@ export function CreateMarketModal({ dmId, currentCount, maxLimit, onClose, onSuc
 
           <div style={{
             padding: '10px',
-            backgroundColor: '#36404cff',
+            backgroundColor: '#e7f3ff',
             borderRadius: '5px',
             marginBottom: '20px',
             fontSize: '14px',
-            color: '#93a0aeff'
+            color: '#004085'
           }}>
             ℹ️ A unique shareable URL will be generated for your players to access this market.
           </div>
