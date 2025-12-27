@@ -88,7 +88,7 @@ export function EditMarketModal({ market, onClose, onSuccess }: EditMarketModalP
             </div>
 
             <div className="info-message">
-              ℹ️ Access code cannot be changed: <code style={{ backgroundColor: '#f5f5f5', padding: '2px 6px', borderRadius: '3px' }}>{market.accessCode}</code>
+              ℹ️ Access code cannot be changed: <code className="clickable-code">{market.accessCode}</code>
             </div>
 
             <div className="btn-group">

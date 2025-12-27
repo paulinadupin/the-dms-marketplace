@@ -79,6 +79,7 @@
 .form-textarea:focus {
   outline: none;
   border-color: var(--color-button-primary);
+  
 }
 
 .form-textarea {
@@ -290,7 +291,7 @@
   border-radius: var(--radius-md);
   margin-bottom: var(--spacing-md);
   font-size: 14px;
-  color: #004085;
+  color: --var(--color-badge-type);
 }
 
 .warning-message {
@@ -335,7 +336,7 @@
 
 .danger-zone {
   padding: var(--spacing-lg);
-  background-color: #fff5f5;
+  background-color: var(--danger-zone);
   border: 2px solid var(--color-button-danger);
   border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-lg);

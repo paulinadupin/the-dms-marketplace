@@ -1,47 +1,48 @@
 /* base/variables.css */
 :root {
   /* Background Colors */
-  --background-page: rgb(242, 242, 242);
-  --background-card: #ffffff;
-  --background-card-secondary: #d7d7d7;
-  --background-header: #c5c5c5;
-  --background-empty-state: #f9f9f9;
+  --background-page: #0d1117;
+  --background-card: #161b22;
+  --background-card-secondary: #21262d;
+  --background-header: #161b22;
+  --background-empty-state: #0d1117;
 
   /* Button Colors */
-  --color-button-primary: oklch(60.483% 0.21664 257.23);
-  --color-button-success: #28a745;
-  --color-button-danger: #dc3545;
-  --color-button-warning: #ffc107;
-  --color-button-secondary: #6c757d;
-  --color-button-info: #576670;
-  --color-button-info-hover: #136e7c;
+  --color-button-primary: #4f85d0;
+  --color-button-success: #2eb148;
+  --color-button-danger: #da3633;
+  --color-button-warning: #9e6a03;
+  --color-button-secondary: #373e47;
+  --color-button-info: #1f6feb;
+  --color-button-info-hover: #388bfd;
 
   /* Text Colors */
-  --color-text-primary: #333;
-  --color-text-secondary: #666;
-  --color-text-muted: #999;
+  --color-text-primary: #c9d1d9;
+  --color-text-secondary: #8b949e;
+  --color-text-muted: #6e7681;
   --color-text-white: #ffffff;
-  --color-text-dark: #2c3e50;
+  --color-text-dark: #c9d1d9;
 
   /* Border Colors */
-  --color-border: #ddd;
-  --color-border-light: #eee;
+  --color-border: #30363d;
+  --color-border-light: #21262d;
 
   /* Badge Colors */
-  --background-badge-official: #d4edda;
-  --color-badge-official: #155724;
-  --background-badge-custom: #d1ecf1;
-  --color-badge-custom: #0c5460;
-  --background-badge-modified: #fff3cd;
-  --color-badge-modified: #856404;
-  --background-badge-type: #e7f3ff;
-  --color-badge-type: #004085;
+  --background-badge-official: #0d4121;
+  --color-badge-official: #3fb950;
+  --background-badge-custom: #0c2d6b;
+  --color-badge-custom: #58a6ff;
+  --background-badge-modified: #341a00;
+  --color-badge-modified: #e3b341;
+  --background-badge-type: #0d2d5e;
+  --color-badge-type: #79c0ff;
 
   /* Status Colors */
-  --color-status-success: #28a745;
-  --color-status-danger: #dc3545;
-  --color-status-warning: #ffc107;
-  --color-status-info: #3498db;
+  --color-status-success: #593fb9;
+  --color-status-danger: #f85149;
+  --color-status-warning: #d29922;
+  --color-status-info: #58a6ff;
+  --danger-zone: #161010;
 
   /* Spacing */
   --spacing-xs: 5px;

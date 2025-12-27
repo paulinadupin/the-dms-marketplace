@@ -1,5 +1,7 @@
 /* reset.css */
-
+:root{
+  color-scheme: dark;
+}
 /* Box sizing */
 *,
 *::before,

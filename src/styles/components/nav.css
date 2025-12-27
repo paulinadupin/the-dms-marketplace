@@ -13,7 +13,7 @@
 .hamburger-button {
   width: 50px;
   height: 50px;
-  background-color: var(--color-button-secondary);
+  background-color: var(--background-header);
   border: none;
   border-radius: var(--radius-lg);
   cursor: pointer;
@@ -27,7 +27,7 @@
 }
 
 .hamburger-button:hover {
-  background-color: #5a6268;
+  transform: scale(1.01);
 }
 
 .hamburger-button div {
