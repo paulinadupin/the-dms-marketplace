@@ -79,7 +79,18 @@
 .form-textarea:focus {
   outline: none;
   border-color: var(--color-button-primary);
-  
+
+}
+
+/* Remove number input spinners globally */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 .form-textarea {
@@ -105,6 +116,11 @@
   align-items: center;
   margin-bottom: var(--spacing-sm);
   cursor: pointer;
+}
+
+.form-checkbox-label span {
+  font-weight: bold;
+  color: var(--color-text-primary);
 }
 
 /* ===================================
@@ -368,19 +384,28 @@
 .item-preview {
   margin-bottom: var(--spacing-lg);
   padding: var(--spacing-md);
-  background-color: #f8f9fa;
+  background-color: var(--background-page);
   border-radius: var(--radius-md);
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--color-border-light);
 }
 
 .item-preview h4 {
   margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-text-dark);
 }
 
 .item-preview p {
   margin: var(--spacing-xs) 0;
   font-size: 14px;
   color: var(--color-text-secondary);
+}
+
+.item-preview p:first-of-type {
+  margin-top: var(--spacing-xs);
+}
+
+.item-preview p strong {
+  color: var(--color-text-dark);
 }
 
 /* ===================================
@@ -390,9 +415,9 @@
 .type-fields-section {
   margin-bottom: var(--spacing-lg);
   padding: var(--spacing-md);
-  background-color: #f8f9fa;
+  background-color: var(--background-card-secondary);
   border-radius: var(--radius-lg);
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--color-border-light);
 }
 
 .type-fields-section h3 {
@@ -509,6 +534,87 @@
   color: var(--color-text-secondary);
   margin-bottom: var(--spacing-lg);
   font-size: 14px;
+}
+
+.text-description-compact {
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: 14px;
+}
+
+/* ===================================
+   DYNAMIC FORM FIELD
+   =================================== */
+
+.dynamic-field-container {
+  margin-bottom: var(--spacing-md);
+}
+
+.dynamic-field-label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-weight: bold;
+  color: var(--color-text-primary);
+}
+
+.dynamic-field-input,
+.dynamic-field-textarea,
+.dynamic-field-select {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--color-text-primary);
+  background-color: var(--background-card);
+  box-sizing: border-box;
+}
+
+.dynamic-field-textarea {
+  font-family: inherit;
+  resize: vertical;
+}
+
+.dynamic-field-help-text {
+  margin: var(--spacing-xs) 0 0 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.dynamic-multiselect-container {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm);
+  max-height: 150px;
+  overflow-y: auto;
+  background-color: var(--background-card);
+}
+
+.dynamic-multiselect-option {
+  display: block;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.dynamic-multiselect-option input {
+  margin-right: 8px;
+}
+
+.dynamic-checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.dynamic-checkbox-label input {
+  margin-right: 8px;
+}
+
+.dynamic-checkbox-label span {
+  font-weight: bold;
+  color: var(--color-text-primary);
 }
 
 /* ===================================

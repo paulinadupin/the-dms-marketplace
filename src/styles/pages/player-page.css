@@ -120,17 +120,6 @@
   box-sizing: border-box;
 }
 
-/* Remove number input spinner arrows */
-.player-currency-input-group input::-webkit-inner-spin-button,
-.player-currency-input-group input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.player-currency-input-group input[type=number] {
-  -moz-appearance: textfield;
-}
-
 .player-currency-input-group input:focus {
   outline: none;
   border-color: var(--color-button-primary);
@@ -870,17 +859,6 @@
   text-align: center;
   transition: border-color 0.2s;
   box-sizing: border-box;
-}
-
-/* Remove number input spinner arrows */
-.sell-item-currency-input::-webkit-inner-spin-button,
-.sell-item-currency-input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.sell-item-currency-input[type=number] {
-  -moz-appearance: textfield;
 }
 
 .sell-item-currency-input:focus {

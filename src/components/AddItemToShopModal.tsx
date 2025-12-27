@@ -119,8 +119,8 @@ export function AddItemToShopModal({
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="modal-overlay">
-        <div className="modal-content" style={{ maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto' }}>
-          <h2 style={{ marginTop: 0 }}>Add Item to Shop</h2>
+        <div className="modal-content-wide">
+          <h2 className="modal-title">Add Item to Shop</h2>
           <p className="text-description">
             Select an item from your library to add to this shop.
           </p>
@@ -208,12 +208,12 @@ export function AddItemToShopModal({
                 {/* Selected Item Preview */}
                 {selectedItem && (
                   <div className="item-preview">
-                    <h4 style={{ margin: '0 0 10px 0' }}>{selectedItem.item.name}</h4>
-                    <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>
+                    <h4>{selectedItem.item.name}</h4>
+                    <p>
                       <strong>Type:</strong> {selectedItem.item.type}
                     </p>
                     {selectedItem.item.description && (
-                      <p style={{ margin: '10px 0 0 0', fontSize: '14px', color: '#666' }}>
+                      <p>
                         {selectedItem.item.description}
                       </p>
                     )}
@@ -225,7 +225,7 @@ export function AddItemToShopModal({
                   <label className="form-label">
                     Set Price *
                   </label>
-                  <p className="text-description" style={{ margin: '0 0 10px 0' }}>
+                  <p className="text-description-compact">
                     Enter at least one currency value
                   </p>
 
@@ -275,7 +275,7 @@ export function AddItemToShopModal({
                       onChange={(e) => setUseUnlimitedStock(e.target.checked)}
                       className="form-checkbox"
                     />
-                    <span style={{ fontWeight: 'bold' }}>Unlimited Stock</span>
+                    <span>Unlimited Stock</span>
                   </label>
 
                   {!useUnlimitedStock && (
