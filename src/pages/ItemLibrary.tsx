@@ -396,7 +396,7 @@ export function ItemLibraryPage() {
                     setShowCreateModal(true);
                   }}
                   disabled={items.length >= LIMITS.ITEMS_PER_LIBRARY}
-                  className="btn btn-success btn-lg"
+                  className="btn-success btn-lg"
                 >
                   + Create Your First Item
                 </button>

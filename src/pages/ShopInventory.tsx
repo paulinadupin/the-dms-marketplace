@@ -466,7 +466,7 @@ export function ShopInventory() {
             </p>
             <button
               onClick={() => setShowAddModal(true)}
-              className="btn btn-success btn-lg"
+              className="btn-success btn-lg"
             >
               + Add Your First Item
             </button>
@@ -787,34 +787,16 @@ export function ShopInventory() {
 
       {/* Duplicate Items Modal */}
       {showDuplicateModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '30px',
-            borderRadius: '8px',
-            maxWidth: '500px',
-            width: '100%'
-          }}>
-            <h2 style={{ marginTop: 0 }}>Duplicate Items to Shop</h2>
-            <p style={{ color: '#666', marginBottom: '20px', fontSize: '14px' }}>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2 className="duplicate-modal-title">Duplicate Items to Shop</h2>
+            <p className="duplicate-modal-description">
               Duplicating {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} with the same price and stock.
             </p>
 
             {/* Same Shop Option */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: 'bold' }}>
+            <div className="duplicate-checkbox-section">
+              <label className="duplicate-checkbox-label">
                 <input
                   type="checkbox"
                   checked={duplicateSameShop}
@@ -827,8 +809,8 @@ export function ShopInventory() {
             {/* Market Selection */}
             {!duplicateSameShop && (
               <>
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                <div className="duplicate-form-section">
+                  <label className="form-label">
                     Select Market *
                   </label>
                   <select
@@ -837,13 +819,7 @@ export function ShopInventory() {
                       setSelectedMarketId(e.target.value);
                       setSelectedTargetShopId(''); // Reset shop selection
                     }}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '5px',
-                      fontSize: '14px'
-                    }}
+                    className="form-select"
                   >
                     <option value="">Choose a market...</option>
                     {markets.map(market => (
@@ -855,23 +831,15 @@ export function ShopInventory() {
                 </div>
 
                 {/* Shop Selection */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                <div className="duplicate-form-section">
+                  <label className="form-label">
                     Select Shop *
                   </label>
                   <select
                     value={selectedTargetShopId}
                     onChange={(e) => setSelectedTargetShopId(e.target.value)}
                     disabled={!selectedMarketId}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '5px',
-                      fontSize: '14px',
-                      cursor: !selectedMarketId ? 'not-allowed' : 'pointer',
-                      backgroundColor: !selectedMarketId ? '#f5f5f5' : 'white'
-                    }}
+                    className="form-select"
                   >
                     <option value="">Choose a shop...</option>
                     {filteredShops.map(shop => (
@@ -884,11 +852,10 @@ export function ShopInventory() {
               </>
             )}
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div className="duplicate-actions">
               <button
                 onClick={() => setShowDuplicateModal(false)}
                 className="btn btn-secondary"
-                style={{ flex: 1 }}
               >
                 Cancel
               </button>
@@ -896,11 +863,6 @@ export function ShopInventory() {
                 onClick={handleDuplicate}
                 disabled={duplicating || (!duplicateSameShop && !selectedTargetShopId)}
                 className="btn btn-success"
-                style={{
-                  flex: 1,
-                  cursor: (duplicating || (!duplicateSameShop && !selectedTargetShopId)) ? 'not-allowed' : 'pointer',
-                  opacity: (duplicating || (!duplicateSameShop && !selectedTargetShopId)) ? 0.6 : 1
-                }}
               >
                 {duplicating ? 'Duplicating...' : 'Confirm'}
               </button>

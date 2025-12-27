@@ -14,7 +14,7 @@ import {
 import { db } from '../config/firebase';
 
 export interface Transaction {
-  type: 'buy' | 'sell';
+  type: 'buy' | 'sell' | 'end_session';
   itemName: string;
   quantity: number;
   timestamp: Timestamp;
@@ -57,12 +57,12 @@ export class PlayerSessionService {
   }
 
   /**
-   * Add a transaction (buy or sell) to a player's session
+   * Add a transaction (buy, sell, or end_session) to a player's session
    */
   static async addTransaction(
     sessionId: string,
-    type: 'buy' | 'sell',
-    itemName: string,
+    type: 'buy' | 'sell' | 'end_session',
+    itemName: string = '',
     quantity: number = 1
   ): Promise<void> {
     try {
@@ -146,6 +146,9 @@ export class PlayerSessionService {
     }
 
     const formatted = transactions.map((t) => {
+      if (t.type === 'end_session') {
+        return '❮';
+      }
       const prefix = t.type === 'buy' ? '+' : '-';
       const qty = t.quantity > 1 ? ` (${t.quantity})` : '';
       return `${prefix}${t.itemName}${qty}`;

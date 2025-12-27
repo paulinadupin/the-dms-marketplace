@@ -214,7 +214,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
         </p>
         <button
           onClick={onCreateMarket}
-          className="btn btn-success btn-lg"
+          className="btn-success btn-lg"
         >
           + Create Your First Market
         </button>

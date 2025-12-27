@@ -57,7 +57,8 @@ export function PlayerMarketSummary() {
       localStorage.removeItem(`player_${accessCode}_data`);
       localStorage.removeItem(`player_${accessCode}_name`);
     }
-    navigate('/');
+    // Navigate to home page
+    navigate('/', { replace: true });
   };
 
   const renderItemProperties = (itemData: any) => {
