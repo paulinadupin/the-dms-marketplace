@@ -383,6 +383,7 @@
   overflow-y: auto;
   border: 1px solid var(--color-border-light);
   padding: var(--spacing-lg);
+  z-index: 100;
 }
 
 .player-inventory-panel h3 {
