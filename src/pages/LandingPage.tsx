@@ -70,7 +70,8 @@ export function LandingPage() {
       <div className="landing-hero">
         <div className="landing-hero-container">
           <h1 className="landing-hero-title">
-            Welcome to The DM's Marketplace
+            Welcome to<br></br>
+            The DM's Marketplace
           </h1>
 
           <p className="landing-hero-subtitle">
