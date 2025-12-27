@@ -466,7 +466,7 @@ export function ShopInventory() {
             </p>
             <button
               onClick={() => setShowAddModal(true)}
-              className="btn-success btn-lg"
+              className="btn btn-success btn-lg"
             >
               + Add Your First Item
             </button>

@@ -395,7 +395,7 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                   <button
                     type="submit"
                     disabled={loading || !hasChanges}
-                    className={`btn ${loading || !hasChanges ? 'btn-secondary' : 'btn-success'}`}
+                    className={`btn ${loading || !hasChanges ? 'btn-secondary' : 'btn btn-success'}`}
                   >
                     {loading ? 'Saving...' : 'Save Changes'}
                   </button>
