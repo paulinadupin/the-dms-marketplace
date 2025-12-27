@@ -46,135 +46,70 @@ export function EditMarketModal({ market, onClose, onSuccess }: EditMarketModalP
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px',
-      zIndex: 1000
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '30px',
-        borderRadius: '8px',
-        maxWidth: '500px',
-        width: '100%'
-      }}>
-        <h2 style={{ marginTop: 0 }}>Edit Market</h2>
-        <p style={{ color: '#666', marginBottom: '20px', fontSize: '14px' }}>
-          Update the name and description of your market.
-        </p>
+      <div className="modal-overlay">
+        <div className="modal-content" style={{ maxWidth: '500px' }}>
+          <h2 style={{ marginTop: 0 }}>Edit Market</h2>
+          <p className="text-description">
+            Update the name and description of your market.
+          </p>
 
-        {error && (
-          <div style={{
-            padding: '10px',
-            marginBottom: '15px',
-            backgroundColor: '#f8d7da',
-            color: '#721c24',
-            borderRadius: '5px',
-            fontSize: '14px'
-          }}>
-            {error}
-          </div>
-        )}
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              Market Name *
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              placeholder="e.g., Waterdeep Market, Baldur's Gate Bazaar"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px'
-              }}
-            />
-          </div>
+          <form onSubmit={handleSubmit}>
+            <div className="form-group-lg">
+              <label className="form-label">
+                Market Name *
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                placeholder="e.g., Waterdeep Market, Baldur's Gate Bazaar"
+                className="form-input"
+              />
+            </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              Description
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g., All the shops available in the City of Splendors (optional)"
-              rows={3}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px',
-                fontFamily: 'inherit',
-                resize: 'vertical'
-              }}
-            />
-          </div>
+            <div className="form-group-lg">
+              <label className="form-label">
+                Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g., All the shops available in the City of Splendors (optional)"
+                rows={3}
+                className="form-textarea"
+              />
+            </div>
 
-          <div style={{
-            padding: '10px',
-            backgroundColor: '#e7f3ff',
-            borderRadius: '5px',
-            marginBottom: '20px',
-            fontSize: '14px',
-            color: '#004085'
-          }}>
-            ℹ️ Access code cannot be changed: <code style={{ backgroundColor: '#f5f5f5', padding: '2px 6px', borderRadius: '3px' }}>{market.accessCode}</code>
-          </div>
+            <div className="info-message">
+              ℹ️ Access code cannot be changed: <code style={{ backgroundColor: '#f5f5f5', padding: '2px 6px', borderRadius: '3px' }}>{market.accessCode}</code>
+            </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                flex: 1,
-                padding: '10px',
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                flex: 1,
-                padding: '10px',
-                backgroundColor: loading ? '#6c757d' : '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold'
-              }}
-            >
-              {loading ? 'Updating...' : 'Update Market'}
-            </button>
-          </div>
-        </form>
+            <div className="btn-group">
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn btn-cancel"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className={`btn ${loading ? 'btn-secondary' : 'btn-primary'}`}
+              >
+                {loading ? 'Updating...' : 'Update Market'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
     </>
   );
 }
