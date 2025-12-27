@@ -231,12 +231,12 @@ export function AddItemToShopModal({
 
                   <div className="currency-group">
                     <div className="currency-input">
-                      <label className="form-label-small">CP</label>
+                    <label className="form-label-small">GP</label>
                       <input
                         type="number"
                         min="0"
-                        value={priceForm.cp}
-                        onChange={(e) => setPriceForm({ ...priceForm, cp: e.target.value })}
+                        value={priceForm.gp}
+                        onChange={(e) => setPriceForm({ ...priceForm, gp: e.target.value })}
                         placeholder="0"
                         className="form-input-small"
                       />
@@ -252,13 +252,13 @@ export function AddItemToShopModal({
                         className="form-input-small"
                       />
                     </div>
-                    <div className="currency-input">
-                      <label className="form-label-small">GP</label>
+                      <div className="currency-input">
+                      <label className="form-label-small">CP</label>
                       <input
                         type="number"
                         min="0"
-                        value={priceForm.gp}
-                        onChange={(e) => setPriceForm({ ...priceForm, gp: e.target.value })}
+                        value={priceForm.cp}
+                        onChange={(e) => setPriceForm({ ...priceForm, cp: e.target.value })}
                         placeholder="0"
                         className="form-input-small"
                       />
