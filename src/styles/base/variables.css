@@ -1,48 +1,57 @@
-/* base/variables.css */
+/* base/variables.css - Dark Horizon Theme */
 :root {
-  /* Background Colors */
-  --background-page: #0d1117;
-  --background-card: #161b22;
-  --background-card-secondary: #21262d;
-  --background-header: #161b22;
-  --background-empty-state: #0d1117;
+  /* Background Colors - Dark Horizon */
+  --background-page: #1c1e26;
+  --background-card: #232530;
+  --background-card-secondary: #2e303e;
+  --background-header: #232530;
+  --background-empty-state: #1c1e26;
 
-  /* Button Colors */
-  --color-button-primary: #4f85d0;
-  --color-button-success: #2eb148;
-  --color-button-danger: #da3633;
-  --color-button-warning: #9e6a03;
-  --color-button-secondary: #373e47;
-  --color-button-info: #1f6feb;
-  --color-button-info-hover: #388bfd;
+  /* Button Colors - Dark Horizon */
+  --color-button-primary: #e95678;
+  --color-button-primary-hover: #f26d8c;
+  --color-button-success: #1ba568;
+  --color-button-success-hover: #159257;
+  --color-button-danger: #f43e5c;
+  --color-button-danger-hover: #e02847;
+  --color-button-warning: #fab795;
+  --color-button-warning-hover: #f9a87e;
+  --color-button-secondary: #6c6f93;
+  --color-button-secondary-hover: #8488a8;
+  --color-button-info: #1a8a93;
+  --color-button-info-hover: #1f9da7;
 
-  /* Text Colors */
-  --color-text-primary: #c9d1d9;
-  --color-text-secondary: #8b949e;
-  --color-text-muted: #6e7681;
-  --color-text-white: #ffffff;
-  --color-text-dark: #c9d1d9;
+  /* Text Colors - Dark Horizon */
+  --color-text-primary: #e3e6ee;
+  --color-text-secondary: #b0b4ce;
+  --color-text-muted: #6c6f93;
+  --color-text-white: #e3e6ee;
+  --color-text-dark: #e3e6ee;
 
-  /* Border Colors */
-  --color-border: #30363d;
-  --color-border-light: #21262d;
+  /* Border Colors - Dark Horizon */
+  --color-border: #3e4057;
+  --color-border-light: #2e303e;
 
-  /* Badge Colors */
-  --background-badge-official: #0d4121;
-  --color-badge-official: #3fb950;
-  --background-badge-custom: #0c2d6b;
-  --color-badge-custom: #58a6ff;
-  --background-badge-modified: #341a00;
-  --color-badge-modified: #e3b341;
-  --background-badge-type: #0d2d5e;
-  --color-badge-type: #79c0ff;
+  /* Badge Colors - Dark Horizon */
+  --background-badge-official: #0d2b23;
+  --color-badge-official: #1ba568;
+  --background-badge-custom: #281829;
+  --color-badge-custom: #b877db;
+  --background-badge-modified: #2b1f12;
+  --color-badge-modified: #fab795;
+  --background-badge-type: #142834;
+  --color-badge-type: #1a8a93;
 
-  /* Status Colors */
-  --color-status-success: #593fb9;
-  --color-status-danger: #f85149;
-  --color-status-warning: #d29922;
-  --color-status-info: #58a6ff;
-  --danger-zone: #161010;
+  /* Status Colors - Dark Horizon */
+  --color-status-success: #b877db;
+  --color-status-danger: #f43e5c;
+  --color-status-warning: #fab795;
+  --color-status-info: #1a8a93;
+  --danger-zone: #2b1a1e;
+
+  /* Message Colors - Dark Horizon */
+  --background-error: #2b1a1e;
+  --background-danger-box: #2b1a1e;
 
   /* Spacing */
   --spacing-xs: 5px;
@@ -55,4 +64,8 @@
   --radius-sm: 3px;
   --radius-md: 5px;
   --radius-lg: 8px;
+
+  /* Typography - Tokyo Night Font Stack */
+  --font-family-primary: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Cascadia Code', 'Courier New', monospace;
+  --font-family-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
