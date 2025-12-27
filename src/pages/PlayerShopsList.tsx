@@ -19,7 +19,7 @@ export function PlayerShopsList() {
 
   useEffect(() => {
     loadMarketAndShops();
-    const interval = setInterval(checkExpiration, 30000); // Check every 30 seconds
+    const interval = setInterval(checkExpiration, 3000); // Check every 3 seconds for instant kicks
     return () => clearInterval(interval);
   }, [accessCode]);
 
@@ -58,20 +58,43 @@ export function PlayerShopsList() {
     }
   };
 
-  const checkExpiration = () => {
-    if (!market || !market.activeUntil) return;
+  const checkExpiration = async () => {
+    if (!accessCode) return;
 
-    const timeRemaining = market.activeUntil.toMillis() - Date.now();
-    const fiveMinutes = 5 * 60 * 1000;
+    try {
+      // Fetch current market status from database
+      const marketData = await MarketService.getMarketByAccessCode(accessCode);
 
-    // Show warning if less than 5 minutes remaining
-    if (timeRemaining > 0 && timeRemaining <= fiveMinutes && !showExpirationWarning) {
-      setShowExpirationWarning(true);
-    }
+      if (!marketData) {
+        // Market deleted - redirect to summary
+        navigate(`/market/${accessCode}/summary`);
+        return;
+      }
 
-    // Market expired - redirect to summary
-    if (timeRemaining <= 0) {
-      navigate(`/market/${accessCode}/summary`);
+      // Check if market was deactivated by DM
+      if (!marketData.isActive) {
+        // Market closed by DM - redirect to summary
+        navigate(`/market/${accessCode}/summary`);
+        return;
+      }
+
+      // Check if market expired due to time limit
+      if (marketData.activeUntil) {
+        const timeRemaining = marketData.activeUntil.toMillis() - Date.now();
+        const fiveMinutes = 5 * 60 * 1000;
+
+        // Show warning if less than 5 minutes remaining
+        if (timeRemaining > 0 && timeRemaining <= fiveMinutes && !showExpirationWarning) {
+          setShowExpirationWarning(true);
+        }
+
+        // Market expired - redirect to summary
+        if (timeRemaining <= 0) {
+          navigate(`/market/${accessCode}/summary`);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking market status:', error);
     }
   };
 
@@ -104,7 +127,7 @@ export function PlayerShopsList() {
           className="shopping-overview-button"
           title="View Shopping Overview"
         >
-          📋
+        𖠩
         </button>
         <h1 className="player-header-title">{market.name}</h1>
         <PlayerInventoryMenu accessCode={accessCode!} />

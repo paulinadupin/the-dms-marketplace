@@ -1,0 +1,11 @@
+/* utilities/text.css */
+
+.text-danger {
+  color: var(--color-status-danger);
+  font-size: 14px;
+}
+
+.text-warning {
+  color: var(--color-badge-modified);
+  font-size: 14px;
+}

@@ -1,0 +1,82 @@
+/* components/nav.css */
+
+/* ===================================
+   HAMBURGER MENU
+   =================================== */
+
+.hamburger-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.hamburger-button {
+  width: 50px;
+  height: 50px;
+  background-color: var(--background-header);
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: background-color 0.2s;
+}
+
+.hamburger-button:hover {
+  transform: scale(1.01);
+}
+
+.hamburger-button div {
+  width: 24px;
+  height: 3px;
+  background-color: var(--color-text-white);
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+
+/* Dropdown menu */
+.hamburger-dropdown {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  background-color: var(--background-card);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  min-width: 200px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-light);
+  z-index: 1000;
+}
+
+.hamburger-menu-item {
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--background-card);
+  color: var(--color-text-primary);
+  border: none;
+  border-bottom: 1px solid var(--color-border-light);
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+  transition: background-color 0.2s;
+}
+
+.hamburger-menu-item:last-child {
+  border-bottom: none;
+}
+
+.hamburger-menu-item:hover {
+  background-color: var(--background-page);
+}
+
+.hamburger-menu-item.danger {
+  color: var(--color-button-danger);
+}
+
+.hamburger-menu-item.danger:hover {
+  background-color: var(--background-danger-box);
+}

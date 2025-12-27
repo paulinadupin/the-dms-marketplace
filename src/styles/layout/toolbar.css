@@ -1,0 +1,32 @@
+/* layout/toolbar.css */
+
+.toolbar-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--background-header);
+  color: var(--color-text-white);
+  padding: var(--spacing-md) var(--spacing-lg);
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+}
+
+.toolbar-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.toolbar-count {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}

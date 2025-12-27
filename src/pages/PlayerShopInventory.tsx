@@ -24,6 +24,33 @@ export function PlayerShopInventory() {
     loadShopAndItems();
   }, [shopId]);
 
+  // Monitor market status - kick players out if market is deactivated
+  useEffect(() => {
+    const checkMarketStatus = async () => {
+      if (!accessCode) return;
+
+      try {
+        const marketData = await MarketService.getMarketByAccessCode(accessCode);
+
+        if (!marketData || !marketData.isActive) {
+          // Market closed or deleted - redirect to summary
+          navigate(`/market/${accessCode}/summary`);
+          return;
+        }
+
+        // Check if market expired
+        if (marketData.activeUntil && marketData.activeUntil.toMillis() <= Date.now()) {
+          navigate(`/market/${accessCode}/summary`);
+        }
+      } catch (error) {
+        console.error('Error checking market status:', error);
+      }
+    };
+
+    const interval = setInterval(checkMarketStatus, 3000); // Check every 3 seconds
+    return () => clearInterval(interval);
+  }, [accessCode, navigate]);
+
   const loadShopAndItems = async () => {
     if (!shopId || !accessCode) return;
 

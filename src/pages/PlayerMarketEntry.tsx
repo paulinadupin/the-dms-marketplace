@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MarketService } from '../services/market.service';
+import { PlayerSessionService } from '../services/player-session.service';
 import type { Market } from '../types/firebase';
 
 export function PlayerMarketEntry() {
@@ -9,12 +10,11 @@ export function PlayerMarketEntry() {
 
   const [market, setMarket] = useState<Market | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Currency inputs
-  const [gold, setGold] = useState('0');
-  const [silver, setSilver] = useState('0');
-  const [copper, setCopper] = useState('0');
+  const [gold, setGold] = useState('');
+  const [silver, setSilver] = useState('');
+  const [copper, setCopper] = useState('');
 
   useEffect(() => {
     loadMarket();
@@ -22,8 +22,7 @@ export function PlayerMarketEntry() {
 
   const loadMarket = async () => {
     if (!accessCode) {
-      setError('Invalid market link');
-      setLoading(false);
+      navigate('/', { state: { error: 'Invalid market link. Please enter a valid access code.' } });
       return;
     }
 
@@ -31,75 +30,76 @@ export function PlayerMarketEntry() {
       const marketData = await MarketService.getMarketByAccessCode(accessCode);
 
       if (!marketData) {
-        setError('This Market is Closed');
-        setLoading(false);
+        navigate('/', { state: { error: 'Market not found. Please check your access code and try again.' } });
         return;
       }
 
       // Check if market is active
       if (!marketData.isActive) {
-        setError('This Market is Closed');
-        setLoading(false);
+        navigate('/', { state: { error: 'This market is currently closed. Please try again later.' } });
         return;
       }
 
       // Check if market has expired
       if (marketData.activeUntil && marketData.activeUntil.toMillis() <= Date.now()) {
-        setError('This Market is Closed');
-        setLoading(false);
+        navigate('/', { state: { error: 'This market has expired. Please try again later.' } });
         return;
       }
 
       setMarket(marketData);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load market');
-    } finally {
       setLoading(false);
+    } catch (err: any) {
+      navigate('/', { state: { error: 'Failed to load market. Please check your access code and try again.' } });
     }
   };
 
-  const handleEnterMarket = () => {
+  const handleEnterMarket = async () => {
     if (!market || !accessCode) return;
 
     const startingGold = parseInt(gold) || 0;
     const startingSilver = parseInt(silver) || 0;
     const startingCopper = parseInt(copper) || 0;
 
-    // Save player's starting currency to localStorage
-    const playerData = {
-      gold: startingGold,
-      silver: startingSilver,
-      copper: startingCopper,
-      startingCurrency: {
+    // Get player name from localStorage
+    const playerName = localStorage.getItem(`player_${accessCode}_name`) || 'Adventurer';
+
+    try {
+      // Create player session in Firebase for DM tracking
+      const sessionId = await PlayerSessionService.createSession(market.id, playerName);
+
+      // Save player's starting currency to localStorage
+      const playerData = {
+        name: playerName,
         gold: startingGold,
         silver: startingSilver,
-        copper: startingCopper
-      },
-      inventory: [],
-      marketId: market.id,
-      accessCode: accessCode,
-      enteredAt: Date.now()
-    };
+        copper: startingCopper,
+        startingCurrency: {
+          gold: startingGold,
+          silver: startingSilver,
+          copper: startingCopper
+        },
+        inventory: [],
+        marketId: market.id,
+        accessCode: accessCode,
+        enteredAt: Date.now(),
+        sessionId: sessionId
+      };
 
-    localStorage.setItem(`player_${accessCode}_data`, JSON.stringify(playerData));
+      localStorage.setItem(`player_${accessCode}_data`, JSON.stringify(playerData));
 
-    // Navigate to shops list
-    navigate(`/market/${accessCode}/shops`);
+      // Navigate to shops list
+      navigate(`/market/${accessCode}/shops`);
+    } catch (err) {
+      console.error('Failed to create player session:', err);
+      // Still navigate even if session creation fails
+      navigate(`/market/${accessCode}/shops`);
+    }
   };
 
-  if (loading) {
+  if (loading || !market) {
     return (
       <div className="player-loading">
         <p>Loading market...</p>
-      </div>
-    );
-  }
-
-  if (error || !market) {
-    return (
-      <div className="player-error">
-        <h1>{error || 'This Market is Closed'}</h1>
-        <p>Please check your link and try again.</p>
       </div>
     );
   }

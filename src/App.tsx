@@ -6,6 +6,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { ShopManagement } from './pages/ShopManagement';
 import { ShopInventory } from './pages/ShopInventory';
 import { ItemLibraryPage } from './pages/ItemLibrary';
+import { PlayerNameEntry } from './pages/PlayerNameEntry';
 import { PlayerMarketEntry } from './pages/PlayerMarketEntry';
 import { PlayerShopsList } from './pages/PlayerShopsList';
 import { PlayerShopInventory } from './pages/PlayerShopInventory';
@@ -22,6 +23,7 @@ function App() {
         <Route path="/item-library" element={<ItemLibraryPage />} />
 
         {/* Player Routes - Must come BEFORE DM routes to avoid conflicts */}
+        <Route path="/player/enter/:accessCode" element={<PlayerNameEntry />} />
         <Route path="/market/:accessCode" element={<PlayerMarketEntry />} />
         <Route path="/market/:accessCode/shops" element={<PlayerShopsList />} />
         <Route path="/market/:accessCode/shop/:shopId" element={<PlayerShopInventory />} />

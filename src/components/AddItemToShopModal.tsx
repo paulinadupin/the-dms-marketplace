@@ -118,53 +118,25 @@ export function AddItemToShopModal({
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px',
-        zIndex: 1000
-      }}>
-        <div style={{
-          backgroundColor: 'white',
-          padding: '30px',
-          borderRadius: '8px',
-          maxWidth: '700px',
-          width: '100%',
-          maxHeight: '90vh',
-          overflowY: 'auto'
-        }}>
-          <h2 style={{ marginTop: 0 }}>Add Item to Shop</h2>
-          <p style={{ color: '#666', marginBottom: '20px', fontSize: '14px' }}>
+      <div className="modal-overlay">
+        <div className="modal-content-wide">
+          <h2 className="modal-title">Add Item to Shop</h2>
+          <p className="text-description">
             Select an item from your library to add to this shop.
           </p>
 
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+            <div className="loading-state">
               Loading your item library...
             </div>
           ) : libraryItems.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px' }}>
-              <p style={{ color: '#666', marginBottom: '20px' }}>
+            <div className="empty-state">
+              <p>
                 You have no items available to add. All your library items are already in this shop.
               </p>
               <button
                 onClick={onClose}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
+                className="btn btn-cancel"
               >
                 Close
               </button>
@@ -172,49 +144,29 @@ export function AddItemToShopModal({
           ) : (
             <>
               {error && (
-                <div style={{
-                  padding: '10px',
-                  marginBottom: '15px',
-                  backgroundColor: '#f8d7da',
-                  color: '#721c24',
-                  borderRadius: '5px',
-                  fontSize: '14px'
-                }}>
+                <div className="error-message">
                   {error}
                 </div>
               )}
 
               <form onSubmit={handleSubmit}>
                 {/* Search and Filter */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                <div className="form-group-lg">
+                  <label className="form-label">
                     Search & Filter Items
                   </label>
-                  <div style={{ display: 'flex', gap: '10px' }}>
+                  <div className="search-filter-group">
                     <input
                       type="text"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       placeholder="Search by name..."
-                      style={{
-                        flex: 2,
-                        padding: '10px',
-                        border: '1px solid #ddd',
-                        borderRadius: '5px',
-                        fontSize: '14px'
-                      }}
+                      className="form-input"
                     />
                     <select
                       value={typeFilter}
                       onChange={(e) => setTypeFilter(e.target.value)}
-                      style={{
-                        flex: 1,
-                        padding: '10px',
-                        border: '1px solid #ddd',
-                        borderRadius: '5px',
-                        fontSize: '14px',
-                        cursor: 'pointer'
-                      }}
+                      className="form-select"
                     >
                       <option value="all">All Types</option>
                       <option value="weapon">Weapon</option>
@@ -227,28 +179,22 @@ export function AddItemToShopModal({
                     </select>
                   </div>
                   {(searchTerm || typeFilter !== 'all') && (
-                    <p style={{ margin: '5px 0 0 0', fontSize: '13px', color: '#666' }}>
+                    <p className="filter-results-text">
                       Showing {filteredItems.length} of {libraryItems.length} items
                     </p>
                   )}
                 </div>
 
                 {/* Item Selection */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                <div className="form-group-lg">
+                  <label className="form-label">
                     Select Item *
                   </label>
                   <select
                     value={selectedItemId}
                     onChange={(e) => setSelectedItemId(e.target.value)}
                     required
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '5px',
-                      fontSize: '14px'
-                    }}
+                    className="form-select"
                   >
                     <option value="">Choose an item...</option>
                     {filteredItems.map(item => (
@@ -261,19 +207,13 @@ export function AddItemToShopModal({
 
                 {/* Selected Item Preview */}
                 {selectedItem && (
-                  <div style={{
-                    marginBottom: '20px',
-                    padding: '15px',
-                    backgroundColor: '#f8f9fa',
-                    borderRadius: '5px',
-                    border: '1px solid #dee2e6'
-                  }}>
-                    <h4 style={{ margin: '0 0 10px 0' }}>{selectedItem.item.name}</h4>
-                    <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>
+                  <div className="item-preview">
+                    <h4>{selectedItem.item.name}</h4>
+                    <p>
                       <strong>Type:</strong> {selectedItem.item.type}
                     </p>
                     {selectedItem.item.description && (
-                      <p style={{ margin: '10px 0 0 0', fontSize: '14px', color: '#666' }}>
+                      <p>
                         {selectedItem.item.description}
                       </p>
                     )}
@@ -281,66 +221,66 @@ export function AddItemToShopModal({
                 )}
 
                 {/* Price (Required) */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                <div className="form-group-lg">
+                  <label className="form-label">
                     Set Price *
                   </label>
-                  <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#666' }}>
+                  <p className="text-description-compact">
                     Enter at least one currency value
                   </p>
 
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 'bold' }}>CP</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={priceForm.cp}
-                        onChange={(e) => setPriceForm({ ...priceForm, cp: e.target.value })}
-                        placeholder="0"
-                        style={{ width: '70px', padding: '8px', border: '1px solid #ddd', borderRadius: '5px', fontSize: '14px' }}
-                      />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 'bold' }}>SP</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={priceForm.sp}
-                        onChange={(e) => setPriceForm({ ...priceForm, sp: e.target.value })}
-                        placeholder="0"
-                        style={{ width: '70px', padding: '8px', border: '1px solid #ddd', borderRadius: '5px', fontSize: '14px' }}
-                      />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 'bold' }}>GP</label>
+                  <div className="currency-group">
+                    <div className="currency-input">
+                    <label className="form-label-small">GP</label>
                       <input
                         type="number"
                         min="0"
                         value={priceForm.gp}
                         onChange={(e) => setPriceForm({ ...priceForm, gp: e.target.value })}
                         placeholder="0"
-                        style={{ width: '70px', padding: '8px', border: '1px solid #ddd', borderRadius: '5px', fontSize: '14px' }}
+                        className="form-input-small"
+                      />
+                    </div>
+                    <div className="currency-input">
+                      <label className="form-label-small">SP</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={priceForm.sp}
+                        onChange={(e) => setPriceForm({ ...priceForm, sp: e.target.value })}
+                        placeholder="0"
+                        className="form-input-small"
+                      />
+                    </div>
+                      <div className="currency-input">
+                      <label className="form-label-small">CP</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={priceForm.cp}
+                        onChange={(e) => setPriceForm({ ...priceForm, cp: e.target.value })}
+                        placeholder="0"
+                        className="form-input-small"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Stock */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                <div className="form-group-lg">
+                  <label className="form-checkbox-label">
                     <input
                       type="checkbox"
                       checked={useUnlimitedStock}
                       onChange={(e) => setUseUnlimitedStock(e.target.checked)}
-                      style={{ marginRight: '8px' }}
+                      className="form-checkbox"
                     />
-                    <span style={{ fontWeight: 'bold' }}>Unlimited Stock</span>
+                    <span>Unlimited Stock</span>
                   </label>
 
                   {!useUnlimitedStock && (
                     <>
-                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                      <label className="form-label">
                         Stock Quantity
                       </label>
                       <input
@@ -349,49 +289,24 @@ export function AddItemToShopModal({
                         onChange={(e) => setStock(e.target.value)}
                         min="0"
                         placeholder="Enter stock quantity"
-                        style={{
-                          width: '100%',
-                          padding: '10px',
-                          border: '1px solid #ddd',
-                          borderRadius: '5px',
-                          fontSize: '14px'
-                        }}
+                        className="form-input"
                       />
                     </>
                   )}
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="btn-group">
                   <button
                     type="button"
                     onClick={onClose}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      backgroundColor: '#6c757d',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
+                    className="btn btn-cancel"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={submitting || !selectedItemId}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      backgroundColor: submitting || !selectedItemId ? '#6c757d' : '#28a745',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: submitting || !selectedItemId ? 'not-allowed' : 'pointer',
-                      fontSize: '14px',
-                      fontWeight: 'bold'
-                    }}
+                    className={`btn ${submitting || !selectedItemId ? 'btn-secondary' : 'btn-success'}`}
                   >
                     {submitting ? 'Adding...' : 'Add to Shop'}
                   </button>

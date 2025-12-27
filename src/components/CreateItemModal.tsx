@@ -186,46 +186,20 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '30px',
-        borderRadius: '8px',
-        maxWidth: '700px',
-        width: '90%',
-        maxHeight: '90vh',
-        overflowY: 'auto'
-      }}>
+    <div className="modal-overlay">
+      <div className="modal-content" style={{ maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto' }}>
         <h2 style={{ marginTop: 0 }}>Create New Item</h2>
 
         <form onSubmit={handleSubmit}>
           {error && (
-            <div style={{
-              padding: '10px',
-              backgroundColor: '#f8d7da',
-              color: '#721c24',
-              borderRadius: '5px',
-              marginBottom: '15px',
-              fontSize: '14px'
-            }}>
+            <div className="error-message">
               {error}
             </div>
           )}
 
           {/* Item Name */}
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          <div className="form-group-lg">
+            <label className="form-label">
               Item Name *
             </label>
             <input
@@ -234,32 +208,20 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Longsword, Potion of Healing"
               required
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px'
-              }}
+              className="form-input"
             />
           </div>
 
           {/* Item Type */}
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          <div className="form-group-lg">
+            <label className="form-label">
               Item Type *
             </label>
             <select
               value={type}
               onChange={(e) => handleTypeChange(e.target.value as ItemType)}
               required
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px'
-              }}
+              className="form-select"
             >
               {enabledTypes.map((itemType) => (
                 <option key={itemType} value={itemType}>
@@ -270,8 +232,8 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
           </div>
 
           {/* Description */}
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          <div className="form-group-lg">
+            <label className="form-label">
               Description *
             </label>
             <textarea
@@ -280,21 +242,13 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
               placeholder="Describe the item..."
               required
               rows={4}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px',
-                fontFamily: 'inherit',
-                resize: 'vertical'
-              }}
+              className="form-textarea"
             />
           </div>
 
           {/* Weight */}
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          <div className="form-group-lg">
+            <label className="form-label">
               Weight (lb, optional)
             </label>
             <input
@@ -304,19 +258,13 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
               placeholder="e.g., 3"
               min="0"
               step="0.1"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px'
-              }}
+              className="form-input"
             />
           </div>
 
           {/* Tags */}
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          <div className="form-group-lg">
+            <label className="form-label">
               Tags (optional, comma-separated)
             </label>
             <input
@@ -324,25 +272,13 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="e.g., martial, melee, versatile"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px'
-              }}
+              className="form-input"
             />
           </div>
 
           {/* Dynamic Type-Specific Fields */}
           {typeFields.length > 0 && (
-            <div style={{
-              marginBottom: '20px',
-              padding: '15px',
-              backgroundColor: '#f8f9fa',
-              borderRadius: '8px',
-              border: '1px solid #dee2e6'
-            }}>
+            <div className="type-fields-section">
               <h3 style={{ marginTop: 0, marginBottom: '15px', fontSize: '16px' }}>
                 {type.charAt(0).toUpperCase() + type.slice(1)}-Specific Fields
               </h3>
@@ -358,37 +294,19 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
           )}
 
           {/* Buttons */}
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+          <div className="btn-group" style={{ justifyContent: 'flex-end' }}>
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                fontSize: '14px',
-                opacity: loading ? 0.6 : 1
-              }}
+              className="btn btn-cancel"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                fontSize: '14px',
-                opacity: loading ? 0.6 : 1
-              }}
+              className={`btn ${loading ? 'btn-secondary' : 'btn-success'}`}
             >
               {loading ? 'Creating...' : 'Create Item'}
             </button>

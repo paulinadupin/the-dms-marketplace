@@ -35,79 +35,35 @@ export function ActivateMarketModal({ marketId, marketName, dmId, onClose, onSuc
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px',
-        zIndex: 1000
-      }}>
-        <div style={{
-          backgroundColor: 'white',
-          padding: '30px',
-          borderRadius: '8px',
-          maxWidth: '500px',
-          width: '100%'
-        }}>
-          <h2 style={{ marginTop: 0 }}>Activate Market?</h2>
-          <p style={{ color: '#666', marginBottom: '20px' }}>
+      <div className="activate-modal-overlay">
+        <div className="activate-modal-content">
+          <h2 className="activate-modal-title">Activate Market?</h2>
+          <p className="activate-modal-description">
             You're about to activate <strong>"{marketName}"</strong>.
           </p>
 
-          <div style={{
-            padding: '15px',
-            backgroundColor: '#fff3cd',
-            border: '1px solid #ffc107',
-            borderRadius: '5px',
-            marginBottom: '20px'
-          }}>
-            <strong style={{ color: '#856404' }}>Important:</strong>
-            <ul style={{ margin: '10px 0 0 20px', color: '#856404' }}>
+          <div className="activate-modal-warning">
+            <strong className="activate-modal-warning-title">Important:</strong>
+            <ul className="activate-modal-warning-list">
               <li><strong>Only ONE market can be active at a time</strong> per account</li>
               <li>This market will be <strong>active for 3 hours</strong></li>
-              <li>To activate another market, you must deactivate this one first</li>
-              <li>Players can access your market via the shareable URL during this time</li>
+              <li>Players can access your market via the access code during this time</li>
             </ul>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="activate-modal-actions">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              style={{
-                flex: 1,
-                padding: '10px',
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                fontSize: '14px'
-              }}
+              className="activate-modal-cancel-button"
             >
               Cancel
             </button>
             <button
               onClick={handleActivate}
               disabled={loading}
-              style={{
-                flex: 1,
-                padding: '10px',
-                backgroundColor: loading ? '#6c757d' : '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold'
-              }}
+              className="activate-modal-confirm-button"
             >
               {loading ? 'Activating...' : 'Start (3 Hours)'}
             </button>

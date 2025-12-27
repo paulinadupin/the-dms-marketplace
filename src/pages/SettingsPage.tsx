@@ -125,12 +125,7 @@ export function SettingsPage() {
 
   if (!user) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <div className="auth-container">
         Loading...
       </div>
     );
@@ -140,55 +135,24 @@ export function SettingsPage() {
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* Back Button */}
-      <button
-        onClick={() => navigate('/dashboard')}
-        style={{
-          position: 'fixed',
-          top: '20px',
-          left: '20px',
-          width: '50px',
-          height: '50px',
-          backgroundColor: '#6c757d',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '24px',
-          color: 'white',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          transition: 'background-color 0.2s'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a6268'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
-        title="Back to Dashboard"
-      >
-        ←
-      </button>
-
-      {/* Hamburger Menu */}
-      <HamburgerMenu />
-
-      {/* Header */}
-      <div className="page-header-fullwidth">
-        <div className="page-header-content" style={{ maxWidth: '800px' }}>
-          <h1>Account Settings</h1>
-        </div>
+      {/* Header Bar */}
+      <div className="dm-header-bar">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="dm-back-button"
+          title="Back to Dashboard"
+        >
+          ←
+        </button>
+        <h1 className="dm-header-title">Account Settings</h1>
+        <HamburgerMenu />
       </div>
 
       {/* Content */}
-      <div style={{ padding: '0 20px', maxWidth: '800px', margin: '0 auto' }}>
+      <div className="settings-content">
 
         {/* Current Info */}
-        <div style={{
-          padding: '20px',
-          backgroundColor: '#e7f3ff',
-          borderRadius: '8px',
-          marginBottom: '30px'
-        }}>
+        <div className="info-box">
           <h3 style={{ marginTop: 0 }}>Current Account Info</h3>
           <p style={{ margin: '5px 0' }}>
             <strong>Display Name:</strong> {user.displayName || 'Not set'}
@@ -197,31 +161,18 @@ export function SettingsPage() {
             <strong>Email:</strong> {user.email}
           </p>
           {isGoogleUser && (
-            <p style={{
-              margin: '15px 0 0 0',
-              padding: '10px',
-              backgroundColor: '#fff3cd',
-              borderRadius: '5px',
-              fontSize: '14px',
-              color: '#856404'
-            }}>
+            <p className="warning-message">
               You're signed in with Google. Email and password changes must be made through your Google account.
             </p>
           )}
         </div>
 
         {/* Update Display Name */}
-        <div style={{
-          padding: '20px',
-          backgroundColor: 'white',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-          marginBottom: '20px'
-        }}>
+        <div className="section-card">
           <h2 style={{ marginTop: 0 }}>Change Display Name</h2>
           <form onSubmit={handleUpdateDisplayName}>
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+            <div className="form-group">
+              <label className="form-label">
                 New Display Name
               </label>
               <input
@@ -229,27 +180,13 @@ export function SettingsPage() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '5px',
-                  fontSize: '14px'
-                }}
+                className="form-input"
               />
             </div>
             <button
               type="submit"
               disabled={displayNameLoading}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: displayNameLoading ? '#6c757d' : '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: displayNameLoading ? 'not-allowed' : 'pointer',
-                fontSize: '14px'
-              }}
+              className={`btn ${displayNameLoading ? 'btn-secondary' : 'btn-primary'}`}
             >
               {displayNameLoading ? 'Updating...' : 'Update Display Name'}
             </button>
@@ -258,20 +195,14 @@ export function SettingsPage() {
 
         {/* Update Email - Only for non-Google users */}
         {!isGoogleUser && (
-          <div style={{
-            padding: '20px',
-            backgroundColor: 'white',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            marginBottom: '20px'
-          }}>
+          <div className="section-card">
             <h2 style={{ marginTop: 0 }}>Change Email</h2>
-            <p style={{ color: '#666', fontSize: '14px', marginBottom: '15px' }}>
+            <p className="text-secondary text-small" style={{ marginBottom: '15px' }}>
               You'll need to enter your current password to change your email.
             </p>
             <form onSubmit={handleUpdateEmail}>
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              <div className="form-group">
+                <label className="form-label">
                   New Email
                 </label>
                 <input
@@ -279,17 +210,11 @@ export function SettingsPage() {
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   required
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    border: '1px solid #ddd',
-                    borderRadius: '5px',
-                    fontSize: '14px'
-                  }}
+                  className="form-input"
                 />
               </div>
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              <div className="form-group">
+                <label className="form-label">
                   Current Password
                 </label>
                 <input
@@ -297,27 +222,13 @@ export function SettingsPage() {
                   value={emailPassword}
                   onChange={(e) => setEmailPassword(e.target.value)}
                   required
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    border: '1px solid #ddd',
-                    borderRadius: '5px',
-                    fontSize: '14px'
-                  }}
+                  className="form-input"
                 />
               </div>
               <button
                 type="submit"
                 disabled={emailLoading}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: emailLoading ? '#6c757d' : '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: emailLoading ? 'not-allowed' : 'pointer',
-                  fontSize: '14px'
-                }}
+                className={`btn ${emailLoading ? 'btn-secondary' : 'btn-primary'}`}
               >
                 {emailLoading ? 'Updating...' : 'Update Email'}
               </button>
@@ -327,20 +238,14 @@ export function SettingsPage() {
 
         {/* Update Password - Only for non-Google users */}
         {!isGoogleUser && (
-          <div style={{
-            padding: '20px',
-            backgroundColor: 'white',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            marginBottom: '20px'
-          }}>
+          <div className="section-card">
             <h2 style={{ marginTop: 0 }}>Change Password</h2>
-            <p style={{ color: '#666', fontSize: '14px', marginBottom: '15px' }}>
+            <p className="text-secondary text-small" style={{ marginBottom: '15px' }}>
               You'll need to enter your current password to set a new one.
             </p>
             <form onSubmit={handleUpdatePassword}>
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              <div className="form-group">
+                <label className="form-label">
                   Current Password
                 </label>
                 <input
@@ -348,17 +253,11 @@ export function SettingsPage() {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   required
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    border: '1px solid #ddd',
-                    borderRadius: '5px',
-                    fontSize: '14px'
-                  }}
+                  className="form-input"
                 />
               </div>
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              <div className="form-group">
+                <label className="form-label">
                   New Password
                 </label>
                 <input
@@ -367,17 +266,11 @@ export function SettingsPage() {
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                   minLength={6}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    border: '1px solid #ddd',
-                    borderRadius: '5px',
-                    fontSize: '14px'
-                  }}
+                  className="form-input"
                 />
               </div>
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              <div className="form-group">
+                <label className="form-label">
                   Confirm New Password
                 </label>
                 <input
@@ -386,27 +279,13 @@ export function SettingsPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={6}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    border: '1px solid #ddd',
-                    borderRadius: '5px',
-                    fontSize: '14px'
-                  }}
+                  className="form-input"
                 />
               </div>
               <button
                 type="submit"
                 disabled={passwordLoading}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: passwordLoading ? '#6c757d' : '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: passwordLoading ? 'not-allowed' : 'pointer',
-                  fontSize: '14px'
-                }}
+                className={`btn ${passwordLoading ? 'btn-secondary' : 'btn-primary'}`}
               >
                 {passwordLoading ? 'Updating...' : 'Update Password'}
               </button>
@@ -415,18 +294,12 @@ export function SettingsPage() {
         )}
 
         {/* Danger Zone - Delete Account */}
-        <div style={{
-          padding: '20px',
-          backgroundColor: '#fff5f5',
-          border: '2px solid #dc3545',
-          borderRadius: '8px',
-          marginBottom: '20px'
-        }}>
-          <h2 style={{ marginTop: 0, color: '#dc3545' }}>Danger Zone</h2>
-          <p style={{ color: '#666', fontSize: '14px', marginBottom: '15px' }}>
+        <div className="danger-zone">
+          <h2 style={{ marginTop: 0 }}>Danger Zone</h2>
+          <p className="text-secondary text-small" style={{ marginBottom: '15px' }}>
             Once you delete your account, there is no going back. This will permanently delete:
           </p>
-          <ul style={{ color: '#666', fontSize: '14px', marginBottom: '15px' }}>
+          <ul>
             <li>Your user profile</li>
             <li>All your markets</li>
             <li>All shops and items</li>
@@ -434,16 +307,7 @@ export function SettingsPage() {
           </ul>
           <button
             onClick={() => setShowDeleteModal(true)}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold'
-            }}
+            className="btn btn-danger btn-large"
           >
             Delete Account
           </button>
@@ -452,39 +316,15 @@ export function SettingsPage() {
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '30px',
-            borderRadius: '8px',
-            maxWidth: '500px',
-            width: '100%'
-          }}>
-            <h2 style={{ marginTop: 0, color: '#dc3545' }}>Delete Account?</h2>
-            <p style={{ color: '#666', marginBottom: '20px' }}>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2 style={{ marginTop: 0, color: 'var(--color-button-danger)' }}>Delete Account?</h2>
+            <p className="text-secondary text-description">
               This action cannot be undone. This will permanently delete your account and remove all your data from our servers.
             </p>
-            <div style={{
-              padding: '15px',
-              backgroundColor: '#fff5f5',
-              border: '1px solid #dc3545',
-              borderRadius: '5px',
-              marginBottom: '20px'
-            }}>
-              <strong style={{ color: '#dc3545' }}>Warning:</strong>
-              <ul style={{ margin: '10px 0 0 20px', color: '#666' }}>
+            <div className="danger-box">
+              <strong style={{ color: 'var(--color-button-danger)' }}>Warning:</strong>
+              <ul style={{ margin: '10px 0 0 20px', color: 'var(--color-text-secondary)' }}>
                 <li>All markets will be deleted</li>
                 <li>All shops will be deleted</li>
                 <li>All items will be deleted</li>
@@ -493,8 +333,8 @@ export function SettingsPage() {
             </div>
             <form onSubmit={handleDeleteAccount}>
               {!isGoogleUser && (
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                <div className="form-group-lg">
+                  <label className="form-label">
                     Enter your password to confirm
                   </label>
                   <input
@@ -503,55 +343,30 @@ export function SettingsPage() {
                     onChange={(e) => setDeletePassword(e.target.value)}
                     required
                     placeholder="Current password"
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '5px',
-                      fontSize: '14px'
-                    }}
+                    className="form-input"
                   />
                 </div>
               )}
               {isGoogleUser && (
-                <p style={{ color: '#666', marginBottom: '20px' }}>
+                <p className="text-secondary text-description">
                   Click the button below to permanently delete your account.
                 </p>
               )}
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div className="btn-group">
                 <button
                   type="button"
                   onClick={() => {
                     setShowDeleteModal(false);
                     setDeletePassword('');
                   }}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    fontSize: '14px'
-                  }}
+                  className="btn btn-cancel"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={deleteLoading}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    backgroundColor: deleteLoading ? '#6c757d' : '#dc3545',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: deleteLoading ? 'not-allowed' : 'pointer',
-                    fontSize: '14px',
-                    fontWeight: 'bold'
-                  }}
+                  className={`btn btn-large ${deleteLoading ? 'btn-secondary' : 'btn-danger'}`}
                 >
                   {deleteLoading ? 'Deleting...' : 'Delete Account Permanently'}
                 </button>

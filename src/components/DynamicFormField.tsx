@@ -19,8 +19,8 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
   switch (field.type) {
     case 'text':
       return (
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+        <div className="dynamic-field-container">
+          <label className="dynamic-field-label">
             {field.label} {field.required && '*'}
           </label>
           <input
@@ -29,16 +29,10 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
             onChange={(e) => handleChange(e.target.value)}
             placeholder={field.placeholder}
             required={field.required}
-            style={{
-              width: '100%',
-              padding: '10px',
-              border: '1px solid #ddd',
-              borderRadius: '5px',
-              fontSize: '14px'
-            }}
+            className="dynamic-field-input"
           />
           {field.helpText && (
-            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#999' }}>
+            <p className="dynamic-field-help-text">
               {field.helpText}
             </p>
           )}
@@ -47,8 +41,8 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
 
     case 'number':
       return (
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+        <div className="dynamic-field-container">
+          <label className="dynamic-field-label">
             {field.label} {field.required && '*'}
           </label>
           <input
@@ -60,16 +54,10 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
             min={field.min}
             max={field.max}
             step={field.step || 1}
-            style={{
-              width: '100%',
-              padding: '10px',
-              border: '1px solid #ddd',
-              borderRadius: '5px',
-              fontSize: '14px'
-            }}
+            className="dynamic-field-input"
           />
           {field.helpText && (
-            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#999' }}>
+            <p className="dynamic-field-help-text">
               {field.helpText}
             </p>
           )}
@@ -78,8 +66,8 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
 
     case 'textarea':
       return (
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+        <div className="dynamic-field-container">
+          <label className="dynamic-field-label">
             {field.label} {field.required && '*'}
           </label>
           <textarea
@@ -88,18 +76,10 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
             placeholder={field.placeholder}
             required={field.required}
             rows={4}
-            style={{
-              width: '100%',
-              padding: '10px',
-              border: '1px solid #ddd',
-              borderRadius: '5px',
-              fontSize: '14px',
-              fontFamily: 'inherit',
-              resize: 'vertical'
-            }}
+            className="dynamic-field-textarea"
           />
           {field.helpText && (
-            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#999' }}>
+            <p className="dynamic-field-help-text">
               {field.helpText}
             </p>
           )}
@@ -108,21 +88,15 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
 
     case 'select':
       return (
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+        <div className="dynamic-field-container">
+          <label className="dynamic-field-label">
             {field.label} {field.required && '*'}
           </label>
           <select
             value={value || ''}
             onChange={(e) => handleChange(e.target.value)}
             required={field.required}
-            style={{
-              width: '100%',
-              padding: '10px',
-              border: '1px solid #ddd',
-              borderRadius: '5px',
-              fontSize: '14px'
-            }}
+            className="dynamic-field-select"
           >
             <option value="">-- Select {field.label} --</option>
             {field.options?.map((option) => {
@@ -136,7 +110,7 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
             })}
           </select>
           {field.helpText && (
-            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#999' }}>
+            <p className="dynamic-field-help-text">
               {field.helpText}
             </p>
           )}
@@ -145,18 +119,11 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
 
     case 'multiselect':
       return (
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+        <div className="dynamic-field-container">
+          <label className="dynamic-field-label">
             {field.label} {field.required && '*'}
           </label>
-          <div style={{
-            border: '1px solid #ddd',
-            borderRadius: '5px',
-            padding: '10px',
-            maxHeight: '150px',
-            overflowY: 'auto',
-            backgroundColor: 'white'
-          }}>
+          <div className="dynamic-multiselect-container">
             {field.options?.map((option) => {
               const optValue = typeof option === 'string' ? option : option.value;
               const optLabel = typeof option === 'string' ? option : option.label;
@@ -165,12 +132,7 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
               return (
                 <label
                   key={optValue}
-                  style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    cursor: 'pointer',
-                    fontSize: '14px'
-                  }}
+                  className="dynamic-multiselect-option"
                 >
                   <input
                     type="checkbox"
@@ -183,7 +145,6 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
                         handleChange(currentValues.filter((v: string) => v !== optValue));
                       }
                     }}
-                    style={{ marginRight: '8px' }}
                   />
                   {optLabel}
                 </label>
@@ -191,7 +152,7 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
             })}
           </div>
           {field.helpText && (
-            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#999' }}>
+            <p className="dynamic-field-help-text">
               {field.helpText}
             </p>
           )}
@@ -200,20 +161,19 @@ export function DynamicFormField({ field, value, onChange }: DynamicFormFieldPro
 
     case 'checkbox':
       return (
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+        <div className="dynamic-field-container">
+          <label className="dynamic-checkbox-label">
             <input
               type="checkbox"
               checked={value || false}
               onChange={(e) => handleChange(e.target.checked)}
-              style={{ marginRight: '8px' }}
             />
-            <span style={{ fontWeight: 'bold' }}>
+            <span>
               {field.label}
             </span>
           </label>
           {field.helpText && (
-            <p style={{ margin: '5px 0 0 26px', fontSize: '12px', color: '#999' }}>
+            <p className="dynamic-field-help-text">
               {field.helpText}
             </p>
           )}

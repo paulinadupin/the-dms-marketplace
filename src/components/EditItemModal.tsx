@@ -235,30 +235,10 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px',
-        zIndex: 1000
-      }}>
-        <div style={{
-          backgroundColor: 'white',
-          padding: '30px',
-          borderRadius: '8px',
-          maxWidth: '600px',
-          width: '100%',
-          maxHeight: '90vh',
-          overflowY: 'auto'
-        }}>
+      <div className="modal-overlay">
+        <div className="modal-content" style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
           <h2 style={{ marginTop: 0 }}>Edit Item</h2>
-          <p style={{ color: '#666', marginBottom: '20px', fontSize: '14px' }}>
+          <p className="text-description">
             Update the details of this item in your library.
           </p>
 
@@ -269,15 +249,7 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
           ) : (
             <>
               {usageCount > 0 && (
-                <div style={{
-                  padding: '15px',
-                  marginBottom: '20px',
-                  backgroundColor: '#fff3cd',
-                  border: '1px solid #ffc107',
-                  borderRadius: '5px',
-                  fontSize: '14px',
-                  color: '#856404'
-                }}>
+                <div className="warning-message">
                   <strong>⚠️ This item is used in {usageCount} shop{usageCount > 1 ? 's' : ''}</strong>
                   <p style={{ margin: '10px 0 0 0' }}>
                     You can either update all existing instances or create a new separate item.
@@ -286,22 +258,15 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
               )}
 
               {error && (
-                <div style={{
-                  padding: '10px',
-                  marginBottom: '15px',
-                  backgroundColor: '#f8d7da',
-                  color: '#721c24',
-                  borderRadius: '5px',
-                  fontSize: '14px'
-                }}>
+                <div className="error-message">
                   {error}
                 </div>
               )}
 
               <form onSubmit={handleSubmit}>
                 {/* Name */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                <div className="form-group-lg">
+                  <label className="form-label">
                     Item Name *
                   </label>
                   <input
@@ -310,32 +275,20 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                     onChange={(e) => setName(e.target.value)}
                     required
                     placeholder="e.g., Longsword, Potion of Healing"
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '5px',
-                      fontSize: '14px'
-                    }}
+                    className="form-input"
                   />
                 </div>
 
                 {/* Type */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                <div className="form-group-lg">
+                  <label className="form-label">
                     Item Type *
                   </label>
                   <select
                     value={type}
                     onChange={(e) => handleTypeChange(e.target.value)}
                     required
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '5px',
-                      fontSize: '14px'
-                    }}
+                    className="form-select"
                   >
                     <option value="">Select item type...</option>
                     {getEnabledItemTypes().map(itemType => (
@@ -347,8 +300,8 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                 </div>
 
                 {/* Description */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                <div className="form-group-lg">
+                  <label className="form-label">
                     Description
                   </label>
                   <textarea
@@ -356,27 +309,13 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Describe the item's appearance, properties, or effects"
                     rows={4}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '5px',
-                      fontSize: '14px',
-                      fontFamily: 'inherit',
-                      resize: 'vertical'
-                    }}
+                    className="form-textarea"
                   />
                 </div>
 
                 {/* Dynamic Type-Specific Fields */}
                 {typeFields.length > 0 && (
-                  <div style={{
-                    marginBottom: '20px',
-                    padding: '15px',
-                    backgroundColor: '#f8f9fa',
-                    border: '1px solid #dee2e6',
-                    borderRadius: '5px'
-                  }}>
+                  <div className="type-fields-section">
                     <h4 style={{ marginTop: 0, marginBottom: '15px', fontSize: '16px' }}>
                       {ITEM_TYPE_LABELS[type] || type} Properties
                     </h4>
@@ -393,14 +332,8 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
 
                 {/* Choice: Update or Create New (only if item is used) */}
                 {usageCount > 0 && hasChanges && (
-                  <div style={{
-                    marginBottom: '20px',
-                    padding: '15px',
-                    backgroundColor: '#f8f9fa',
-                    border: '1px solid #dee2e6',
-                    borderRadius: '5px'
-                  }}>
-                    <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>
+                  <div className="type-fields-section">
+                    <label className="form-label">
                       What would you like to do? *
                     </label>
 
@@ -419,7 +352,7 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                         value="update"
                         checked={editChoice === 'update'}
                         onChange={(e) => setEditChoice(e.target.value as 'update')}
-                        style={{ marginRight: '10px' }}
+                        className="form-checkbox"
                       />
                       <strong>Update existing items</strong>
                       <p style={{ margin: '5px 0 0 28px', fontSize: '13px', color: '#666' }}>
@@ -441,7 +374,7 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                         value="create"
                         checked={editChoice === 'create'}
                         onChange={(e) => setEditChoice(e.target.value as 'create')}
-                        style={{ marginRight: '10px' }}
+                        className="form-checkbox"
                       />
                       <strong>Create a new item</strong>
                       <p style={{ margin: '5px 0 0 28px', fontSize: '13px', color: '#666' }}>
@@ -451,37 +384,18 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                   </div>
                 )}
 
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="btn-group">
                   <button
                     type="button"
                     onClick={onClose}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      backgroundColor: '#6c757d',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
+                    className="btn btn-cancel"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={loading || !hasChanges}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      backgroundColor: loading || !hasChanges ? '#6c757d' : '#28a745',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: loading || !hasChanges ? 'not-allowed' : 'pointer',
-                      fontSize: '14px',
-                      fontWeight: 'bold'
-                    }}
+                    className={`btn ${loading || !hasChanges ? 'btn-secondary' : 'btn-success'}`}
                   >
                     {loading ? 'Saving...' : 'Save Changes'}
                   </button>

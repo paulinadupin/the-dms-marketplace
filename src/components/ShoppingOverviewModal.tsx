@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { InventoryItemDetailModal } from './InventoryItemDetailModal';
+import { PlayerSessionService } from '../services/player-session.service';
 
 interface ShoppingOverviewModalProps {
   accessCode: string;
@@ -23,13 +24,29 @@ export function ShoppingOverviewModal({ accessCode, onClose }: ShoppingOverviewM
     }
   };
 
-  const handleEndSession = () => {
+  const handleEndSession = async () => {
     const confirmed = window.confirm(
-      'Are you sure you want to end your shopping session? You will return to the market entry page.'
+      'Are you sure you want to end your shopping session? Your data will be cleared and you will return to the home page.'
     );
 
     if (confirmed) {
-      navigate(`/market/${accessCode}`);
+      try {
+        // Log the end session activity if we have a sessionId
+        if (playerData?.sessionId) {
+          await PlayerSessionService.addTransaction(
+            playerData.sessionId,
+            'end_session'
+          );
+        }
+      } catch (error) {
+        console.error('Failed to log session end:', error);
+      }
+
+      // Clear player data for this market
+      localStorage.removeItem(`player_${accessCode}_data`);
+      localStorage.removeItem(`player_${accessCode}_name`);
+      // Navigate to home page
+      navigate('/', { replace: true });
     }
   };
 

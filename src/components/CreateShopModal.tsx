@@ -71,49 +71,22 @@ export function CreateShopModal({ marketId, onClose, onSuccess }: CreateShopModa
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px',
-        zIndex: 1000
-      }}>
-        <div style={{
-          backgroundColor: 'white',
-          padding: '30px',
-          borderRadius: '8px',
-          maxWidth: '600px',
-          width: '100%',
-          maxHeight: '90vh',
-          overflowY: 'auto'
-        }}>
+      <div className="modal-overlay">
+        <div className="modal-content" style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
           <h2 style={{ marginTop: 0 }}>Create New Shop</h2>
-          <p style={{ color: '#666', marginBottom: '20px', fontSize: '14px' }}>
+          <p className="text-description">
             Add a new shop to this market where players can browse and purchase items.
           </p>
 
           {error && (
-            <div style={{
-              padding: '10px',
-              marginBottom: '15px',
-              backgroundColor: '#f8d7da',
-              color: '#721c24',
-              borderRadius: '5px',
-              fontSize: '14px'
-            }}>
+            <div className="error-message">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+            <div className="form-group-lg">
+              <label className="form-label">
                 Shop Name *
               </label>
               <input
@@ -122,31 +95,19 @@ export function CreateShopModal({ marketId, onClose, onSuccess }: CreateShopModa
                 onChange={(e) => setName(e.target.value)}
                 required
                 placeholder="e.g., The Rusty Dragon Inn, Gilded Griffin Armory"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '5px',
-                  fontSize: '14px'
-                }}
+                className="form-input"
               />
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+            <div className="form-group-lg">
+              <label className="form-label">
                 Category *
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as ShopCategory)}
                 required
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '5px',
-                  fontSize: '14px'
-                }}
+                className="form-select"
               >
                 {SHOP_CATEGORIES.map(cat => (
                   <option key={cat.value} value={cat.value}>
@@ -156,8 +117,8 @@ export function CreateShopModal({ marketId, onClose, onSuccess }: CreateShopModa
               </select>
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+            <div className="form-group-lg">
+              <label className="form-label">
                 Location *
               </label>
               <input
@@ -166,18 +127,12 @@ export function CreateShopModal({ marketId, onClose, onSuccess }: CreateShopModa
                 onChange={(e) => setLocation(e.target.value)}
                 required
                 placeholder="e.g., Market Square, Castle District, Harbor Road"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '5px',
-                  fontSize: '14px'
-                }}
+                className="form-input"
               />
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+            <div className="form-group-lg">
+              <label className="form-label">
                 Shopkeeper
               </label>
               <input
@@ -185,18 +140,12 @@ export function CreateShopModal({ marketId, onClose, onSuccess }: CreateShopModa
                 value={shopkeeper}
                 onChange={(e) => setShopkeeper(e.target.value)}
                 placeholder="e.g., Gundren Rockseeker (optional)"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '5px',
-                  fontSize: '14px'
-                }}
+                className="form-input"
               />
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+            <div className="form-group-lg">
+              <label className="form-label">
                 Description
               </label>
               <textarea
@@ -204,49 +153,22 @@ export function CreateShopModal({ marketId, onClose, onSuccess }: CreateShopModa
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe the shop, its atmosphere, and what it offers (optional)"
                 rows={3}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '5px',
-                  fontSize: '14px',
-                  fontFamily: 'inherit',
-                  resize: 'vertical'
-                }}
+                className="form-textarea"
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div className="btn-group">
               <button
                 type="button"
                 onClick={onClose}
-                style={{
-                  flex: 1,
-                  padding: '10px',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
+                className="btn btn-cancel"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                style={{
-                  flex: 1,
-                  padding: '10px',
-                  backgroundColor: loading ? '#6c757d' : '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 'bold'
-                }}
+                className={`btn ${loading ? 'btn-secondary' : 'btn-success'}`}
               >
                 {loading ? 'Creating...' : 'Create Shop'}
               </button>

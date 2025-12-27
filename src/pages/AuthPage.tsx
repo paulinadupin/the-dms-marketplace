@@ -94,57 +94,27 @@ export function AuthPage() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f5f5f5',
-      padding: '20px'
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: '400px',
-        backgroundColor: 'white',
-        padding: '30px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-      }}>
+    <div className="auth-container">
+      <div className="auth-card">
         {/* Header */}
-        <h1 style={{ textAlign: 'center', marginBottom: '10px' }}>
+        <h1 className="text-center" style={{ marginBottom: '10px' }}>
           The DM's Marketplace
         </h1>
-        <p style={{ textAlign: 'center', color: '#666', marginBottom: '30px' }}>
+        <p className="text-center text-secondary" style={{ marginBottom: '30px' }}>
           {mode === 'signin' ? 'Sign in to your account' : 'Create a new DM account'}
         </p>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <div className="tab-group">
           <button
             onClick={() => setMode('signin')}
-            style={{
-              flex: 1,
-              padding: '10px',
-              border: mode === 'signin' ? '2px solid #007bff' : '1px solid #ddd',
-              backgroundColor: mode === 'signin' ? '#e7f3ff' : 'white',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontWeight: mode === 'signin' ? 'bold' : 'normal'
-            }}
+            className={`tab-btn ${mode === 'signin' ? 'tab-btn-active' : ''}`}
           >
             Sign In
           </button>
           <button
             onClick={() => setMode('signup')}
-            style={{
-              flex: 1,
-              padding: '10px',
-              border: mode === 'signup' ? '2px solid #007bff' : '1px solid #ddd',
-              backgroundColor: mode === 'signup' ? '#e7f3ff' : 'white',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontWeight: mode === 'signup' ? 'bold' : 'normal'
-            }}
+            className={`tab-btn ${mode === 'signup' ? 'tab-btn-active' : ''}`}
           >
             Sign Up
           </button>
@@ -152,14 +122,7 @@ export function AuthPage() {
 
         {/* Error Message */}
         {error && (
-          <div style={{
-            padding: '10px',
-            marginBottom: '20px',
-            backgroundColor: '#f8d7da',
-            color: '#721c24',
-            borderRadius: '5px',
-            fontSize: '14px'
-          }}>
+          <div className="error-message" style={{ marginBottom: '20px' }}>
             {error}
           </div>
         )}
@@ -167,8 +130,8 @@ export function AuthPage() {
         {/* Email/Password Form */}
         <form onSubmit={mode === 'signup' ? handleEmailSignUp : handleEmailSignIn}>
           {mode === 'signup' && (
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+            <div className="form-group">
+              <label className="form-label">
                 Display Name
               </label>
               <input
@@ -177,19 +140,13 @@ export function AuthPage() {
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
                 placeholder="Dungeon Master Dave"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '5px',
-                  fontSize: '14px'
-                }}
+                className="form-input"
               />
             </div>
           )}
 
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          <div className="form-group">
+            <label className="form-label">
               Email
             </label>
             <input
@@ -198,18 +155,12 @@ export function AuthPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="dm@example.com"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px'
-              }}
+              className="form-input"
             />
           </div>
 
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          <div className="form-group">
+            <label className="form-label">
               Password
             </label>
             <input
@@ -219,29 +170,16 @@ export function AuthPage() {
               required
               placeholder="Min. 6 characters"
               minLength={6}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px'
-              }}
+              className="form-input"
             />
           </div>
 
           {mode === 'signin' && (
-            <div style={{ textAlign: 'right', marginBottom: '15px' }}>
+            <div className="text-right form-group">
               <button
                 type="button"
                 onClick={() => setShowForgotPassword(true)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#007bff',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  textDecoration: 'underline'
-                }}
+                className="btn-ghost"
               >
                 Forgot password?
               </button>
@@ -251,51 +189,22 @@ export function AuthPage() {
           <button
             type="submit"
             disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: loading ? '#6c757d' : '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '16px',
-              fontWeight: 'bold'
-            }}
+            className={`btn btn-block btn-large ${loading ? 'btn-secondary' : 'btn-primary'}`}
           >
             {loading ? 'Please wait...' : mode === 'signup' ? 'Create Account' : 'Sign In'}
           </button>
         </form>
 
         {/* Divider */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          margin: '20px 0',
-          color: '#666'
-        }}>
-          <div style={{ flex: 1, height: '1px', backgroundColor: '#ddd' }} />
-          <span style={{ padding: '0 10px', fontSize: '14px' }}>OR</span>
-          <div style={{ flex: 1, height: '1px', backgroundColor: '#ddd' }} />
+        <div className="divider">
+          <span>OR</span>
         </div>
 
         {/* Google Sign In */}
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
-          style={{
-            width: '100%',
-            padding: '12px',
-            backgroundColor: 'white',
-            border: '1px solid #ddd',
-            borderRadius: '5px',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            fontSize: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px'
-          }}
+          className="btn-google"
         >
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -309,74 +218,36 @@ export function AuthPage() {
 
       {/* Forgot Password Modal */}
       {showForgotPassword && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '30px',
-            borderRadius: '8px',
-            maxWidth: '400px',
-            width: '100%'
-          }}>
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px' }}>
             <h2 style={{ marginTop: 0 }}>Reset Password</h2>
 
             {resetSent ? (
               <>
-                <div style={{
-                  padding: '15px',
-                  backgroundColor: '#d4edda',
-                  color: '#155724',
-                  borderRadius: '5px',
-                  marginBottom: '20px'
-                }}>
+                <div className="success-message" style={{ padding: '15px' }}>
                   Password reset email sent! Check your inbox and follow the instructions.
                 </div>
                 <button
                   onClick={closeForgotPassword}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer'
-                  }}
+                  className="btn btn-primary btn-block"
                 >
                   Close
                 </button>
               </>
             ) : (
               <form onSubmit={handlePasswordReset}>
-                <p style={{ color: '#666', marginBottom: '20px' }}>
+                <p className="text-secondary text-description">
                   Enter your email address and we'll send you a link to reset your password.
                 </p>
 
                 {error && (
-                  <div style={{
-                    padding: '10px',
-                    marginBottom: '15px',
-                    backgroundColor: '#f8d7da',
-                    color: '#721c24',
-                    borderRadius: '5px',
-                    fontSize: '14px'
-                  }}>
+                  <div className="error-message">
                     {error}
                   </div>
                 )}
 
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                <div className="form-group-lg">
+                  <label className="form-label">
                     Email
                   </label>
                   <input
@@ -385,44 +256,22 @@ export function AuthPage() {
                     onChange={(e) => setResetEmail(e.target.value)}
                     required
                     placeholder="dm@example.com"
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '5px',
-                      fontSize: '14px'
-                    }}
+                    className="form-input"
                   />
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="btn-group">
                   <button
                     type="button"
                     onClick={closeForgotPassword}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      backgroundColor: '#6c757d',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: 'pointer'
-                    }}
+                    className="btn btn-cancel"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      backgroundColor: loading ? '#6c757d' : '#007bff',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: loading ? 'not-allowed' : 'pointer'
-                    }}
+                    className={`btn ${loading ? 'btn-secondary' : 'btn-primary'}`}
                   >
                     {loading ? 'Sending...' : 'Send Reset Link'}
                   </button>

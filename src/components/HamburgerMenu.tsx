@@ -43,35 +43,13 @@ export function HamburgerMenu() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div style={{
-          position: 'absolute',
-          top: '60px',
-          right: '0',
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          minWidth: '200px',
-          overflow: 'hidden'
-        }}>
+        <div className="hamburger-dropdown">
           <button
             onClick={() => {
               navigate('/item-library');
               setIsOpen(false);
             }}
-            style={{
-              width: '100%',
-              padding: '15px 20px',
-              backgroundColor: 'white',
-              color: '#333',
-              border: 'none',
-              borderBottom: '1px solid #e0e0e0',
-              cursor: 'pointer',
-              fontSize: '14px',
-              textAlign: 'left',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+            className="hamburger-menu-item"
           >
             Item Library
           </button>
@@ -80,20 +58,7 @@ export function HamburgerMenu() {
               navigate('/settings');
               setIsOpen(false);
             }}
-            style={{
-              width: '100%',
-              padding: '15px 20px',
-              backgroundColor: 'white',
-              color: '#333',
-              border: 'none',
-              borderBottom: '1px solid #e0e0e0',
-              cursor: 'pointer',
-              fontSize: '14px',
-              textAlign: 'left',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+            className="hamburger-menu-item"
           >
             Settings
           </button>
@@ -102,19 +67,7 @@ export function HamburgerMenu() {
               handleSignOut();
               setIsOpen(false);
             }}
-            style={{
-              width: '100%',
-              padding: '15px 20px',
-              backgroundColor: 'white',
-              color: '#dc3545',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '14px',
-              textAlign: 'left',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+            className="hamburger-menu-item danger"
           >
             Sign Out
           </button>
