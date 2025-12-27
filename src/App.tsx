@@ -11,12 +11,16 @@ import { PlayerMarketEntry } from './pages/PlayerMarketEntry';
 import { PlayerShopsList } from './pages/PlayerShopsList';
 import { PlayerShopInventory } from './pages/PlayerShopInventory';
 import { PlayerMarketSummary } from './pages/PlayerMarketSummary';
+import { HowToUsePage } from './pages/HowToUsePage';
+import { AboutPage } from './pages/AboutPage';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/how-to-use" element={<HowToUsePage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/settings" element={<SettingsPage />} />
