@@ -46,7 +46,7 @@ export function LandingPage() {
             <a href="/" className="landing-nav-link">Home</a>
             <a href="/how-to-use" className="landing-nav-link">How to Use</a>
             <a href="/about" className="landing-nav-link">About Us</a>
-            <a href="https://github.com/paulinadupin/the-dms-marketplace/issues" target="_blank" rel="noopener noreferrer" className="landing-nav-link">Support</a>
+            <a href="https://github.com/paulinadupin/the-dms-marketplace" target="_blank" rel="noopener noreferrer" className="landing-nav-link">GitHub</a>
           </div>
 
           <div className="landing-nav-buttons">
@@ -126,18 +126,6 @@ export function LandingPage() {
         </div>
       </div>
 
-      {/* Footer - Placeholder */}
-      <footer className="landing-footer">
-        <div className="landing-footer-container">
-          <div className="landing-footer-links">
-            <a href="/privacy" className="landing-footer-link">Privacy Policy</a>
-            <a href="https://github.com/paulinadupin/the-dms-marketplace" target="_blank" rel="noopener noreferrer" className="landing-footer-link">GitHub</a>
-          </div>
-          <div>
-            © 2025 The DM's Marketplace. All rights reserved.
-          </div>
-        </div>
-      </footer>
     </>
   );
 }
