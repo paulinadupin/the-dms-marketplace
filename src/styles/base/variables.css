@@ -4,7 +4,7 @@
   --background-page: rgb(242, 242, 242);
   --background-card: #ffffff;
   --background-card-secondary: #d7d7d7;
-  --background-header: #a6a6a6;
+  --background-header: #c5c5c5;
   --background-empty-state: #f9f9f9;
 
   /* Button Colors */
@@ -13,7 +13,8 @@
   --color-button-danger: #dc3545;
   --color-button-warning: #ffc107;
   --color-button-secondary: #6c757d;
-  --color-button-info: #3498db;
+  --color-button-info: #576670;
+  --color-button-info-hover: #136e7c;
 
   /* Text Colors */
   --color-text-primary: #333;

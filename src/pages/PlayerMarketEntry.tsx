@@ -12,9 +12,9 @@ export function PlayerMarketEntry() {
   const [loading, setLoading] = useState(true);
 
   // Currency inputs
-  const [gold, setGold] = useState('0');
-  const [silver, setSilver] = useState('0');
-  const [copper, setCopper] = useState('0');
+  const [gold, setGold] = useState('');
+  const [silver, setSilver] = useState('');
+  const [copper, setCopper] = useState('');
 
   useEffect(() => {
     loadMarket();

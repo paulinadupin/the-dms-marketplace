@@ -1,50 +1,104 @@
 /* layout/header.css */
 
-.dm-header-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+/* Shared header bar for both DM and Player modes */
+.dm-header-bar,
+.player-header-bar {
+  position: relative;
   width: 100%;
   max-width: 100vw;
-  height: 60px;
-  background: var(--background-header);
-  border-bottom: 2px solid var(--color-border);
+  height: 70px;
+  background-color: var(--background-header);
+  border-bottom: 2px solid var(--color-button-primary);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 15px;
-  z-index: 100;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: var(--spacing-md) var(--spacing-lg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
 }
 
-.dm-header-title {
+/* Shared header title */
+.dm-header-title,
+.player-header-title {
   flex: 1;
   text-align: center;
   margin: 0;
-  font-size: 20px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-button-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 0 10px;
+  padding: 0 var(--spacing-sm);
+
 }
 
-.dm-back-button {
-  background: none;
+/* Shared back button styling */
+.dm-back-button,
+.player-back-button {
+  width: 50px;
+  height: 50px;
+  background-color: var(--color-button-secondary);
+  color: var(--color-text-white);
   border: none;
-  font-size: 24px;
+  border-radius: var(--radius-md);
+  font-size: 1.8rem;
+  font-weight: bold;
   cursor: pointer;
-  padding: 8px 12px;
-  color: var(--color-text-primary);
-  min-width: 40px;
-  height: 40px;
+  transition: background-color 0.2s, transform 0.1s;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-md);
-  transition: background-color 0.2s;
 }
 
-.dm-back-button:hover {
-  background-color: var(--color-hover-bg);
+.dm-back-button:hover,
+.player-back-button:hover {
+  background-color: #5a6268;
+  transform: scale(1.05);
+}
+
+/* Shopping overview button (player mode only) */
+.shopping-overview-button {
+  width: 50px;
+  height: 50px;
+  background-color: var(--color-button-info);
+  color: var(--color-text-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shopping-overview-button:hover {
+  background-color: var(--color-button-info-hover);
+  transform: scale(1.05);
+}
+
+/* ===================================
+   RESPONSIVE DESIGN
+   =================================== */
+
+@media (max-width: 768px) {
+  .dm-header-bar,
+  .player-header-bar {
+    height: 60px;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .dm-header-title,
+  .player-header-title {
+    font-size: 1.2rem;
+  }
+
+  .dm-back-button,
+  .player-back-button,
+  .shopping-overview-button {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
 }

@@ -127,7 +127,7 @@ export function PlayerShopsList() {
           className="shopping-overview-button"
           title="View Shopping Overview"
         >
-          📋
+        𖠩
         </button>
         <h1 className="player-header-title">{market.name}</h1>
         <PlayerInventoryMenu accessCode={accessCode!} />

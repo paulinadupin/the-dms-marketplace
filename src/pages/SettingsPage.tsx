@@ -135,43 +135,17 @@ export function SettingsPage() {
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* Back Button */}
-      <button
-        onClick={() => navigate('/dashboard')}
-        style={{
-          position: 'fixed',
-          top: '20px',
-          left: '20px',
-          width: '50px',
-          height: '50px',
-          backgroundColor: '#6c757d',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '24px',
-          color: 'white',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          transition: 'background-color 0.2s'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a6268'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
-        title="Back to Dashboard"
-      >
-        ←
-      </button>
-
-      {/* Hamburger Menu */}
-      <HamburgerMenu />
-
-      {/* Header */}
-      <div className="page-header-fullwidth">
-        <div className="page-header-content" style={{ maxWidth: '800px' }}>
-          <h1>Account Settings</h1>
-        </div>
+      {/* Header Bar */}
+      <div className="dm-header-bar">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="dm-back-button"
+          title="Back to Dashboard"
+        >
+          ←
+        </button>
+        <h1 className="dm-header-title">Account Settings</h1>
+        <HamburgerMenu />
       </div>
 
       {/* Content */}

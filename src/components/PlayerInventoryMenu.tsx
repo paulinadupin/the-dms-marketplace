@@ -58,12 +58,12 @@ export function PlayerInventoryMenu({ accessCode }: PlayerInventoryMenuProps) {
       {/* Hamburger Button */}
       <button
         onClick={handleToggle}
-        className="player-inventory-button"
+        className="hamburger-button"
         title="View Your Inventory"
       >
-        <div className="player-inventory-icon-line" />
-        <div className="player-inventory-icon-line" />
-        <div className="player-inventory-icon-line" />
+        <div />
+        <div />
+        <div />
       </button>
 
       {/* Dropdown Panel */}
@@ -78,7 +78,7 @@ export function PlayerInventoryMenu({ accessCode }: PlayerInventoryMenuProps) {
             className="player-sell-item-button-dropdown"
             title="Sell an Item"
           >
-            💰
+            Sell Item
           </button>
 
           <h3>Your Inventory</h3>
@@ -86,9 +86,9 @@ export function PlayerInventoryMenu({ accessCode }: PlayerInventoryMenuProps) {
           {/* Currency */}
           <div className="player-inventory-section">
             <h4>Currency</h4>
-            <p>💰 Gold: {playerData.gold || 0} GP</p>
-            <p>💰 Silver: {playerData.silver || 0} SP</p>
-            <p>💰 Copper: {playerData.copper || 0} CP</p>
+            <p>Gold: {playerData.gold || 0} GP</p>
+            <p>Silver: {playerData.silver || 0} SP</p>
+            <p>Copper: {playerData.copper || 0} CP</p>
           </div>
 
           {/* Purchased Items */}
