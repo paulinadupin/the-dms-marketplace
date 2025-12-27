@@ -129,7 +129,7 @@
 }
 
 .activate-modal-cancel-button:hover:not(:disabled) {
-  background-color: #5a6268;
+  background-color: var(--color-button-secondary-hover);
 }
 
 .activate-modal-cancel-button:disabled {
@@ -151,7 +151,7 @@
 }
 
 .activate-modal-confirm-button:hover:not(:disabled) {
-  background-color: #218838;
+  background-color: var(--color-button-success-hover);
 }
 
 .activate-modal-confirm-button:disabled {

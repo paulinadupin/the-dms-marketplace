@@ -78,5 +78,5 @@
 }
 
 .hamburger-menu-item.danger:hover {
-  background-color: #fff5f5;
+  background-color: var(--background-danger-box);
 }
