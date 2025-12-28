@@ -43,8 +43,8 @@ function getNestedValue(obj: any, path: string): any {
 }
 
 export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalProps) {
-  // Tab state - API first now
-  const [activeTab, setActiveTab] = useState<'custom' | 'api'>('api');
+  // Tab state - Custom first
+  const [activeTab, setActiveTab] = useState<'custom' | 'api'>('custom');
 
   // Custom item state
   const [name, setName] = useState('');
@@ -370,23 +370,6 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
         <div className="tab-switcher" style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '2px solid var(--color-border)' }}>
           <button
             type="button"
-            onClick={() => setActiveTab('api')}
-            className={`tab-button ${activeTab === 'api' ? 'active' : ''}`}
-            style={{
-              padding: '10px 20px',
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'api' ? '2px solid var(--color-button-primary)' : '2px solid transparent',
-              cursor: 'pointer',
-              fontWeight: activeTab === 'api' ? 'bold' : 'normal',
-              color: activeTab === 'api' ? 'var(--color-button-primary)' : 'var(--color-text-secondary)',
-              marginBottom: '-2px'
-            }}
-          >
-            Import from D&D Official
-          </button>
-          <button
-            type="button"
             onClick={() => setActiveTab('custom')}
             className={`tab-button ${activeTab === 'custom' ? 'active' : ''}`}
             style={{
@@ -401,6 +384,23 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
             }}
           >
             Create Custom
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('api')}
+            className={`tab-button ${activeTab === 'api' ? 'active' : ''}`}
+            style={{
+              padding: '10px 20px',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'api' ? '2px solid var(--color-button-primary)' : '2px solid transparent',
+              cursor: 'pointer',
+              fontWeight: activeTab === 'api' ? 'bold' : 'normal',
+              color: activeTab === 'api' ? 'var(--color-button-primary)' : 'var(--color-text-secondary)',
+              marginBottom: '-2px'
+            }}
+          >
+            Import from D&D Official
           </button>
         </div>
 
