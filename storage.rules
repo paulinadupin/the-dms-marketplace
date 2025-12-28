@@ -1,0 +1,23 @@
+rules_version = '2';
+
+// Firebase Storage Security Rules for D&D Marketplace
+// These rules control access to item images stored in Firebase Storage
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Item images stored in /items/{dmId}/{itemId}/{fileName}
+    match /items/{dmId}/{itemId}/{fileName} {
+
+      // Anyone can read item images (players need to view items in shops)
+      allow read: if true;
+
+      // Only authenticated users can write or delete
+      // Only the DM who owns the item can modify/delete their own images
+      allow write, delete: if request.auth != null
+                            && request.auth.uid == dmId
+                            && request.resource.size <= 2 * 1024 * 1024  // Max 2MB
+                            && request.resource.contentType.matches('image/.*');  // Must be an image
+    }
+  }
+}

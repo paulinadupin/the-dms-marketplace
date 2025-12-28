@@ -13,6 +13,21 @@ export function ItemDetailModal({ item, onClose }: ItemDetailModalProps) {
       <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
         <h2 className="modal-title">{item.item.name}</h2>
 
+        {/* Item Image */}
+        {item.item.imageUrl && (
+          <div className="modal-image-container">
+            <img
+              src={item.item.imageUrl}
+              alt={item.item.name}
+              className="modal-image"
+              onError={(e) => {
+                const container = e.currentTarget.parentElement;
+                if (container) container.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+
         {/* Badges */}
         <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
           <span className={`badge badge-${item.item.type}`}>

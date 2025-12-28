@@ -560,6 +560,22 @@ export function ShopInventory() {
                     </div>
                   )}
 
+                  {/* Item Image */}
+                  {item.imageUrl && (
+                    <div className="card-image-container">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="card-image"
+                        loading="lazy"
+                        onError={(e) => {
+                          const container = e.currentTarget.parentElement;
+                          if (container) container.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+
                   <div className="card-header">
                     <div className={`card-body ${selectionMode ? 'card-content-shifted' : ''}`}>
                       <div className="badge-container">

@@ -14,6 +14,7 @@ import {
 import { db } from '../config/firebase';
 import type { ItemLibrary, CreateItemLibraryInput } from '../types/firebase';
 import { ShopItemService } from './shop-item.service';
+import { StorageService } from './storage.service';
 import { LIMITS } from '../config/limits';
 
 export class ItemLibraryService {
@@ -172,6 +173,19 @@ export class ItemLibraryService {
    */
   static async deleteItem(itemId: string): Promise<void> {
     try {
+      // Get item to check for image
+      const item = await this.getItem(itemId);
+
+      // Delete image from storage if exists
+      if (item?.item.imageUrl && StorageService.isFirebaseStorageUrl(item.item.imageUrl)) {
+        try {
+          await StorageService.deleteItemImage(item.item.imageUrl);
+        } catch (err) {
+          console.warn('Failed to delete image:', err);
+          // Continue with item deletion even if image delete fails
+        }
+      }
+
       // Remove from all shops that use this item
       await ShopItemService.removeLibraryItemFromAllShops(itemId);
 

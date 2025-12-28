@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { ItemLibraryService } from '../services/item-library.service';
+import { StorageService } from '../services/storage.service';
 import type { ItemLibrary } from '../types/firebase';
 import { Toast } from './Toast';
 import { getEnabledItemTypes, getFieldsForType } from '../config/item-fields.config';
 import { DynamicFormField } from './DynamicFormField';
+import { ImageInput } from './ImageInput';
 
 interface EditItemModalProps {
   item: ItemLibrary;
@@ -63,6 +65,12 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
   const [usageCount, setUsageCount] = useState(0);
   const [checkingUsage, setCheckingUsage] = useState(true);
   const [editChoice, setEditChoice] = useState<'update' | 'create' | null>(null);
+
+  // Image state
+  const [imageUrl, setImageUrl] = useState(item.item.imageUrl || '');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageMode, setImageMode] = useState<'url' | 'upload'>('url');
+  const [imageChanged, setImageChanged] = useState(false);
 
   const typeFields = getFieldsForType(type);
 
@@ -134,6 +142,7 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
       name,
       description,
       type,
+      imageUrl: imageUrl || null, // Update image URL
     };
 
     // Merge with dynamic fields
@@ -192,15 +201,57 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
     setError('');
 
     try {
-      const updatedItem = buildUpdatedItem();
+      let updatedItem = buildUpdatedItem();
+
+      // Handle image changes
+      const originalImageUrl = item.item.imageUrl;
+
+      // If image was cleared (had image before, now empty)
+      if (originalImageUrl && !imageUrl && !imageFile && StorageService.isFirebaseStorageUrl(originalImageUrl)) {
+        await StorageService.deleteItemImage(originalImageUrl);
+        updatedItem.imageUrl = null;
+      }
+
+      // If new file was uploaded
+      if (imageFile && imageMode === 'upload') {
+        // Delete old image if exists
+        if (originalImageUrl && StorageService.isFirebaseStorageUrl(originalImageUrl)) {
+          try {
+            await StorageService.deleteItemImage(originalImageUrl);
+          } catch (err) {
+            console.warn('Failed to delete old image:', err);
+          }
+        }
+
+        // Upload new image
+        const uploadedUrl = await StorageService.uploadItemImage(
+          item.dmId,
+          item.id,
+          imageFile
+        );
+        updatedItem.imageUrl = uploadedUrl;
+      }
 
       if (usageCount > 0 && editChoice === 'create') {
         // Create a new item instead of updating
-        await ItemLibraryService.createItem(item.dmId, {
+        const createdItem = await ItemLibraryService.createItem(item.dmId, {
           item: updatedItem,
           source: 'custom', // New item is always custom
           officialId: undefined,
         });
+
+        // If file upload for new item, upload it
+        if (imageFile && imageMode === 'upload') {
+          const uploadedUrl = await StorageService.uploadItemImage(
+            item.dmId,
+            createdItem.id,
+            imageFile
+          );
+          await ItemLibraryService.updateItem(createdItem.id, {
+            item: { ...updatedItem, imageUrl: uploadedUrl }
+          });
+        }
+
         setToast({ message: 'New item created successfully!', type: 'success' });
       } else {
         // Update existing item
@@ -232,6 +283,8 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
     name !== item.item.name ||
     description !== (item.item.description || '') ||
     type !== (item.item.type || '') ||
+    imageUrl !== (item.item.imageUrl || '') ||
+    imageFile !== null ||
     JSON.stringify(dynamicFields) !== JSON.stringify({});
 
   return (
@@ -312,6 +365,31 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                     placeholder="Describe the item's appearance, properties, or effects"
                     rows={4}
                     className="form-textarea"
+                  />
+                </div>
+
+                {/* Item Image */}
+                <div className="form-group-lg" style={{
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '15px',
+                  backgroundColor: 'var(--background-card-secondary)'
+                }}>
+                  <label className="form-label">Item Image (optional)</label>
+                  <ImageInput
+                    mode={imageMode}
+                    url={imageUrl}
+                    file={imageFile}
+                    onUrlChange={(url) => {
+                      setImageUrl(url);
+                      setImageChanged(true);
+                    }}
+                    onFileChange={(file) => {
+                      setImageFile(file);
+                      setImageChanged(true);
+                    }}
+                    onModeChange={setImageMode}
+                    currentImageUrl={item.item.imageUrl}
                   />
                 </div>
 

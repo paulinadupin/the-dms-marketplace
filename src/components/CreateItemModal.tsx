@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { ItemLibraryService } from '../services/item-library.service';
 import { DnDApiService } from '../services/dnd-api.service';
+import { StorageService } from '../services/storage.service';
 import type { Item, ItemType } from '../types/item';
 import { getFieldsForType, getEnabledItemTypes } from '../config/item-fields.config';
 import { DynamicFormField } from './DynamicFormField';
 import { ApiItemDetailModal } from './ApiItemDetailModal';
+import { ImageInput } from './ImageInput';
 
 interface CreateItemModalProps {
   dmId: string;
@@ -56,6 +58,11 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
   const [dynamicFields, setDynamicFields] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Image state
+  const [imageUrl, setImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageMode, setImageMode] = useState<'url' | 'upload'>('url');
 
   // API search state
   const [apiSearch, setApiSearch] = useState('');
@@ -204,6 +211,7 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
       weight: parsedWeight,
       source: 'Custom',
       tags: parsedTags,
+      imageUrl: imageUrl || null, // Add image URL if provided
     };
 
     // Merge with dynamic fields based on type
@@ -336,10 +344,32 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
     try {
       const item = buildItem();
 
-      await ItemLibraryService.createItem(dmId, {
+      // Create item first (to get itemId)
+      const createdItem = await ItemLibraryService.createItem(dmId, {
         item,
         source: 'custom',
       });
+
+      // Handle image upload if file provided
+      if (imageFile && imageMode === 'upload') {
+        try {
+          const uploadedUrl = await StorageService.uploadItemImage(
+            dmId,
+            createdItem.id,
+            imageFile
+          );
+
+          // Update item with uploaded image URL
+          await ItemLibraryService.updateItem(createdItem.id, {
+            item: { ...item, imageUrl: uploadedUrl }
+          });
+        } catch (uploadErr: any) {
+          console.error('Failed to upload image:', uploadErr);
+          // Item created successfully, but image upload failed
+          // Don't fail the whole operation
+          setError('Item created, but image upload failed. You can add an image by editing the item.');
+        }
+      }
 
       onSuccess();
     } catch (err: any) {
@@ -476,6 +506,24 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
               onChange={(e) => setTags(e.target.value)}
               placeholder="e.g., martial, melee, versatile"
               className="form-input"
+            />
+          </div>
+
+          {/* Item Image */}
+          <div className="form-group-lg" style={{
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            padding: '15px',
+            backgroundColor: 'var(--background-card-secondary)'
+          }}>
+            <label className="form-label">Item Image (optional)</label>
+            <ImageInput
+              mode={imageMode}
+              url={imageUrl}
+              file={imageFile}
+              onUrlChange={setImageUrl}
+              onFileChange={setImageFile}
+              onModeChange={setImageMode}
             />
           </div>
 
