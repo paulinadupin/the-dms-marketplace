@@ -2,10 +2,21 @@
 
 .grid-container {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: var(--spacing-lg);
 }
 
 .grid-container-sm {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--spacing-md);
+}
+
+/* Responsive: Mobile - vertical list */
+@media (max-width: 768px) {
+  .grid-container,
+  .grid-container-sm {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
 }
