@@ -231,6 +231,21 @@ export function PlayerItemDetailModal({
         <h2>{itemData.name}</h2>
         <p className="player-item-type">{itemData.type}</p>
 
+        {/* Item Image */}
+        {itemData.imageUrl && (
+          <div className="modal-image-container">
+            <img
+              src={itemData.imageUrl}
+              alt={itemData.name}
+              className="modal-image"
+              onError={(e) => {
+                const container = e.currentTarget.parentElement;
+                if (container) container.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+
         <div className="player-modal-section">
           <h3>Price & Availability</h3>
           <p><strong>Price:</strong> {formatPrice(shopItem.price)}</p>

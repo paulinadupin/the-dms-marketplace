@@ -262,6 +262,22 @@ export function PlayerShopInventory() {
                   className={`player-item-card ${!canPurchase ? 'player-item-unavailable' : ''}`}
                   onClick={() => handleItemClick(shopItem)}
                 >
+                  {/* Item Image */}
+                  {itemData.imageUrl && (
+                    <div className="card-image-container">
+                      <img
+                        src={itemData.imageUrl}
+                        alt={itemData.name}
+                        className="card-image"
+                        loading="lazy"
+                        onError={(e) => {
+                          const container = e.currentTarget.parentElement;
+                          if (container) container.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+
                   <h3>{itemData.name}</h3>
                   <p className="player-item-type">{itemData.type}</p>
                   <p className="player-item-price">{formatPrice(shopItem.price)}</p>

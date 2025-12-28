@@ -42,6 +42,7 @@ export interface BaseItem {
   source: string;
   tags: string[];
   ruleset?: Ruleset;
+  imageUrl?: string | null;
 }
 
 export interface WeaponDamage {
