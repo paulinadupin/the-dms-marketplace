@@ -455,7 +455,7 @@ export function ShopInventory() {
         {/* Inventory Header */}
         <div className="controls-container">
           <div>
-            <h2 style={{ margin: 0 }}>Inventory</h2>
+            <h2 className="section-heading">Inventory</h2>
             {shopItems.length >= LIMITS.ITEMS_PER_SHOP && (
               <p className="text-danger">
                 ⚠️ You've reached the maximum number of items for this shop
@@ -574,43 +574,43 @@ export function ShopInventory() {
                         )}
                       </div>
                       {editingPriceId === shopItem.id ? (
-                        <div className="price-edit-form" style={{ marginTop: '8px', marginBottom: '8px' }}>
-                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>CP</label>
+                        <div className="price-edit-form">
+                          <div className="currency-inputs">
+                            <div className="currency-input-group">
+                              <label className="currency-label">CP</label>
                               <input
                                 type="number"
                                 min="0"
                                 value={priceForm.cp}
                                 onChange={(e) => setPriceForm({ ...priceForm, cp: e.target.value })}
-                                style={{ width: '60px', padding: '4px' }}
+                                className="currency-input"
                                 onClick={(e) => e.stopPropagation()}
                               />
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>SP</label>
+                            <div className="currency-input-group">
+                              <label className="currency-label">SP</label>
                               <input
                                 type="number"
                                 min="0"
                                 value={priceForm.sp}
                                 onChange={(e) => setPriceForm({ ...priceForm, sp: e.target.value })}
-                                style={{ width: '60px', padding: '4px' }}
+                                className="currency-input"
                                 onClick={(e) => e.stopPropagation()}
                               />
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>GP</label>
+                            <div className="currency-input-group">
+                              <label className="currency-label">GP</label>
                               <input
                                 type="number"
                                 min="0"
                                 value={priceForm.gp}
                                 onChange={(e) => setPriceForm({ ...priceForm, gp: e.target.value })}
-                                style={{ width: '60px', padding: '4px' }}
+                                className="currency-input"
                                 onClick={(e) => e.stopPropagation()}
                               />
                             </div>
                           </div>
-                          <div style={{ display: 'flex', gap: '8px' }}>
+                          <div className="edit-actions">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -633,29 +633,12 @@ export function ShopInventory() {
                         </div>
                       ) : (
                         <p
-                          className="item-price"
+                          className={`item-price ${selectionMode ? 'non-editable' : 'editable'}`}
                           onClick={(e) => {
                             if (!selectionMode) {
                               e.stopPropagation();
                               startEditingPrice(shopItem);
                             }
-                          }}
-                          style={{
-                            cursor: selectionMode ? 'default' : 'pointer',
-                            padding: '4px',
-                            borderRadius: '4px',
-                            transition: 'all 0.2s',
-                            textDecoration: selectionMode ? 'none' : 'underline',
-                            textDecorationStyle: 'dotted',
-                            textUnderlineOffset: '3px'
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!selectionMode) {
-                              e.currentTarget.style.backgroundColor = '#f0f0f0';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
                           }}
                           title={selectionMode ? '' : 'Click to edit price'}
                         >
@@ -663,9 +646,9 @@ export function ShopInventory() {
                         </p>
                       )}
                       {editingStockId === shopItem.id ? (
-                        <div className="stock-edit-form" style={{ marginTop: '8px', marginBottom: '8px' }}>
-                          <div style={{ marginBottom: '8px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+                        <div className="stock-edit-form">
+                          <div className="stock-checkbox-wrapper">
+                            <label className="stock-checkbox-label">
                               <input
                                 type="checkbox"
                                 checked={stockForm.unlimited}
@@ -676,8 +659,8 @@ export function ShopInventory() {
                             </label>
                           </div>
                           {!stockForm.unlimited && (
-                            <div style={{ marginBottom: '8px' }}>
-                              <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                            <div className="stock-quantity-wrapper">
+                              <label className="stock-quantity-label">
                                 Stock Quantity
                               </label>
                               <input
@@ -686,12 +669,12 @@ export function ShopInventory() {
                                 value={stockForm.stock}
                                 onChange={(e) => setStockForm({ ...stockForm, stock: e.target.value })}
                                 placeholder="0"
-                                style={{ width: '100px', padding: '4px' }}
+                                className="stock-quantity-input"
                                 onClick={(e) => e.stopPropagation()}
                               />
                             </div>
                           )}
-                          <div style={{ display: 'flex', gap: '8px' }}>
+                          <div className="edit-actions">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -714,29 +697,12 @@ export function ShopInventory() {
                         </div>
                       ) : (
                         <p
-                          className="item-stock"
+                          className={`item-stock ${selectionMode ? 'non-editable' : 'editable'}`}
                           onClick={(e) => {
                             if (!selectionMode) {
                               e.stopPropagation();
                               startEditingStock(shopItem);
                             }
-                          }}
-                          style={{
-                            cursor: selectionMode ? 'default' : 'pointer',
-                            padding: '4px',
-                            borderRadius: '4px',
-                            transition: 'all 0.2s',
-                            textDecoration: selectionMode ? 'none' : 'underline',
-                            textDecorationStyle: 'dotted',
-                            textUnderlineOffset: '3px'
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!selectionMode) {
-                              e.currentTarget.style.backgroundColor = '#f0f0f0';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
                           }}
                           title={selectionMode ? '' : 'Click to edit stock'}
                         >
@@ -749,7 +715,7 @@ export function ShopInventory() {
 
                         if (hasMarkdownTable(item.description)) {
                           return (
-                            <p className="card-description" style={{ fontStyle: 'italic', color: 'var(--color-text-muted)' }}>
+                            <p className="card-description description-table-notice">
                               Contains table - view in item library for details
                             </p>
                           );
@@ -769,15 +735,7 @@ export function ShopInventory() {
                             {isTruncated && (
                               <button
                                 onClick={(e) => toggleDescriptionExpanded(shopItem.id, e)}
-                                style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  color: 'var(--color-button-primary)',
-                                  cursor: 'pointer',
-                                  padding: '5px 0',
-                                  fontSize: '14px',
-                                  textDecoration: 'underline'
-                                }}
+                                className="show-more-button"
                               >
                                 {isExpanded ? 'Show Less' : 'Show More'}
                               </button>

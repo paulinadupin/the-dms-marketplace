@@ -202,3 +202,37 @@
 .duplicate-actions .btn {
   flex: 1;
 }
+
+/* ===================================
+   EDIT ITEM MODAL - CHOICE SECTION
+   =================================== */
+
+.edit-choice-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.edit-choice-option {
+  display: block;
+  margin-bottom: 10px;
+  padding: 12px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background-color: var(--background-card);
+  transition: all 0.2s ease;
+}
+
+.edit-choice-option:last-child {
+  margin-bottom: 0;
+}
+
+.edit-choice-option.selected {
+  border-color: var(--color-button-primary);
+  background-color: var(--background-card-secondary);
+}
+
+.edit-choice-description {
+  margin: 5px 0 0 28px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
