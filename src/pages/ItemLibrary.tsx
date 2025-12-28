@@ -7,8 +7,10 @@ import type { ItemLibrary } from '../types/firebase';
 import { Toast } from '../components/Toast';
 import { CreateItemModal } from '../components/CreateItemModal';
 import { EditItemModal } from '../components/EditItemModal';
+import { ItemDetailModal } from '../components/ItemDetailModal';
 import { LIMITS } from '../config/limits';
 import { HamburgerMenu } from '../components/HamburgerMenu';
+import { hasMarkdownTable } from '../utils/markdown';
 
 const WARNING_THRESHOLD = ItemLibraryService.ITEM_LIBRARY_WARNING_THRESHOLD;
 
@@ -27,6 +29,8 @@ export function ItemLibraryPage() {
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [viewingItem, setViewingItem] = useState<ItemLibrary | null>(null);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
 
   // Click outside handler to close kebab menu
   useEffect(() => {
@@ -147,6 +151,28 @@ export function ItemLibraryPage() {
       // Select all
       setSelectedItems(new Set(filteredItems.map(item => item.id)));
     }
+  };
+
+  const toggleDescriptionExpanded = (itemId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newExpanded = new Set(expandedDescriptions);
+    if (newExpanded.has(itemId)) {
+      newExpanded.delete(itemId);
+    } else {
+      newExpanded.add(itemId);
+    }
+    setExpandedDescriptions(newExpanded);
+  };
+
+  const truncateDescription = (text: string, maxLines: number = 2): { truncated: string; isTruncated: boolean } => {
+    const lines = text.split('\n');
+    if (lines.length <= maxLines) {
+      return { truncated: text, isTruncated: false };
+    }
+    return {
+      truncated: lines.slice(0, maxLines).join('\n'),
+      isTruncated: true
+    };
   };
 
   const handleBulkDelete = async () => {
@@ -396,7 +422,7 @@ export function ItemLibraryPage() {
                     setShowCreateModal(true);
                   }}
                   disabled={items.length >= LIMITS.ITEMS_PER_LIBRARY}
-                  className="btn-success btn-lg"
+                  className="btn btn-success btn-lg"
                 >
                   + Create Your First Item
                 </button>
@@ -421,11 +447,21 @@ export function ItemLibraryPage() {
             <div className="grid-container">
               {filteredItems.map((libraryItem) => {
                 const isSelected = selectedItems.has(libraryItem.id);
+                const isExpanded = expandedDescriptions.has(libraryItem.id);
+                const { isTruncated } = truncateDescription(libraryItem.item.description);
+
                 return (
                   <div
                     key={libraryItem.id}
-                    onClick={() => selectionMode && toggleItemSelection(libraryItem.id)}
-                    className={`card ${selectionMode ? 'card-clickable' : ''} ${isSelected ? 'card-selected' : ''} ${selectionMode ? 'card-with-checkbox' : ''}`}
+                    onClick={() => {
+                      if (selectionMode) {
+                        toggleItemSelection(libraryItem.id);
+                      } else {
+                        setViewingItem(libraryItem);
+                      }
+                    }}
+                    className={`card card-clickable ${isSelected ? 'card-selected' : ''} ${selectionMode ? 'card-with-checkbox' : ''}`}
+                    style={{ cursor: 'pointer' }}
                   >
                     {selectionMode && (
                       <div className="card-checkbox">
@@ -495,9 +531,39 @@ export function ItemLibraryPage() {
                           </span>
                         </div>
 
-                        <p className="card-description">
-                          {libraryItem.item.description}
-                        </p>
+                        {hasMarkdownTable(libraryItem.item.description) ? (
+                          <p className="card-description" style={{ fontStyle: 'italic', color: 'var(--color-text-muted)' }}>
+                            Contains table - click to view details
+                          </p>
+                        ) : (
+                          <>
+                            <p className="card-description" style={{
+                              display: '-webkit-box',
+                              WebkitLineClamp: isExpanded ? 'unset' : 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: isExpanded ? 'visible' : 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>
+                              {libraryItem.item.description}
+                            </p>
+                            {isTruncated && (
+                              <button
+                                onClick={(e) => toggleDescriptionExpanded(libraryItem.id, e)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: 'var(--color-button-primary)',
+                                  cursor: 'pointer',
+                                  padding: '5px 0',
+                                  fontSize: '14px',
+                                  textDecoration: 'underline'
+                                }}
+                              >
+                                {isExpanded ? 'Show Less' : 'Show More'}
+                              </button>
+                            )}
+                          </>
+                        )}
 
                         <div className="item-details">
                         {libraryItem.item.weight !== null && (
@@ -570,6 +636,14 @@ export function ItemLibraryPage() {
             loadItems();
             setEditingItem(null);
           }}
+        />
+      )}
+
+      {/* Item Detail Modal */}
+      {viewingItem && (
+        <ItemDetailModal
+          item={viewingItem}
+          onClose={() => setViewingItem(null)}
         />
       )}
     </>

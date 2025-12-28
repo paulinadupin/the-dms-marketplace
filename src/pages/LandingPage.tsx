@@ -43,10 +43,10 @@ export function LandingPage() {
           </div>
 
           <div className="landing-nav-links">
-            <a href="#home" className="landing-nav-link">Home</a>
-            <a href="#how-to-use" className="landing-nav-link">How to Use</a>
-            <a href="#about" className="landing-nav-link">About Us</a>
-            <a href="#support" className="landing-nav-link">Support</a>
+            <a href="/" className="landing-nav-link">Home</a>
+            <a href="/how-to-use" className="landing-nav-link">How to Use</a>
+            <a href="/about" className="landing-nav-link">About Us</a>
+            <a href="https://github.com/paulinadupin/the-dms-marketplace" target="_blank" rel="noopener noreferrer" className="landing-nav-link">GitHub</a>
           </div>
 
           <div className="landing-nav-buttons">
@@ -70,7 +70,8 @@ export function LandingPage() {
       <div className="landing-hero">
         <div className="landing-hero-container">
           <h1 className="landing-hero-title">
-            Welcome to The DM's Marketplace
+            Welcome to<br></br>
+            The DM's Marketplace
           </h1>
 
           <p className="landing-hero-subtitle">
@@ -126,20 +127,6 @@ export function LandingPage() {
         </div>
       </div>
 
-      {/* Footer - Placeholder */}
-      <footer className="landing-footer">
-        <div className="landing-footer-container">
-          <div className="landing-footer-links">
-            <a href="#privacy" className="landing-footer-link">Privacy Policy</a>
-            <a href="#terms" className="landing-footer-link">Terms of Service</a>
-            <a href="#contact" className="landing-footer-link">Contact Us</a>
-            <a href="https://github.com/paulinadupin/the-dms-marketplace" target="_blank" rel="noopener noreferrer" className="landing-footer-link">GitHub</a>
-          </div>
-          <div>
-            © 2024 The DM's Marketplace. All rights reserved.
-          </div>
-        </div>
-      </footer>
     </>
   );
 }

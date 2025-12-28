@@ -1,0 +1,252 @@
+/* pages/how-to-use.css */
+
+/* ===================================
+   CONTAINER & LAYOUT
+   =================================== */
+
+.how-to-use-container {
+  background: linear-gradient(135deg,
+    var(--background-page) 0%,
+    var(--background-card-secondary) 100%
+  );
+  min-height: calc(100vh - 70px);
+  padding: var(--spacing-xl) var(--spacing-lg);
+}
+
+.how-to-use-content {
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: var(--background-card);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+/* ===================================
+   TYPOGRAPHY
+   =================================== */
+
+.how-to-use-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-text-dark);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.how-to-use-intro {
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  line-height: 1.6;
+}
+
+.how-to-section {
+  margin-bottom: 50px;
+}
+
+.how-to-section:last-of-type {
+  margin-bottom: var(--spacing-xl);
+}
+
+.how-to-section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-button-primary);
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 3px solid var(--color-button-primary);
+}
+
+/* ===================================
+   STEPS
+   =================================== */
+
+.how-to-step {
+  display: flex;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  align-items: flex-start;
+}
+
+.step-number {
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  background-color: var(--color-button-primary);
+  color: var(--color-text-white);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-content h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  margin-bottom: var(--spacing-sm);
+}
+
+.step-content p {
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-sm);
+}
+
+.step-content ul {
+  margin: var(--spacing-sm) 0;
+  padding-left: var(--spacing-lg);
+}
+
+.step-content li {
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+  line-height: 1.5;
+}
+
+.how-to-note {
+  background-color: var(--background-card-secondary);
+  border-left: 4px solid var(--color-warning);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+}
+
+/* ===================================
+   TIPS SECTION
+   =================================== */
+
+.how-to-tips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.how-to-tip {
+  background-color: var(--background-card-secondary);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+}
+
+.how-to-tip h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  margin-bottom: var(--spacing-md);
+}
+
+.how-to-tip ul {
+  padding-left: var(--spacing-lg);
+}
+
+.how-to-tip li {
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+  line-height: 1.5;
+}
+
+/* ===================================
+   CALL TO ACTION
+   =================================== */
+
+.how-to-cta {
+  text-align: center;
+  padding: var(--spacing-xl);
+  background: linear-gradient(135deg,
+    var(--background-card-secondary) 0%,
+    var(--background-card) 100%
+  );
+  border-radius: var(--radius-lg);
+  margin-top: var(--spacing-xl);
+}
+
+.how-to-cta h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
+  margin-bottom: var(--spacing-lg);
+}
+
+.how-to-cta-buttons {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ===================================
+   RESPONSIVE DESIGN
+   =================================== */
+
+@media (max-width: 768px) {
+  .how-to-use-container {
+    padding: var(--spacing-md) var(--spacing-sm);
+  }
+
+  .how-to-use-content {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+
+  .how-to-use-title {
+    font-size: 2rem;
+  }
+
+  .how-to-use-intro {
+    font-size: 1rem;
+  }
+
+  .how-to-section-title {
+    font-size: 1.5rem;
+  }
+
+  .how-to-step {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .step-number {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+
+  .step-content h3 {
+    font-size: 1.25rem;
+  }
+
+  .step-content p,
+  .step-content li {
+    font-size: 0.95rem;
+  }
+
+  .how-to-tips {
+    grid-template-columns: 1fr;
+  }
+
+  .how-to-cta h3 {
+    font-size: 1.5rem;
+  }
+
+  .how-to-cta-buttons {
+    flex-direction: column;
+  }
+
+  .how-to-cta-buttons button {
+    width: 100%;
+  }
+}

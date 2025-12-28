@@ -206,6 +206,8 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
         // Update existing item
         await ItemLibraryService.updateItem(item.id, {
           item: updatedItem,
+          // Change source from 'official' to 'modified' when editing official items
+          source: item.source === 'official' ? 'modified' : item.source,
         });
         setToast({
           message: usageCount > 0
@@ -332,20 +334,12 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
 
                 {/* Choice: Update or Create New (only if item is used) */}
                 {usageCount > 0 && hasChanges && (
-                  <div className="type-fields-section">
+                  <div className="edit-choice-section">
                     <label className="form-label">
                       What would you like to do? *
                     </label>
 
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '10px',
-                      padding: '12px',
-                      border: `2px solid ${editChoice === 'update' ? '#007bff' : '#ddd'}`,
-                      borderRadius: '5px',
-                      cursor: 'pointer',
-                      backgroundColor: editChoice === 'update' ? '#e7f3ff' : 'white'
-                    }}>
+                    <label className={`edit-choice-option ${editChoice === 'update' ? 'selected' : ''}`}>
                       <input
                         type="radio"
                         name="editChoice"
@@ -355,19 +349,12 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                         className="form-checkbox"
                       />
                       <strong>Update existing items</strong>
-                      <p style={{ margin: '5px 0 0 28px', fontSize: '13px', color: '#666' }}>
+                      <p className="edit-choice-description">
                         Changes will be applied to all {usageCount} shop{usageCount > 1 ? 's' : ''} using this item
                       </p>
                     </label>
 
-                    <label style={{
-                      display: 'block',
-                      padding: '12px',
-                      border: `2px solid ${editChoice === 'create' ? '#007bff' : '#ddd'}`,
-                      borderRadius: '5px',
-                      cursor: 'pointer',
-                      backgroundColor: editChoice === 'create' ? '#e7f3ff' : 'white'
-                    }}>
+                    <label className={`edit-choice-option ${editChoice === 'create' ? 'selected' : ''}`}>
                       <input
                         type="radio"
                         name="editChoice"
@@ -377,7 +364,7 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                         className="form-checkbox"
                       />
                       <strong>Create a new item</strong>
-                      <p style={{ margin: '5px 0 0 28px', fontSize: '13px', color: '#666' }}>
+                      <p className="edit-choice-description">
                         Keep the original item unchanged and create a new separate item with these changes
                       </p>
                     </label>
@@ -395,7 +382,7 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                   <button
                     type="submit"
                     disabled={loading || !hasChanges}
-                    className={`btn ${loading || !hasChanges ? 'btn-secondary' : 'btn-success'}`}
+                    className={`btn ${loading || !hasChanges ? 'btn-secondary' : 'btn btn-success'}`}
                   >
                     {loading ? 'Saving...' : 'Save Changes'}
                   </button>

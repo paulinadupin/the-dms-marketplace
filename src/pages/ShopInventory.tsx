@@ -11,6 +11,7 @@ import { Toast } from '../components/Toast';
 import { AddItemToShopModal } from '../components/AddItemToShopModal';
 import { LIMITS } from '../config/limits';
 import { HamburgerMenu } from '../components/HamburgerMenu';
+import { hasMarkdownTable } from '../utils/markdown';
 
 export function ShopInventory() {
   const { shopId } = useParams<{ shopId: string }>();
@@ -37,6 +38,7 @@ export function ShopInventory() {
   const [selectedTargetShopId, setSelectedTargetShopId] = useState('');
   const [duplicating, setDuplicating] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -108,6 +110,28 @@ export function ShopInventory() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleDescriptionExpanded = (itemId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newExpanded = new Set(expandedDescriptions);
+    if (newExpanded.has(itemId)) {
+      newExpanded.delete(itemId);
+    } else {
+      newExpanded.add(itemId);
+    }
+    setExpandedDescriptions(newExpanded);
+  };
+
+  const truncateDescription = (text: string, maxLines: number = 2): { truncated: string; isTruncated: boolean } => {
+    const lines = text.split('\n');
+    if (lines.length <= maxLines) {
+      return { truncated: text, isTruncated: false };
+    }
+    return {
+      truncated: lines.slice(0, maxLines).join('\n'),
+      isTruncated: true
+    };
   };
 
   const handleRemoveItem = async (shopItemId: string, itemName: string) => {
@@ -431,7 +455,7 @@ export function ShopInventory() {
         {/* Inventory Header */}
         <div className="controls-container">
           <div>
-            <h2 style={{ margin: 0 }}>Inventory</h2>
+            <h2 className="section-heading">Inventory</h2>
             {shopItems.length >= LIMITS.ITEMS_PER_SHOP && (
               <p className="text-danger">
                 ⚠️ You've reached the maximum number of items for this shop
@@ -466,7 +490,7 @@ export function ShopInventory() {
             </p>
             <button
               onClick={() => setShowAddModal(true)}
-              className="btn-success btn-lg"
+              className="btn btn-success btn-lg"
             >
               + Add Your First Item
             </button>
@@ -550,43 +574,43 @@ export function ShopInventory() {
                         )}
                       </div>
                       {editingPriceId === shopItem.id ? (
-                        <div className="price-edit-form" style={{ marginTop: '8px', marginBottom: '8px' }}>
-                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>CP</label>
+                        <div className="price-edit-form">
+                          <div className="currency-inputs">
+                            <div className="currency-input-group">
+                              <label className="currency-label">CP</label>
                               <input
                                 type="number"
                                 min="0"
                                 value={priceForm.cp}
                                 onChange={(e) => setPriceForm({ ...priceForm, cp: e.target.value })}
-                                style={{ width: '60px', padding: '4px' }}
+                                className="currency-input"
                                 onClick={(e) => e.stopPropagation()}
                               />
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>SP</label>
+                            <div className="currency-input-group">
+                              <label className="currency-label">SP</label>
                               <input
                                 type="number"
                                 min="0"
                                 value={priceForm.sp}
                                 onChange={(e) => setPriceForm({ ...priceForm, sp: e.target.value })}
-                                style={{ width: '60px', padding: '4px' }}
+                                className="currency-input"
                                 onClick={(e) => e.stopPropagation()}
                               />
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>GP</label>
+                            <div className="currency-input-group">
+                              <label className="currency-label">GP</label>
                               <input
                                 type="number"
                                 min="0"
                                 value={priceForm.gp}
                                 onChange={(e) => setPriceForm({ ...priceForm, gp: e.target.value })}
-                                style={{ width: '60px', padding: '4px' }}
+                                className="currency-input"
                                 onClick={(e) => e.stopPropagation()}
                               />
                             </div>
                           </div>
-                          <div style={{ display: 'flex', gap: '8px' }}>
+                          <div className="edit-actions">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -609,29 +633,12 @@ export function ShopInventory() {
                         </div>
                       ) : (
                         <p
-                          className="item-price"
+                          className={`item-price ${selectionMode ? 'non-editable' : 'editable'}`}
                           onClick={(e) => {
                             if (!selectionMode) {
                               e.stopPropagation();
                               startEditingPrice(shopItem);
                             }
-                          }}
-                          style={{
-                            cursor: selectionMode ? 'default' : 'pointer',
-                            padding: '4px',
-                            borderRadius: '4px',
-                            transition: 'all 0.2s',
-                            textDecoration: selectionMode ? 'none' : 'underline',
-                            textDecorationStyle: 'dotted',
-                            textUnderlineOffset: '3px'
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!selectionMode) {
-                              e.currentTarget.style.backgroundColor = '#f0f0f0';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
                           }}
                           title={selectionMode ? '' : 'Click to edit price'}
                         >
@@ -639,9 +646,9 @@ export function ShopInventory() {
                         </p>
                       )}
                       {editingStockId === shopItem.id ? (
-                        <div className="stock-edit-form" style={{ marginTop: '8px', marginBottom: '8px' }}>
-                          <div style={{ marginBottom: '8px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+                        <div className="stock-edit-form">
+                          <div className="stock-checkbox-wrapper">
+                            <label className="stock-checkbox-label">
                               <input
                                 type="checkbox"
                                 checked={stockForm.unlimited}
@@ -652,8 +659,8 @@ export function ShopInventory() {
                             </label>
                           </div>
                           {!stockForm.unlimited && (
-                            <div style={{ marginBottom: '8px' }}>
-                              <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                            <div className="stock-quantity-wrapper">
+                              <label className="stock-quantity-label">
                                 Stock Quantity
                               </label>
                               <input
@@ -662,12 +669,12 @@ export function ShopInventory() {
                                 value={stockForm.stock}
                                 onChange={(e) => setStockForm({ ...stockForm, stock: e.target.value })}
                                 placeholder="0"
-                                style={{ width: '100px', padding: '4px' }}
+                                className="stock-quantity-input"
                                 onClick={(e) => e.stopPropagation()}
                               />
                             </div>
                           )}
-                          <div style={{ display: 'flex', gap: '8px' }}>
+                          <div className="edit-actions">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -690,40 +697,52 @@ export function ShopInventory() {
                         </div>
                       ) : (
                         <p
-                          className="item-stock"
+                          className={`item-stock ${selectionMode ? 'non-editable' : 'editable'}`}
                           onClick={(e) => {
                             if (!selectionMode) {
                               e.stopPropagation();
                               startEditingStock(shopItem);
                             }
                           }}
-                          style={{
-                            cursor: selectionMode ? 'default' : 'pointer',
-                            padding: '4px',
-                            borderRadius: '4px',
-                            transition: 'all 0.2s',
-                            textDecoration: selectionMode ? 'none' : 'underline',
-                            textDecorationStyle: 'dotted',
-                            textUnderlineOffset: '3px'
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!selectionMode) {
-                              e.currentTarget.style.backgroundColor = '#f0f0f0';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }}
                           title={selectionMode ? '' : 'Click to edit stock'}
                         >
                           <strong>Stock:</strong> {shopItem.stock === null ? 'Unlimited' : shopItem.stock}
                         </p>
                       )}
-                      {item.description && (
-                        <p className="card-description">
-                          {item.description}
-                        </p>
-                      )}
+                      {item.description && (() => {
+                        const isExpanded = expandedDescriptions.has(shopItem.id);
+                        const { isTruncated } = truncateDescription(item.description);
+
+                        if (hasMarkdownTable(item.description)) {
+                          return (
+                            <p className="card-description description-table-notice">
+                              Contains table - view in item library for details
+                            </p>
+                          );
+                        }
+
+                        return (
+                          <>
+                            <p className="card-description" style={{
+                              display: '-webkit-box',
+                              WebkitLineClamp: isExpanded ? 'unset' : 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: isExpanded ? 'visible' : 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>
+                              {item.description}
+                            </p>
+                            {isTruncated && (
+                              <button
+                                onClick={(e) => toggleDescriptionExpanded(shopItem.id, e)}
+                                className="show-more-button"
+                              >
+                                {isExpanded ? 'Show Less' : 'Show More'}
+                              </button>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>

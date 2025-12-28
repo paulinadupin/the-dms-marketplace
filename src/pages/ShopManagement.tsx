@@ -346,7 +346,7 @@ export function ShopManagement() {
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="btn-success btn-lg"
+              className="btn btn-success btn-lg"
             >
               + Create Your First Shop
             </button>

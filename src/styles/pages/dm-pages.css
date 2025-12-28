@@ -1,5 +1,9 @@
 /* pages/dm-pages.css */
 
+.section-heading {
+  margin: 0;
+}
+
 .item-details {
   display: flex;
   gap: var(--spacing-lg);
@@ -27,8 +31,103 @@
 
 .price-edit-form,
 .stock-edit-form {
-  /* Base styles defined inline in components */
-  /* Mobile overrides in media queries */
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.currency-inputs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.currency-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.currency-label {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.currency-input {
+  width: 60px;
+  padding: 4px;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.stock-checkbox-wrapper {
+  margin-bottom: 8px;
+}
+
+.stock-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.stock-quantity-wrapper {
+  margin-bottom: 8px;
+}
+
+.stock-quantity-label {
+  font-size: 12px;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.stock-quantity-input {
+  width: 100px;
+  padding: 4px;
+}
+
+.item-price.editable,
+.item-stock.editable {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.item-price.editable:hover,
+.item-stock.editable:hover {
+  background-color: var(--background-card-secondary);
+}
+
+.item-price.non-editable,
+.item-stock.non-editable {
+  cursor: default;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.show-more-button {
+  background: none;
+  border: none;
+  color: var(--color-button-primary);
+  cursor: pointer;
+  padding: 5px 0;
+  font-size: 14px;
+  text-decoration: underline;
+}
+
+.description-table-notice {
+  font-style: italic;
+  color: var(--color-text-muted);
 }
 
 .count-display {
@@ -54,6 +153,10 @@
 .empty-state p {
   color: var(--color-text-muted);
   margin-bottom: var(--spacing-xl);
+}
+
+.empty-state .btn {
+  margin: 0 auto;
 }
 
 /* Welcome message */
