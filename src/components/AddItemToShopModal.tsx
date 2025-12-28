@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ShopItemService } from '../services/shop-item.service';
 import { ItemLibraryService } from '../services/item-library.service';
 import type { ItemLibrary } from '../types/firebase';
@@ -21,6 +22,7 @@ export function AddItemToShopModal({
   onClose,
   onSuccess
 }: AddItemToShopModalProps) {
+  const navigate = useNavigate();
   const [libraryItems, setLibraryItems] = useState<ItemLibrary[]>([]);
   const [selectedItemId, setSelectedItemId] = useState('');
   const [priceForm, setPriceForm] = useState({ cp: '', sp: '', gp: '' });
@@ -132,13 +134,13 @@ export function AddItemToShopModal({
           ) : libraryItems.length === 0 ? (
             <div className="empty-state">
               <p>
-                You have no items available to add. All your library items are already in this shop.
+                No items available to add. Create items in your Item Library first.
               </p>
               <button
-                onClick={onClose}
-                className="btn btn-cancel"
+                onClick={() => navigate('/item-library')}
+                className="btn btn-success btn-lg"
               >
-                Close
+                Go to Item Library
               </button>
             </div>
           ) : (
