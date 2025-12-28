@@ -206,6 +206,8 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
         // Update existing item
         await ItemLibraryService.updateItem(item.id, {
           item: updatedItem,
+          // Change source from 'official' to 'modified' when editing official items
+          source: item.source === 'official' ? 'modified' : item.source,
         });
         setToast({
           message: usageCount > 0

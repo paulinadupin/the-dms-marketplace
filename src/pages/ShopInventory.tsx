@@ -11,6 +11,7 @@ import { Toast } from '../components/Toast';
 import { AddItemToShopModal } from '../components/AddItemToShopModal';
 import { LIMITS } from '../config/limits';
 import { HamburgerMenu } from '../components/HamburgerMenu';
+import { hasMarkdownTable } from '../utils/markdown';
 
 export function ShopInventory() {
   const { shopId } = useParams<{ shopId: string }>();
@@ -37,6 +38,7 @@ export function ShopInventory() {
   const [selectedTargetShopId, setSelectedTargetShopId] = useState('');
   const [duplicating, setDuplicating] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -108,6 +110,28 @@ export function ShopInventory() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleDescriptionExpanded = (itemId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newExpanded = new Set(expandedDescriptions);
+    if (newExpanded.has(itemId)) {
+      newExpanded.delete(itemId);
+    } else {
+      newExpanded.add(itemId);
+    }
+    setExpandedDescriptions(newExpanded);
+  };
+
+  const truncateDescription = (text: string, maxLines: number = 2): { truncated: string; isTruncated: boolean } => {
+    const lines = text.split('\n');
+    if (lines.length <= maxLines) {
+      return { truncated: text, isTruncated: false };
+    }
+    return {
+      truncated: lines.slice(0, maxLines).join('\n'),
+      isTruncated: true
+    };
   };
 
   const handleRemoveItem = async (shopItemId: string, itemName: string) => {
@@ -719,11 +743,48 @@ export function ShopInventory() {
                           <strong>Stock:</strong> {shopItem.stock === null ? 'Unlimited' : shopItem.stock}
                         </p>
                       )}
-                      {item.description && (
-                        <p className="card-description">
-                          {item.description}
-                        </p>
-                      )}
+                      {item.description && (() => {
+                        const isExpanded = expandedDescriptions.has(shopItem.id);
+                        const { isTruncated } = truncateDescription(item.description);
+
+                        if (hasMarkdownTable(item.description)) {
+                          return (
+                            <p className="card-description" style={{ fontStyle: 'italic', color: 'var(--color-text-muted)' }}>
+                              Contains table - view in item library for details
+                            </p>
+                          );
+                        }
+
+                        return (
+                          <>
+                            <p className="card-description" style={{
+                              display: '-webkit-box',
+                              WebkitLineClamp: isExpanded ? 'unset' : 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: isExpanded ? 'visible' : 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>
+                              {item.description}
+                            </p>
+                            {isTruncated && (
+                              <button
+                                onClick={(e) => toggleDescriptionExpanded(shopItem.id, e)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: 'var(--color-button-primary)',
+                                  cursor: 'pointer',
+                                  padding: '5px 0',
+                                  fontSize: '14px',
+                                  textDecoration: 'underline'
+                                }}
+                              >
+                                {isExpanded ? 'Show Less' : 'Show More'}
+                              </button>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>

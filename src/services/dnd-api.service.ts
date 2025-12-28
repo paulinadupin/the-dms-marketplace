@@ -173,7 +173,7 @@ export class DnDApiService {
       tags: ['Magic Item'],
       rarity: this.parseRarity(apiItem.rarity.name),
       requiresAttunement: apiItem.desc.some((d) => d.toLowerCase().includes('attunement')),
-      magicalEffects: apiItem.desc,
+      magicalEffects: [], // Don't duplicate description in magical effects
     };
   }
 
@@ -223,13 +223,27 @@ export class DnDApiService {
   /**
    * Get all available equipment categories
    */
-  static async getEquipmentCategories(): Promise<string[]> {
+  static async getEquipmentCategories(): Promise<Array<{ index: string; name: string; url: string }>> {
     try {
       const response = await fetch(`${this.BASE_URL}/equipment-categories`);
       const data = await response.json();
-      return data.results.map((cat: any) => cat.name);
+      return data.results;
     } catch (error) {
       console.error('Failed to get categories:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get equipment by category
+   */
+  static async getEquipmentByCategory(categoryIndex: string): Promise<Array<{ index: string; name: string; url: string }>> {
+    try {
+      const response = await fetch(`${this.BASE_URL}/equipment-categories/${categoryIndex}`);
+      const data = await response.json();
+      return data.equipment || [];
+    } catch (error) {
+      console.error('Failed to get equipment by category:', error);
       return [];
     }
   }

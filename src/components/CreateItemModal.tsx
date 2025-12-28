@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ItemLibraryService } from '../services/item-library.service';
+import { DnDApiService } from '../services/dnd-api.service';
 import type { Item, ItemType } from '../types/item';
 import { getFieldsForType, getEnabledItemTypes } from '../config/item-fields.config';
 import { DynamicFormField } from './DynamicFormField';
@@ -42,6 +43,10 @@ function getNestedValue(obj: any, path: string): any {
 }
 
 export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalProps) {
+  // Tab state - API first now
+  const [activeTab, setActiveTab] = useState<'custom' | 'api'>('api');
+
+  // Custom item state
   const [name, setName] = useState('');
   const [type, setType] = useState<ItemType>('gear');
   const [description, setDescription] = useState('');
@@ -51,8 +56,120 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // API search state
+  const [apiSearch, setApiSearch] = useState('');
+  const [allApiItems, setAllApiItems] = useState<Array<{ index: string; name: string; url: string; category: string; itemType: 'equipment' | 'magic'; rarity?: string }>>([]);
+  const [allFilteredResults, setAllFilteredResults] = useState<Array<{ index: string; name: string; url: string; category: string; itemType: 'equipment' | 'magic'; rarity?: string }>>([]);
+  const [apiSearching, setApiSearching] = useState(false);
+  const [selectedApiItem, setSelectedApiItem] = useState<any>(null);
+  const [apiItemDetails, setApiItemDetails] = useState<any>(null);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+
+  // Filters
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [displayLimit, setDisplayLimit] = useState<number>(8);
+
   const enabledTypes = getEnabledItemTypes();
   const typeFields = getFieldsForType(type);
+
+  // Reset display limit when filters change
+  useEffect(() => {
+    setDisplayLimit(8);
+  }, [apiSearch, filterCategory]);
+
+  // Load all API items on mount with categories
+  useEffect(() => {
+    const loadAllItems = async () => {
+      setApiSearching(true);
+      try {
+        // Get all equipment categories
+        const categories = await DnDApiService.getEquipmentCategories();
+
+        // Fetch items from key categories
+        const categoryPromises = categories
+          .filter(cat => ['Weapon', 'Armor', 'Adventuring Gear', 'Tools', 'Mounts and Vehicles'].includes(cat.name))
+          .map(async cat => {
+            const items = await DnDApiService.getEquipmentByCategory(cat.index);
+            return items.map(item => ({
+              ...item,
+              category: cat.name,
+              itemType: 'equipment' as const
+            }));
+          });
+
+        const magicItemsBasic = await DnDApiService.searchMagicItems('');
+
+        // Add magic items without rarity (to avoid rate limiting)
+        const magicItems = magicItemsBasic.map(item => ({
+          ...item,
+          category: 'Magic Items',
+          itemType: 'magic' as const
+        }));
+
+        const equipmentByCategory = await Promise.all(categoryPromises);
+        const allEquipment = equipmentByCategory.flat();
+
+        // Combine and deduplicate by index
+        const itemMap = new Map();
+
+        // Add magic items first
+        magicItems.forEach(item => {
+          itemMap.set(item.index, item);
+        });
+
+        // Add equipment only if not already exists
+        allEquipment.forEach(item => {
+          if (!itemMap.has(item.index)) {
+            itemMap.set(item.index, item);
+          }
+        });
+
+        const combined = Array.from(itemMap.values());
+
+        setAllApiItems(combined);
+        setAllFilteredResults(combined); // Store all items, display limit handled separately
+      } catch (err) {
+        setError('Failed to load D&D items');
+      } finally {
+        setApiSearching(false);
+      }
+    };
+
+    if (activeTab === 'api') {
+      loadAllItems();
+    }
+  }, [activeTab]);
+
+  // Debounced search + filtering
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      let results = [...allApiItems];
+
+      // Search filter
+      if (apiSearch.trim()) {
+        const searchLower = apiSearch.toLowerCase();
+        results = results.filter(item =>
+          item.name.toLowerCase().includes(searchLower)
+        );
+      }
+
+      // Category filter
+      if (filterCategory !== 'all') {
+        results = results.filter(item => item.category === filterCategory);
+      }
+
+      // Sort alphabetically
+      results.sort((a, b) => a.name.localeCompare(b.name));
+
+      setAllFilteredResults(results); // Store all filtered results
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [apiSearch, allApiItems, filterCategory]);
+
+  // Compute displayed results based on display limit
+  const displayedResults = allFilteredResults.slice(0, displayLimit);
+  const hasMoreResults = allFilteredResults.length > displayLimit;
 
   const handleDynamicFieldChange = (fieldName: string, value: any) => {
     setDynamicFields(prev => {
@@ -136,6 +253,65 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
     return item as Item;
   };
 
+  // API item selection handler
+  const handleSelectApiItem = async (item: { index: string; name: string; category: string; itemType: 'equipment' | 'magic'; rarity?: string }) => {
+    // Toggle: if clicking the same item, close it
+    if (selectedApiItem?.index === item.index) {
+      setSelectedApiItem(null);
+      setApiItemDetails(null);
+      setShowFullDescription(false);
+      return;
+    }
+
+    // Select new item
+    setSelectedApiItem(item);
+    setApiItemDetails(null);
+    setShowFullDescription(false);
+
+    try {
+      const details = item.itemType === 'equipment'
+        ? await DnDApiService.getEquipment(item.index)
+        : await DnDApiService.getMagicItem(item.index);
+      setApiItemDetails(details);
+    } catch (err) {
+      setError(`Failed to load details for ${item.name}`);
+    }
+  };
+
+  const handleImportApiItem = async () => {
+    if (!apiItemDetails || !selectedApiItem) return;
+
+    setLoading(true);
+    try {
+      // Convert API item to our Item format
+      const convertedItem = selectedApiItem.itemType === 'equipment'
+        ? DnDApiService.convertEquipmentToItem(apiItemDetails)
+        : DnDApiService.convertMagicItemToItem(apiItemDetails);
+
+      // Save to library
+      await ItemLibraryService.createItem(dmId, {
+        item: convertedItem as Item,
+        source: 'official',
+        officialId: apiItemDetails.index,
+      });
+
+      onSuccess();
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  // Helper to truncate description
+  const truncateDescription = (text: string, lines: number = 3) => {
+    const sentences = text.split('\n');
+    if (sentences.length <= lines && !showFullDescription) {
+      const truncated = sentences.slice(0, lines).join('\n');
+      return text.length > truncated.length ? truncated : text;
+    }
+    return showFullDescription ? text : sentences.slice(0, lines).join('\n');
+  };
+
   const validateForm = (): string | null => {
     if (!name.trim()) {
       return 'Item name is required';
@@ -187,10 +363,50 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content" style={{ maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto' }}>
+      <div className="modal-content" style={{ width: '90%', height: '90%', maxWidth: 'none', maxHeight: 'none', overflowY: 'auto' }}>
         <h2 style={{ marginTop: 0 }}>Create New Item</h2>
 
-        <form onSubmit={handleSubmit}>
+        {/* Tab Switcher */}
+        <div className="tab-switcher" style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '2px solid var(--color-border)' }}>
+          <button
+            type="button"
+            onClick={() => setActiveTab('api')}
+            className={`tab-button ${activeTab === 'api' ? 'active' : ''}`}
+            style={{
+              padding: '10px 20px',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'api' ? '2px solid var(--color-button-primary)' : '2px solid transparent',
+              cursor: 'pointer',
+              fontWeight: activeTab === 'api' ? 'bold' : 'normal',
+              color: activeTab === 'api' ? 'var(--color-button-primary)' : 'var(--color-text-secondary)',
+              marginBottom: '-2px'
+            }}
+          >
+            Import from D&D Official
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('custom')}
+            className={`tab-button ${activeTab === 'custom' ? 'active' : ''}`}
+            style={{
+              padding: '10px 20px',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'custom' ? '2px solid var(--color-button-primary)' : '2px solid transparent',
+              cursor: 'pointer',
+              fontWeight: activeTab === 'custom' ? 'bold' : 'normal',
+              color: activeTab === 'custom' ? 'var(--color-button-primary)' : 'var(--color-text-secondary)',
+              marginBottom: '-2px'
+            }}
+          >
+            Create Custom
+          </button>
+        </div>
+
+        {/* Custom Form Tab */}
+        {activeTab === 'custom' && (
+          <form onSubmit={handleSubmit}>
           {error && (
             <div className="error-message">
               {error}
@@ -312,6 +528,278 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
             </button>
           </div>
         </form>
+        )}
+
+        {/* API Import Tab */}
+        {activeTab === 'api' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: 'calc(90vh - 150px)' }}>
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
+
+            {/* Search Bar & Filters */}
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'end', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '300px' }}>
+                <label className="form-label">Search D&D 5e SRD</label>
+                <input
+                  type="text"
+                  value={apiSearch}
+                  onChange={(e) => setApiSearch(e.target.value)}
+                  placeholder="Search for items... (e.g., longsword, potion, studded leather)"
+                  className="form-input"
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <div>
+                <label className="form-label">Item Type</label>
+                <select
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  className="form-select"
+                >
+                  <option value="all">All Items</option>
+                  <option value="Weapon">Weapon</option>
+                  <option value="Armor">Armor</option>
+                  <option value="Adventuring Gear">Adventuring Gear</option>
+                  <option value="Tools">Tools</option>
+                  <option value="Mounts and Vehicles">Mounts & Vehicles</option>
+                  <option value="Magic Items">Magic Items</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Main Content: Vertical List */}
+            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <h3 style={{ margin: 0, fontSize: '16px' }}>
+                  {apiSearching ? 'Loading...' : `Results (${allFilteredResults.length})`}
+                </h3>
+              </div>
+
+              {/* Results Grid/List */}
+              <div style={{
+                overflowY: 'auto',
+                padding: '5px',
+                flex: 1,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: '15px',
+                alignContent: 'start'
+              }}
+              className="api-results-container">
+                <style>
+                  {`
+                    @media (max-width: 768px) {
+                      .api-results-container {
+                        display: flex !important;
+                        flex-direction: column !important;
+                        gap: 10px !important;
+                      }
+                      .api-item-details,
+                      .api-item-loading {
+                        grid-column: auto !important;
+                      }
+                    }
+                  `}
+                </style>
+                {displayedResults.map(item => (
+                  <div key={item.index} style={{
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    {/* Card/List Item */}
+                    <div
+                      onClick={() => handleSelectApiItem(item)}
+                      style={{
+                        padding: '15px',
+                        cursor: 'pointer',
+                        borderRadius: 'var(--radius-md)',
+                        border: `2px solid ${selectedApiItem?.index === item.index ? 'var(--color-button-primary)' : 'var(--color-border)'}`,
+                        backgroundColor: selectedApiItem?.index === item.index ? 'var(--background-card-secondary)' : 'var(--background-card)',
+                        transition: 'all 0.2s',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '100%',
+                        minHeight: '80px'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedApiItem?.index !== item.index) {
+                          e.currentTarget.style.borderColor = 'var(--color-text-secondary)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedApiItem?.index !== item.index) {
+                          e.currentTarget.style.borderColor = 'var(--color-border)';
+                        }
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '5px' }}>
+                          {item.name}
+                        </div>
+                        <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                          {item.category}
+                        </div>
+                      </div>
+                      <div style={{ fontSize: '14px', color: 'var(--color-text-muted)', textAlign: 'right', marginTop: '10px' }}>
+                        {selectedApiItem?.index === item.index ? '▲ Hide Details' : '▼ Show Details'}
+                      </div>
+                    </div>
+
+                    {/* Expandable Details */}
+                    {selectedApiItem?.index === item.index && apiItemDetails && (
+                      <div style={{
+                        marginTop: '10px',
+                        padding: '20px',
+                        backgroundColor: 'var(--background-card-secondary)',
+                        border: '2px solid var(--color-button-primary)',
+                        borderRadius: 'var(--radius-md)',
+                        animation: 'slideDown 0.2s ease-out',
+                        gridColumn: '1 / -1'
+                      }}
+                      className="api-item-details">
+                        {/* Equipment Stats */}
+                        {apiItemDetails.damage && (
+                          <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: 'var(--background-card)', borderRadius: 'var(--radius-sm)' }}>
+                            <strong>Damage:</strong> {apiItemDetails.damage.damage_dice} {apiItemDetails.damage.damage_type?.name}
+                          </div>
+                        )}
+                        {apiItemDetails.armor_class && (
+                          <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: 'var(--background-card)', borderRadius: 'var(--radius-sm)' }}>
+                            <strong>Armor Class:</strong> {apiItemDetails.armor_class.base}
+                            {apiItemDetails.armor_class.dex_bonus && ' + Dex modifier'}
+                            {apiItemDetails.armor_class.max_bonus && ` (max ${apiItemDetails.armor_class.max_bonus})`}
+                          </div>
+                        )}
+
+                        {/* Cost & Weight */}
+                        <div style={{ display: 'flex', gap: '20px', marginBottom: '15px', flexWrap: 'wrap' }}>
+                          {apiItemDetails.cost && (
+                            <div style={{ fontSize: '14px' }}>
+                              <strong>Cost:</strong> {apiItemDetails.cost.quantity} {apiItemDetails.cost.unit}
+                            </div>
+                          )}
+                          {apiItemDetails.weight && (
+                            <div style={{ fontSize: '14px' }}>
+                              <strong>Weight:</strong> {apiItemDetails.weight} lb
+                            </div>
+                          )}
+                          {apiItemDetails.rarity && (
+                            <div style={{ fontSize: '14px' }}>
+                              <strong>Rarity:</strong> {apiItemDetails.rarity.name}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Description - only show if it exists and has content */}
+                        {apiItemDetails.desc && apiItemDetails.desc.length > 0 && (
+                          <div>
+                            <strong>Description:</strong>
+                            <p style={{ whiteSpace: 'pre-wrap', fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: '1.6', marginTop: '10px' }}>
+                              {truncateDescription(Array.isArray(apiItemDetails.desc) ? apiItemDetails.desc.join('\n\n') : apiItemDetails.desc, 3)}
+                            </p>
+                            {(Array.isArray(apiItemDetails.desc) ? apiItemDetails.desc.join('\n\n') : apiItemDetails.desc).split('\n').length > 3 && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowFullDescription(!showFullDescription);
+                                }}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: 'var(--color-button-primary)',
+                                  cursor: 'pointer',
+                                  fontSize: '14px',
+                                  padding: '5px 0',
+                                  marginTop: '5px'
+                                }}
+                              >
+                                {showFullDescription ? 'Show Less' : '...Show More'}
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Import Button */}
+                        <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid var(--color-border)' }}>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleImportApiItem();
+                            }}
+                            disabled={loading}
+                            className={`btn ${loading ? 'btn-secondary' : 'btn-success'}`}
+                          >
+                            {loading ? 'Importing...' : 'Import to Library'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Loading state for selected item */}
+                    {selectedApiItem?.index === item.index && !apiItemDetails && (
+                      <div style={{
+                        marginTop: '10px',
+                        padding: '20px',
+                        backgroundColor: 'var(--background-card-secondary)',
+                        border: '2px solid var(--color-button-primary)',
+                        borderRadius: 'var(--radius-md)',
+                        textAlign: 'center',
+                        color: 'var(--color-text-muted)',
+                        gridColumn: '1 / -1'
+                      }}
+                      className="api-item-loading">
+                        <p>Loading details...</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {/* Show More Results Button */}
+                {hasMoreResults && (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '20px',
+                    gridColumn: '1 / -1'
+                  }}>
+                    <button
+                      type="button"
+                      onClick={() => setDisplayLimit(prev => prev + 8)}
+                      className="btn btn-secondary"
+                      style={{ minWidth: '200px' }}
+                    >
+                      Show More Results ({allFilteredResults.length - displayLimit} more)
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Bottom Action Buttons */}
+            <div className="btn-group" style={{ justifyContent: 'flex-end', marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={loading}
+                className="btn btn-cancel"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleImportApiItem}
+                disabled={!apiItemDetails || loading}
+                className={`btn ${!apiItemDetails || loading ? 'btn-secondary' : 'btn-success'}`}
+              >
+                {loading ? 'Importing...' : 'Import to Library'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

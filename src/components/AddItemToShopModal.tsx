@@ -311,7 +311,7 @@ export function AddItemToShopModal({
                     className={`btn ${submitting || !selectedItemId ? 'btn-secondary' : 'btn-success'}`}
                   >
                     {submitting ? 'Adding...' : 'Add to Shop'}
-                  </button>
+                  </button>1
                 </div>
               </form>
             </>
