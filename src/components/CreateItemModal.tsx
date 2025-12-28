@@ -4,6 +4,7 @@ import { DnDApiService } from '../services/dnd-api.service';
 import type { Item, ItemType } from '../types/item';
 import { getFieldsForType, getEnabledItemTypes } from '../config/item-fields.config';
 import { DynamicFormField } from './DynamicFormField';
+import { ApiItemDetailModal } from './ApiItemDetailModal';
 
 interface CreateItemModalProps {
   dmId: string;
@@ -63,7 +64,7 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
   const [apiSearching, setApiSearching] = useState(false);
   const [selectedApiItem, setSelectedApiItem] = useState<any>(null);
   const [apiItemDetails, setApiItemDetails] = useState<any>(null);
-  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   // Filters
   const [filterCategory, setFilterCategory] = useState<string>('all');
@@ -255,24 +256,16 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
 
   // API item selection handler
   const handleSelectApiItem = async (item: { index: string; name: string; category: string; itemType: 'equipment' | 'magic'; rarity?: string }) => {
-    // Toggle: if clicking the same item, close it
-    if (selectedApiItem?.index === item.index) {
-      setSelectedApiItem(null);
-      setApiItemDetails(null);
-      setShowFullDescription(false);
-      return;
-    }
-
-    // Select new item
+    // Select item and load details
     setSelectedApiItem(item);
     setApiItemDetails(null);
-    setShowFullDescription(false);
 
     try {
       const details = item.itemType === 'equipment'
         ? await DnDApiService.getEquipment(item.index)
         : await DnDApiService.getMagicItem(item.index);
       setApiItemDetails(details);
+      setShowDetailModal(true); // Open the detail modal
     } catch (err) {
       setError(`Failed to load details for ${item.name}`);
     }
@@ -295,22 +288,16 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
         officialId: apiItemDetails.index,
       });
 
+      // Close detail modal and main modal
+      setShowDetailModal(false);
       onSuccess();
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
+      throw err; // Re-throw so modal can handle it
     }
   };
 
-  // Helper to truncate description
-  const truncateDescription = (text: string, lines: number = 3) => {
-    const sentences = text.split('\n');
-    if (sentences.length <= lines && !showFullDescription) {
-      const truncated = sentences.slice(0, lines).join('\n');
-      return text.length > truncated.length ? truncated : text;
-    }
-    return showFullDescription ? text : sentences.slice(0, lines).join('\n');
-  };
 
   const validateForm = (): string | null => {
     if (!name.trim()) {
@@ -597,165 +584,40 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
                         flex-direction: column !important;
                         gap: 10px !important;
                       }
-                      .api-item-details,
-                      .api-item-loading {
-                        grid-column: auto !important;
-                      }
                     }
                   `}
                 </style>
                 {displayedResults.map(item => (
-                  <div key={item.index} style={{
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}>
-                    {/* Card/List Item */}
-                    <div
-                      onClick={() => handleSelectApiItem(item)}
-                      style={{
-                        padding: '15px',
-                        cursor: 'pointer',
-                        borderRadius: 'var(--radius-md)',
-                        border: `2px solid ${selectedApiItem?.index === item.index ? 'var(--color-button-primary)' : 'var(--color-border)'}`,
-                        backgroundColor: selectedApiItem?.index === item.index ? 'var(--background-card-secondary)' : 'var(--background-card)',
-                        transition: 'all 0.2s',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        height: '100%',
-                        minHeight: '80px'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (selectedApiItem?.index !== item.index) {
-                          e.currentTarget.style.borderColor = 'var(--color-text-secondary)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (selectedApiItem?.index !== item.index) {
-                          e.currentTarget.style.borderColor = 'var(--color-border)';
-                        }
-                      }}
-                    >
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '5px' }}>
-                          {item.name}
-                        </div>
-                        <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                          {item.category}
-                        </div>
+                  <div
+                    key={item.index}
+                    onClick={() => handleSelectApiItem(item)}
+                    style={{
+                      padding: '15px',
+                      cursor: 'pointer',
+                      borderRadius: 'var(--radius-md)',
+                      border: '2px solid var(--color-border)',
+                      backgroundColor: 'var(--background-card)',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      height: '100%',
+                      minHeight: '80px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--color-text-secondary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--color-border)';
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '5px' }}>
+                        {item.name}
                       </div>
-                      <div style={{ fontSize: '14px', color: 'var(--color-text-muted)', textAlign: 'right', marginTop: '10px' }}>
-                        {selectedApiItem?.index === item.index ? '▲ Hide Details' : '▼ Show Details'}
+                      <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                        {item.category}
                       </div>
                     </div>
-
-                    {/* Expandable Details */}
-                    {selectedApiItem?.index === item.index && apiItemDetails && (
-                      <div style={{
-                        marginTop: '10px',
-                        padding: '20px',
-                        backgroundColor: 'var(--background-card-secondary)',
-                        border: '2px solid var(--color-button-primary)',
-                        borderRadius: 'var(--radius-md)',
-                        animation: 'slideDown 0.2s ease-out',
-                        gridColumn: '1 / -1'
-                      }}
-                      className="api-item-details">
-                        {/* Equipment Stats */}
-                        {apiItemDetails.damage && (
-                          <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: 'var(--background-card)', borderRadius: 'var(--radius-sm)' }}>
-                            <strong>Damage:</strong> {apiItemDetails.damage.damage_dice} {apiItemDetails.damage.damage_type?.name}
-                          </div>
-                        )}
-                        {apiItemDetails.armor_class && (
-                          <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: 'var(--background-card)', borderRadius: 'var(--radius-sm)' }}>
-                            <strong>Armor Class:</strong> {apiItemDetails.armor_class.base}
-                            {apiItemDetails.armor_class.dex_bonus && ' + Dex modifier'}
-                            {apiItemDetails.armor_class.max_bonus && ` (max ${apiItemDetails.armor_class.max_bonus})`}
-                          </div>
-                        )}
-
-                        {/* Cost & Weight */}
-                        <div style={{ display: 'flex', gap: '20px', marginBottom: '15px', flexWrap: 'wrap' }}>
-                          {apiItemDetails.cost && (
-                            <div style={{ fontSize: '14px' }}>
-                              <strong>Cost:</strong> {apiItemDetails.cost.quantity} {apiItemDetails.cost.unit}
-                            </div>
-                          )}
-                          {apiItemDetails.weight && (
-                            <div style={{ fontSize: '14px' }}>
-                              <strong>Weight:</strong> {apiItemDetails.weight} lb
-                            </div>
-                          )}
-                          {apiItemDetails.rarity && (
-                            <div style={{ fontSize: '14px' }}>
-                              <strong>Rarity:</strong> {apiItemDetails.rarity.name}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Description - only show if it exists and has content */}
-                        {apiItemDetails.desc && apiItemDetails.desc.length > 0 && (
-                          <div>
-                            <strong>Description:</strong>
-                            <p style={{ whiteSpace: 'pre-wrap', fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: '1.6', marginTop: '10px' }}>
-                              {truncateDescription(Array.isArray(apiItemDetails.desc) ? apiItemDetails.desc.join('\n\n') : apiItemDetails.desc, 3)}
-                            </p>
-                            {(Array.isArray(apiItemDetails.desc) ? apiItemDetails.desc.join('\n\n') : apiItemDetails.desc).split('\n').length > 3 && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setShowFullDescription(!showFullDescription);
-                                }}
-                                style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  color: 'var(--color-button-primary)',
-                                  cursor: 'pointer',
-                                  fontSize: '14px',
-                                  padding: '5px 0',
-                                  marginTop: '5px'
-                                }}
-                              >
-                                {showFullDescription ? 'Show Less' : '...Show More'}
-                              </button>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Import Button */}
-                        <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid var(--color-border)' }}>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleImportApiItem();
-                            }}
-                            disabled={loading}
-                            className={`btn ${loading ? 'btn-secondary' : 'btn-success'}`}
-                          >
-                            {loading ? 'Importing...' : 'Import to Library'}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Loading state for selected item */}
-                    {selectedApiItem?.index === item.index && !apiItemDetails && (
-                      <div style={{
-                        marginTop: '10px',
-                        padding: '20px',
-                        backgroundColor: 'var(--background-card-secondary)',
-                        border: '2px solid var(--color-button-primary)',
-                        borderRadius: 'var(--radius-md)',
-                        textAlign: 'center',
-                        color: 'var(--color-text-muted)',
-                        gridColumn: '1 / -1'
-                      }}
-                      className="api-item-loading">
-                        <p>Loading details...</p>
-                      </div>
-                    )}
                   </div>
                 ))}
 
@@ -779,28 +641,19 @@ export function CreateItemModal({ dmId, onClose, onSuccess }: CreateItemModalPro
               </div>
             </div>
 
-            {/* Bottom Action Buttons */}
-            <div className="btn-group" style={{ justifyContent: 'flex-end', marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={loading}
-                className="btn btn-cancel"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleImportApiItem}
-                disabled={!apiItemDetails || loading}
-                className={`btn ${!apiItemDetails || loading ? 'btn-secondary' : 'btn-success'}`}
-              >
-                {loading ? 'Importing...' : 'Import to Library'}
-              </button>
-            </div>
           </div>
         )}
       </div>
+
+      {/* API Item Detail Modal */}
+      {showDetailModal && selectedApiItem && apiItemDetails && (
+        <ApiItemDetailModal
+          item={selectedApiItem}
+          itemDetails={apiItemDetails}
+          onClose={() => setShowDetailModal(false)}
+          onImport={handleImportApiItem}
+        />
+      )}
     </div>
   );
 }
