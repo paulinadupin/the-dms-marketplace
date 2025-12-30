@@ -1,3 +1,5 @@
+import { parseMarkdownTables } from '../utils/markdown';
+
 interface InventoryItemDetailModalProps {
   item: any;
   onClose: () => void;
@@ -101,7 +103,71 @@ export function InventoryItemDetailModal({ item, onClose }: InventoryItemDetailM
         {itemData.description && (
           <div className="player-modal-section">
             <h3>Description</h3>
-            <p>{itemData.description}</p>
+            <div style={{ lineHeight: '1.6' }}>
+              {parseMarkdownTables(itemData.description).map((block, idx) => {
+                if (block.type === 'text') {
+                  return (
+                    <p key={idx} style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>
+                      {block.content}
+                    </p>
+                  );
+                } else {
+                  // Render table
+                  const tableData = block.content as string[][];
+                  const headers = tableData[0];
+                  const rows = tableData.slice(1);
+
+                  return (
+                    <table
+                      key={idx}
+                      style={{
+                        width: '100%',
+                        borderCollapse: 'collapse',
+                        marginBottom: '15px',
+                        fontSize: '14px'
+                      }}
+                    >
+                      <thead>
+                        <tr>
+                          {headers.map((header, hIdx) => (
+                            <th
+                              key={hIdx}
+                              style={{
+                                border: '1px solid var(--color-border)',
+                                padding: '8px',
+                                backgroundColor: 'var(--background-card)',
+                                fontWeight: 'bold',
+                                textAlign: 'left'
+                              }}
+                            >
+                              {header}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map((row, rIdx) => (
+                          <tr key={rIdx}>
+                            {row.map((cell, cIdx) => (
+                              <td
+                                key={cIdx}
+                                style={{
+                                  border: '1px solid var(--color-border)',
+                                  padding: '8px',
+                                  textAlign: 'left'
+                                }}
+                              >
+                                {cell}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  );
+                }
+              })}
+            </div>
           </div>
         )}
 
