@@ -258,13 +258,15 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
         <div className="grid-container">
         {sortedMarkets.map((market) => {
           const isBlocked = !market.isActive && activeMarket && activeMarket.id !== market.id;
-          const cardClassName = `card card-clickable ${market.isActive ? 'market-card-active' : ''} ${isBlocked ? 'market-card-blocked' : ''}`;
+          const isExpanded = expandedActivityMarketId === market.id;
+          const cardClassName = `card card-clickable ${market.isActive ? 'market-card-active' : ''} ${isBlocked ? 'market-card-blocked' : ''} ${isExpanded ? 'market-card-expanded' : ''}`;
           return (
           <div
             key={market.id}
             onClick={() => navigate(`/dm/market/${market.id}/shops`)}
             className={cardClassName}
           >
+            <div className="market-card-main-content">
             <div className="card-header">
               <div className="card-body">
                 <div className="badge-container">
@@ -417,6 +419,7 @@ export function MarketList({ dmId, onCreateMarket, onMarketDeleted }: MarketList
                   Player Activity
                 </button>
               )}
+            </div>
             </div>
 
             {/* Player Activity Dropdown */}

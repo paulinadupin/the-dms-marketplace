@@ -177,6 +177,28 @@
   cursor: not-allowed;
 }
 
+/* Expanded market card - full width on desktop */
+@media (min-width: 769px) {
+  .market-card-expanded {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: row;
+    gap: var(--spacing-lg);
+  }
+
+  .market-card-expanded .market-card-main-content {
+    flex: 0 0 auto;
+    min-width: 300px;
+    max-width: 400px;
+  }
+
+  .market-card-expanded .market-activity-dropdown {
+    flex: 1;
+    margin-top: 0;
+    align-self: flex-start;
+  }
+}
+
 .market-toggle-section {
   display: flex;
   align-items: center;
