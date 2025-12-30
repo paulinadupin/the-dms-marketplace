@@ -180,7 +180,10 @@ export function PlayerShopInventory() {
           ←
         </button>
         <h1 className="player-header-title">{shop.name}</h1>
-        <PlayerInventoryMenu accessCode={accessCode!} />
+        <PlayerInventoryMenu
+          accessCode={accessCode!}
+          onInventoryChange={loadShopAndItems}
+        />
       </div>
 
       <div className="player-container">

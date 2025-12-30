@@ -4,9 +4,10 @@ import { InventoryItemDetailModal } from './InventoryItemDetailModal';
 
 interface PlayerInventoryMenuProps {
   accessCode: string;
+  onInventoryChange?: () => void;
 }
 
-export function PlayerInventoryMenu({ accessCode }: PlayerInventoryMenuProps) {
+export function PlayerInventoryMenu({ accessCode, onInventoryChange }: PlayerInventoryMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [playerData, setPlayerData] = useState<any>(null);
   const [showSellModal, setShowSellModal] = useState(false);
@@ -156,6 +157,7 @@ export function PlayerInventoryMenu({ accessCode }: PlayerInventoryMenuProps) {
           onSell={() => {
             loadPlayerData();
             setShowSellModal(false);
+            onInventoryChange?.(); // Notify parent to refresh shop inventory
           }}
         />
       )}
