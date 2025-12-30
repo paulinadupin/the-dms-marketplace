@@ -36,14 +36,14 @@
   --background-badge-official: #0d2b23;
   --color-badge-official: #1ba568;
   --background-badge-custom: #281829;
-  --color-badge-custom: #b877db;
+  --color-badge-custom: #9d77db;
   --background-badge-modified: #a4723c40;
   --color-badge-modified: #b08d7b;
   --background-badge-type: #44495a;
   --color-badge-type: #41c9e4;
 
   /* Status Colors - Dark Horizon */
-  --color-status-success: #b877db;
+  --color-status-success: #7777db;
   --color-status-danger: #f43e5c;
   --color-status-warning: #fab795;
   --color-status-info: #1a8a93;
