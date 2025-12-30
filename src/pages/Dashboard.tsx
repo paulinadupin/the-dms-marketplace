@@ -7,6 +7,7 @@ import { CreateMarketModal } from '../components/CreateMarketModal';
 import { MarketService } from '../services/market.service';
 import { LIMITS } from '../config/limits';
 import { HamburgerMenu } from '../components/HamburgerMenu';
+import { InfoBanner } from '../components/InfoBanner';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -67,6 +68,13 @@ export function Dashboard() {
         <div className="welcome-message">
           <p>Welcome, {user.displayName || user.email}!</p>
         </div>
+
+        {/* Info Banner */}
+        <InfoBanner
+          storageKey="dashboard-item-library-tip"
+          message="Access your Item Library and settings from the menu in the top right corner"
+        />
+
         {/* Market List */}
         <MarketList
           key={refreshKey}

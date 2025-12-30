@@ -1,0 +1,65 @@
+/* components/info-banner.css */
+
+.info-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background-color: var(--color-button-info);
+  border: 1px solid var(--color-button-info-hover);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-lg);
+  gap: var(--spacing-md);
+}
+
+.info-banner-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex: 1;
+}
+
+.info-banner-icon {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+
+.info-banner-message {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.info-banner-close {
+  background: none;
+  border: none;
+  color: var(--color-text-primary);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.info-banner-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+  .info-banner {
+    padding: 10px 15px;
+  }
+
+  .info-banner-message {
+    font-size: 13px;
+  }
+}

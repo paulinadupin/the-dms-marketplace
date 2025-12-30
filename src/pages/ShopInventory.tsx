@@ -12,6 +12,7 @@ import { AddItemToShopModal } from '../components/AddItemToShopModal';
 import { LIMITS } from '../config/limits';
 import { HamburgerMenu } from '../components/HamburgerMenu';
 import { hasMarkdownTable } from '../utils/markdown';
+import { InfoBanner } from '../components/InfoBanner';
 
 export function ShopInventory() {
   const { shopId } = useParams<{ shopId: string }>();
@@ -451,6 +452,11 @@ export function ShopInventory() {
       </div>
 
       <div className="page-container">
+        {/* Info Banner */}
+        <InfoBanner
+          storageKey="shop-inventory-library-tip"
+          message="To create and manage items for your shops, use Item Library from the menu in the top right corner"
+        />
 
         {/* Inventory Header */}
         <div className="controls-container">
