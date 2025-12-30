@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { ItemLibraryService } from '../services/item-library.service';
-import { StorageService } from '../services/storage.service';
 import type { ItemLibrary } from '../types/firebase';
 import { Toast } from './Toast';
 import { getEnabledItemTypes, getFieldsForType } from '../config/item-fields.config';
 import { DynamicFormField } from './DynamicFormField';
-import { ImageInput } from './ImageInput';
 
 interface EditItemModalProps {
   item: ItemLibrary;
@@ -68,9 +66,6 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
 
   // Image state
   const [imageUrl, setImageUrl] = useState(item.item.imageUrl || '');
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imageMode, setImageMode] = useState<'url' | 'upload'>('url');
-  const [imageChanged, setImageChanged] = useState(false);
 
   const typeFields = getFieldsForType(type);
 
@@ -203,54 +198,13 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
     try {
       let updatedItem = buildUpdatedItem();
 
-      // Handle image changes
-      const originalImageUrl = item.item.imageUrl;
-
-      // If image was cleared (had image before, now empty)
-      if (originalImageUrl && !imageUrl && !imageFile && StorageService.isFirebaseStorageUrl(originalImageUrl)) {
-        await StorageService.deleteItemImage(originalImageUrl);
-        updatedItem.imageUrl = null;
-      }
-
-      // If new file was uploaded
-      if (imageFile && imageMode === 'upload') {
-        // Delete old image if exists
-        if (originalImageUrl && StorageService.isFirebaseStorageUrl(originalImageUrl)) {
-          try {
-            await StorageService.deleteItemImage(originalImageUrl);
-          } catch (err) {
-            console.warn('Failed to delete old image:', err);
-          }
-        }
-
-        // Upload new image
-        const uploadedUrl = await StorageService.uploadItemImage(
-          item.dmId,
-          item.id,
-          imageFile
-        );
-        updatedItem.imageUrl = uploadedUrl;
-      }
-
       if (usageCount > 0 && editChoice === 'create') {
         // Create a new item instead of updating
-        const createdItem = await ItemLibraryService.createItem(item.dmId, {
+        await ItemLibraryService.createItem(item.dmId, {
           item: updatedItem,
           source: 'custom', // New item is always custom
           officialId: undefined,
         });
-
-        // If file upload for new item, upload it
-        if (imageFile && imageMode === 'upload') {
-          const uploadedUrl = await StorageService.uploadItemImage(
-            item.dmId,
-            createdItem.id,
-            imageFile
-          );
-          await ItemLibraryService.updateItem(createdItem.id, {
-            item: { ...updatedItem, imageUrl: uploadedUrl }
-          });
-        }
 
         setToast({ message: 'New item created successfully!', type: 'success' });
       } else {
@@ -284,7 +238,6 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
     description !== (item.item.description || '') ||
     type !== (item.item.type || '') ||
     imageUrl !== (item.item.imageUrl || '') ||
-    imageFile !== null ||
     JSON.stringify(dynamicFields) !== JSON.stringify({});
 
   return (
@@ -369,27 +322,14 @@ export function EditItemModal({ item, onClose, onSuccess }: EditItemModalProps) 
                 </div>
 
                 {/* Item Image */}
-                <div className="form-group-lg" style={{
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '15px',
-                  backgroundColor: 'var(--background-card-secondary)'
-                }}>
-                  <label className="form-label">Item Image (optional)</label>
-                  <ImageInput
-                    mode={imageMode}
-                    url={imageUrl}
-                    file={imageFile}
-                    onUrlChange={(url) => {
-                      setImageUrl(url);
-                      setImageChanged(true);
-                    }}
-                    onFileChange={(file) => {
-                      setImageFile(file);
-                      setImageChanged(true);
-                    }}
-                    onModeChange={setImageMode}
-                    currentImageUrl={item.item.imageUrl}
+                <div className="form-group">
+                  <label className="form-label">Item Image URL (optional)</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="https://example.com/image.jpg"
                   />
                 </div>
 
