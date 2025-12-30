@@ -8,18 +8,18 @@
   --background-empty-state: #1c1e26;
 
   /* Button Colors - Dark Horizon */
-  --color-button-primary: #e95678;
-  --color-button-primary-hover: #f26d8c;
-  --color-button-success: #1ba568;
-  --color-button-success-hover: #159257;
+  --color-button-primary: #718ab8;
+  --color-button-primary-hover: #8cace3;
+  --color-button-success: #1ba570;
+  --color-button-success-hover: #15926f;
   --color-button-danger: #f43e5c;
   --color-button-danger-hover: #e02847;
   --color-button-warning: #7e4d34;
   --color-button-warning-hover: #f9a87e;
   --color-button-secondary: #6c6f93;
   --color-button-secondary-hover: #8488a8;
-  --color-button-info: #1a8a93;
-  --color-button-info-hover: #1f9da7;
+  --color-button-info: #3c74a5;
+  --color-button-info-hover: #7eb4d6;
 
   /* Text Colors - Dark Horizon */
   --color-text-primary: #e3e6ee;
@@ -39,8 +39,8 @@
   --color-badge-custom: #b877db;
   --background-badge-modified: #a4723c40;
   --color-badge-modified: #b08d7b;
-  --background-badge-type: #142834;
-  --color-badge-type: #1a8a93;
+  --background-badge-type: #44495a;
+  --color-badge-type: #41c9e4;
 
   /* Status Colors - Dark Horizon */
   --color-status-success: #b877db;
