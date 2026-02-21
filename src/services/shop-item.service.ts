@@ -376,19 +376,21 @@ export class ShopItemService {
       let updateCount = 0;
 
       for (const item of items) {
-        if (!item.customData || item.originalStock === undefined) {
-          console.log('Migration: Item needs update:', item.id);
+        // Always sync customData for non-independent items (keeps images/info up to date)
+        // Also fix originalStock if missing
+        const needsStockFix = item.originalStock === undefined;
+        const isNonIndependent = !item.isIndependent;
+
+        if (isNonIndependent || needsStockFix) {
           const libraryItem = await ItemLibraryService.getItem(item.itemLibraryId);
           if (libraryItem) {
             const docRef = doc(db, this.COLLECTION, item.id);
             const updates: any = { updatedAt: Timestamp.now() };
-            if (!item.customData) {
+            if (isNonIndependent) {
               updates.customData = libraryItem.item;
-              console.log('Migration: Adding customData for', item.id);
             }
-            if (item.originalStock === undefined) {
+            if (needsStockFix) {
               updates.originalStock = item.stock;
-              console.log('Migration: Adding originalStock for', item.id);
             }
             batch.update(docRef, updates);
             updateCount++;

@@ -33,6 +33,7 @@ export function ShopManagement() {
   const [editingShopNameId, setEditingShopNameId] = useState<string | null>(null);
   const [shopNameForm, setShopNameForm] = useState('');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange((authUser) => {
@@ -102,6 +103,19 @@ export function ShopManagement() {
       setToast({ message: err.message, type: 'error' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSyncItems = async () => {
+    if (!marketId) return;
+    setSyncing(true);
+    try {
+      await ShopItemService.migrateItemsWithCustomData(marketId);
+      setToast({ message: 'Item data synced! Players can now see the latest images.', type: 'success' });
+    } catch (err: any) {
+      setToast({ message: 'Sync failed: ' + err.message, type: 'error' });
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -364,6 +378,14 @@ export function ShopManagement() {
                 )}
               </div>
               <div className="button-group">
+                <button
+                  onClick={handleSyncItems}
+                  disabled={syncing}
+                  className="btn btn-secondary"
+                  title="Sync item images and data from library to player view"
+                >
+                  {syncing ? 'Syncing...' : 'Sync'}
+                </button>
                 <button
                   onClick={() => setShowCreateModal(true)}
                   disabled={shops.length >= LIMITS.SHOPS_PER_MARKET}

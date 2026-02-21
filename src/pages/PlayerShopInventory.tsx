@@ -92,7 +92,9 @@ export function PlayerShopInventory() {
 
   const getItemData = (shopItem: ShopItem) => {
     // Use embedded customData (always available for new items, may be null for old items)
-    return shopItem.customData || null;
+    const data = shopItem.customData || null;
+    console.log('[DEBUG] Item:', data?.name, '| imageUrl:', data?.imageUrl ?? 'MISSING');
+    return data;
   };
 
   const canAffordItem = (shopItem: ShopItem): boolean => {
