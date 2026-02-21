@@ -162,6 +162,11 @@ export class ItemLibraryService {
       }
 
       await updateDoc(docRef, updateData);
+
+      // Propagate item data changes to all non-independent shop items so players see updated images/info
+      if (updates.item !== undefined) {
+        await ShopItemService.syncCustomDataForLibraryItem(itemId, updates.item);
+      }
     } catch (error: any) {
       throw new Error('Failed to update item: ' + error.message);
     }

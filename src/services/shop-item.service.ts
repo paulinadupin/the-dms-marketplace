@@ -262,6 +262,37 @@ export class ShopItemService {
   }
 
   /**
+   * Sync customData for all non-independent shop items referencing a library item
+   * Called when a library item is updated, so players see the latest data
+   */
+  static async syncCustomDataForLibraryItem(itemLibraryId: string, updatedItem: any): Promise<void> {
+    try {
+      const q = query(
+        collection(db, this.COLLECTION),
+        where('itemLibraryId', '==', itemLibraryId),
+        where('isIndependent', '==', false)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) return;
+
+      const batch = writeBatch(db);
+
+      querySnapshot.docs.forEach((docSnap: any) => {
+        batch.update(docSnap.ref, {
+          customData: updatedItem,
+          updatedAt: Timestamp.now(),
+        });
+      });
+
+      await batch.commit();
+    } catch (error: any) {
+      throw new Error('Failed to sync custom data: ' + error.message);
+    }
+  }
+
+  /**
    * Remove all instances of a library item from all shops
    * Used when deleting an item from the library
    */
